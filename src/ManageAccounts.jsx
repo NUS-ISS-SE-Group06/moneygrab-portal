@@ -43,8 +43,6 @@ export default function ManageAccounts() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-    
-
       {/* Main content */}
       <main className="flex-1 p-10">
         <div className="flex items-center justify-between mb-6">
@@ -83,8 +81,12 @@ export default function ManageAccounts() {
                     <td className="py-2 px-4">{acc.role}</td>
                     <td className="py-2 px-4">{acc.email}</td>
                     <td className="py-2 px-4 flex gap-2">
-                      <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded">Edit</button>
-                      <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded">Delete</button>
+                      <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded">
+                        Edit
+                      </button>
+                      <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded">
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
