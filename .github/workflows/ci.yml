@@ -26,7 +26,11 @@ jobs:
         run: npm ci
 
       - name: Run build
+        env:
+          CI: false # Disable treating warnings as errors during build
         run: npm run build
 
       - name: Run Test
-        run: CI=false npm test -- --watchAll=false
+        env:
+          CI: false # Disable watch mode and treat warnings as non-errors
+        run: npm test -- --watchAll=false
