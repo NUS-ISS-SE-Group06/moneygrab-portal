@@ -1,0 +1,32 @@
+name: CI - React Test and Build
+
+on:
+  push:
+    branches:
+      - '**'  # Run CI on all branches
+  pull_request:
+    branches:
+      - main  # Run CI on PRs into main
+
+jobs:
+  react-test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        run: npm run build
+
+      - name: Run Test
+        run: npm test -- --watchAll=false
