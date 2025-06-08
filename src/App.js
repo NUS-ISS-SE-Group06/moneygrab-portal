@@ -6,7 +6,7 @@ import Commission from "./pages/Commission"; // Adjust the import path as necess
 function App() {
   return (
     <LayoutWithResizableSidebar>
-      <Commission />
+      <ManageAccounts />
     </LayoutWithResizableSidebar>
   );
 }
