@@ -3,15 +3,15 @@ name: CI - React Test and Build
 on:
   push:
     branches:
-      - '**'
+      - '**'  # Run CI on all branches
   pull_request:
     branches:
-      - main
+      - main  # Run CI on PRs into main
 
 jobs:
   react-test-and-build:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,16 +21,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-
+          
       - name: Install dependencies
         run: npm ci
 
       - name: Run build
         env:
-          CI: false
+          CI: false # Disable treating warnings as errors during build
         run: npm run build
 
       - name: Run Test
         env:
-          CI: false
+          CI: false # Disable watch mode and treat warnings as non-errors
         run: npm test -- --watchAll=false
