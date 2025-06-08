@@ -3,10 +3,10 @@ name: CI - React Test and Build
 on:
   push:
     branches:
-      - '**'  # Run CI on all branches
+      - '**'
   pull_request:
     branches:
-      - main  # Run CI on PRs into main
+      - main
 
 jobs:
   react-test-and-build:
@@ -34,24 +34,3 @@ jobs:
         env:
           CI: false
         run: npm test -- --watchAll=false
-
-      - name: Deploy to S3
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --delete
-        env:
-          AWS_S3_BUCKET: my-ui-bucket
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ap-southeast-1
-          SOURCE_DIR: "build"
-
-      - name: Invalidate CloudFront cache
-        uses: chetan/invalidate-cloudfront-action@v2
-        with:
-          distribution-id: ${{ secrets.CLOUDFRONT_DIST_ID }}
-          paths: '/*'
-        env:
-          AWS_REGION: ap-southeast-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
