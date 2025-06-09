@@ -1,12 +1,23 @@
 // src/sidebar.js
+
 import React, { useRef, useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
-  "Account", "Money Changer", "FX Rate Upload", "Commission", "Currency",
-  "Compute Rates", "View Rates", "Currency Codes", "Transactions"
+  { label: "Account", path: "/account" },
+  { label: "Money Changer", path: "/money-changer" },
+  { label: "FX Rate Upload", path: "/fx-rate-upload" },
+  { label: "Commission", path: "/commission" },
+  { label: "Currency", path: "/currency" },
+  { label: "Compute Rates", path: "/compute-rates" },
+  { label: "View Rates", path: "/view-rates" },
+  { label: "Currency Codes", path: "/currency-codes" },
+  { label: "Transactions", path: "/transactions" }
 ];
 
-function Sidebar({ active, setActive, width }) {
+function Sidebar({ width }) {
+  const location = useLocation();
+
   return (
     <aside
       className="bg-white border-r px-4 py-6 h-screen"
@@ -16,18 +27,18 @@ function Sidebar({ active, setActive, width }) {
         <span className="font-bold text-lg">MoneyGrab</span>
       </div>
       <nav className="space-y-2 text-gray-700">
-        {navItems.map(item => (
-          <button
-            key={item}
-            onClick={() => setActive(item)}
-            className={`w-full text-left px-3 py-2 rounded transition
-              ${active === item
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`block px-3 py-2 rounded transition
+              ${location.pathname === item.path
                 ? "bg-green-600 text-white font-semibold outline outline-2 outline-blue-400"
                 : "hover:bg-green-100 hover:text-green-700"}`}
             style={{ cursor: "pointer" }}
           >
-            {item}
-          </button>
+            {item.label}
+          </Link>
         ))}
       </nav>
     </aside>
@@ -37,7 +48,6 @@ function Sidebar({ active, setActive, width }) {
 export default function LayoutWithResizableSidebar({ children }) {
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [dragging, setDragging] = useState(false);
-  const [activeNav, setActiveNav] = useState("Account");
 
   const onMouseDown = () => setDragging(true);
 
@@ -66,7 +76,7 @@ export default function LayoutWithResizableSidebar({ children }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar active={activeNav} setActive={setActiveNav} width={sidebarWidth} />
+      <Sidebar width={sidebarWidth} />
       {/* Drag handle */}
       <div
         className="w-2 cursor-ew-resize bg-gray-200 hover:bg-blue-300 transition"
