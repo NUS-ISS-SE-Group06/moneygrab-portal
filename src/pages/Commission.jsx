@@ -263,13 +263,13 @@ const Commission = () => {
           {loadingSchemes ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
-            <table className="min-w-full text-left">
+            <table className="min-w-full table-fixed text-left border border-gray-300 border-collapse">
               <thead>
-                <tr className="bg-gray-100 text-gray-700">
+                <tr className="bg-gray-100 text-gray-700 divide-x divide-gray-300">
                   <th className="py-2 px-4">Commission Tag</th>
-                  <th className="py-2 px-4">Description</th>
-                  <th className="py-2 px-4">Default</th>
-                  <th className="py-2 px-4"></th>
+                  <th className="py-2 px-4 py-2 px-4 w-[60%]">Description</th>
+                  <th className="py-2 px-4 text-center w-20">Default</th>
+                  <th className="py-2 px-4 text-center w-20"></th>
                 </tr>
               </thead>
               <tbody>
@@ -278,7 +278,7 @@ const Commission = () => {
 
                   return (                             
                         <tr key={scheme.id} 
-                            className={`border-b last:border-b-0 cursor-pointer ${isSelected ? "bg-indigo-100" : ""}`}
+                            className={`border-b last:border-b-0 cursor-pointer divide-x divide-gray-300  ${isSelected ? "bg-indigo-100" : ""}`}
                             onClick={() => handleRowClickScheme(scheme)}
                         >
                           <td className="py-2 px-4">{scheme.nameTag}</td>
@@ -291,7 +291,7 @@ const Commission = () => {
                               className="cursor-default"
                             />
                           </td>
-                          <td className="py-2 px-4 flex gap-2">
+                          <td className="py-2 px-4 flex justify-end gap-2">
                             <button 
                               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
                               onClick={() => {
@@ -363,12 +363,12 @@ const Commission = () => {
           {loadingRates ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
-            <table className="min-w-full text-left">
+            <table className="min-w-full table-fixed text-left border border-gray-300 border-collapse">
               <thead>
-                <tr className="bg-gray-100 text-gray-700">
+                <tr className="bg-gray-100 text-gray-700 divide-x divide-gray-300">
                   <th className="py-2 px-4">Symbol</th>
                   <th className="py-2 px-4">Commission Rates</th>
-                  <th className="py-2 px-4"></th>
+                  <th className="py-2 px-4 text-center w-20"></th>
                 </tr>
               </thead>
               <tbody>
@@ -377,12 +377,12 @@ const Commission = () => {
 
                     return (  
                             <tr key={rate.id} 
-                              className={`border-b last:border-b-0 cursor-pointer ${isSelected ? "bg-indigo-100" : ""}`}
+                              className={`border-b last:border-b-0 cursor-pointer divide-x divide-gray-300  ${isSelected ? "bg-indigo-100" : ""}`}
                               onClick={() => handleRowClickCommissionRate(rate)}
                             >
                               <td className="py-2 px-4">{rate.currency}</td>
                               <td className="py-2 px-4">{rate.rate}</td>
-                              <td className="py-2 px-4 flex gap-2">
+                              <td className="py-2 px-4 flex justify-end gap-2">
                                 <button 
                                   className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
                                   onClick={() => {
@@ -423,7 +423,7 @@ const Commission = () => {
           />
         )}
 
-        <hr className="border-t border-black my-6" />
+       <hr className="border-t border-grey my-6" />
 
 
         <div className="flex items-center justify-between mb-6">
@@ -450,12 +450,12 @@ const Commission = () => {
           {loadingCompanySchemes ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
-            <table className="min-w-full text-left">
+            <table className="min-w-full table-fixed text-left border border-gray-300 border-collapse">
               <thead>
-                <tr className="bg-gray-100 text-gray-700">
+                <tr className="bg-gray-100 text-gray-700 divide-x divide-gray-300">
                   <th className="py-2 px-4">Money Changer</th>
                   <th className="py-2 px-4">Commission Tag</th>
-                  <th className="py-2 px-4"></th>
+                  <th className="py-2 px-4 text-center w-20"></th>
                 </tr>
               </thead>
               <tbody>
@@ -463,12 +463,12 @@ const Commission = () => {
                   const isSelected = selectedCompanyCommissionScheme?.id === company.id;
                   return (
                       <tr key={company.id} 
-                        className={`border-b last:border-b-0 cursor-pointer ${isSelected ? "bg-indigo-100" : ""}`}
+                        className={`border-b last:border-b-0 cursor-pointer divide-x divide-gray-300  ${isSelected ? "bg-indigo-100" : ""}`}
                         onClick={() => handleRowClickCompanyCommissionScheme(company)}
                       >
                       <td className="py-2 px-4">{company.moneychanger}</td>
                       <td className="py-2 px-4">{company.commissiontag}</td>
-                      <td className="py-2 px-4 flex gap-2">
+                      <td className="py-2 px-4 flex justify-end gap-2">
                         <button 
                           className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
                           onClick={() => {
