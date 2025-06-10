@@ -1,8 +1,10 @@
-import React, { use, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import api from "../api/axios";
-import Sidebar from "../components/sidebar";
 import CommissionSchemeCreateModal from "../components/CommissionSchemeCreateModal";
 import CommissionSchemeEditModal from "../components/CommissionSchemeEditModal";
+import CommissionRateCreateModal from "../components/CommissionRateCreateModal"; 
+import CommissionRateEditModal from "../components/CommissionRateEditModal"; 
+
 
 const Commission = () => {
   const [loadingSchemes, setLoadingSchemes] = useState(false);
@@ -31,12 +33,11 @@ const Commission = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoadingSchemes(true);
-      setLoadingRates(true);
       setLoadingCompanySchemes(true);
    
       try {
-        const schemesResponse = await api.get("/api/v1/schemes");
-        setCommissionSchemes(schemesResponse.data);
+        const response = await api.get("/api/v1/schemes");
+        setCommissionSchemes(response.data);
       } catch (err) {
         setSchemeError("Failed to load commission schemes. Please try again later.");
         console.error("Schemes Error:", err);
@@ -44,10 +45,34 @@ const Commission = () => {
         setLoadingSchemes(false);
       }
 
+    };
+
+    fetchData();
+  }, []);
+
+
+
+  useEffect(() => {
+    const fetchCommissionRates = async () => {
+      if (!selectedCommissionScheme?.id) {
+        setCommissionRates([]);
+        setCompanyCommissionSchemes([]);
+        return;
+      }
+
+      setLoadingRates(true);
+      setLoadingCompanySchemes(true);
+      setCommissionRateError(null);
+      setCompanyCommissionSchemeError(null);
 
       try {
-        const commissionRateResponse = await api.get("/api/v1/commission-rates");
-        setCommissionRates(commissionRateResponse.data);
+        const response = await api.get("/api/v1/commission-rates",{
+          params: {
+            schemeId: selectedCommissionScheme?.id
+          }
+        });
+
+        setCommissionRates(response.data);
       } catch (err) {
         setCommissionRateError("Failed to load commission rates. Please try again later.");
         console.error("Commission Rate Error:", err);
@@ -55,138 +80,82 @@ const Commission = () => {
         setLoadingRates(false);
       }
 
-       try {
-        const companyCommissionSchemeResponse = await api.get("/api/v1/company-commission-schemes");
-        setCompanyCommissionSchemes(companyCommissionSchemeResponse.data);
+
+      try {
+        const response = await api.get("/api/v1/company-commission-schemes");
+        setCompanyCommissionSchemes(response.data);
       } catch (err) {
         setCompanyCommissionSchemeError("Failed to load company commission scheme. Please try again later.");
         console.error("Company Commission Scheme Error:", err);
       } finally {
         setLoadingCompanySchemes(false);
       }
-
-
     };
 
-    fetchData();
-  }, []);
+    fetchCommissionRates();
+  }, [selectedCommissionScheme]);
 
-    // Commission Scheme Handlers
-    const handleOpenCreateSchemeModal = () => {
-      setSchemeError(null);
-      setShowModalCreateCommissionScheme(true)
-    };
+  // Commission Scheme Handlers
+  const applyUpdatedScheme = (updatedScheme) => {
+    setCommissionSchemes((prev) =>
+      prev.map((s) => {
+        if (s.id === updatedScheme.id) {
+          return updatedScheme;
+        }
+        if (updatedScheme.isDefault) {
+          // Unset isDefault for all others
+          return { ...s, isDefault: false };
+        }
+        return s;
+      })
+    );
+  };
 
-    const handleCloseCreateSchemeModal = () => {
-      setShowModalCreateCommissionScheme(false);
-    };
-
-    const handleOpenEditSchemeModal = (scheme) => {
-      setShowModalEditCommissionScheme(true);
-    };
-
-    const handleCloseEditSchemeModal = () => {
-      setShowModalEditCommissionScheme(false);
-    };  
-
-    const handleRowClickScheme = (scheme) => {
-      setSelectedCommissionScheme(scheme);
-      console.log("Selected scheme:", scheme);
-    }
-
-    const handleSchemeCreated = (newScheme) => {
-      setCommissionSchemes((prevSchemes) => [...prevSchemes, newScheme]);
-    };
-
-    const handleSchemeUpdated = (updatedScheme) => {
-      setCommissionSchemes((prev) =>
-        prev.map((s) => {
-          if (s.id === updatedScheme.id) {
-            return updatedScheme;
-          }
-          if (updatedScheme.isDefault) {
-            // Unset isDefault for all others
-            return { ...s, isDefault: false };
-          }
-          return s;
-        })
+  const handleCommissionSchemeDelete = async (id) => {
+    try {
+      await api.delete(`/api/v1/schemes/${id}`);
+      setCommissionSchemes((prevSchemes) =>
+        prevSchemes.filter((scheme) => scheme.id !== id)
       );
-    };
-
-    const handleDeleteCommissionScheme = async (id) => {
-      try {
-        await api.delete(`/api/v1/schemes/${id}`);
-        setCommissionSchemes((prevSchemes) =>
-          prevSchemes.filter((scheme) => scheme.id !== id)
-        );
-      } catch (err) {
-        console.error("Failed to delete scheme:", err);
-        setSchemeError("Failed to delete scheme. Please try again later.");
-      }
-    };  
-
-  // Commission Rates Handlers
-    const handleOpenCreateCommissionRateModal = () => {
-      setCommissionRateError(null);
-      setShowModalCreateCommissionRate(true)
-    };
-
-    const handleCloseCreateCommissionRateModal = () => {
-      setShowModalCreateCommissionRate(false);
-    };
-
-    const handleOpenEditCommissionRateModal = (scheme) => {
-      setShowModalEditCommissionRate(true);
-    };
-
-    const handleCloseEditCommissionRateModal = () => {
-      setShowModalEditCommissionRate(false);
-    }; 
-
-    const handleRowClickCommissionRate = (rate) => {
-      setSelectedCommissionRate(rate);
-      console.log("Selected scheme:", rate);
+      setSelectedCommissionScheme(null);
+    } catch (err) {
+      setSchemeError("Failed to delete scheme. Please try again later.");
+      console.error("Failed to delete scheme:", err);
     }
+  };  
 
-    const handleCommissionRateCreated = (newRate) => {
-      setCommissionRates((prevRates) => [...prevRates, newRate]);
-    };
-    
-    const handleDeleteCommissionRate = async (id) => {
-      try {
-        await api.delete(`/api/v1/commission-rates/${id}`);
-        setCommissionRates((prevRates) =>
-          prevRates.filter((rate) => rate.id !== id)
-        );
-      } catch (err) {
-        console.error("Failed to delete rate:", err);
-        setSchemeError("Failed to delete rate. Please try again later.");
-      }
-    };  
-
-    const handleCommissionRateUpdated = (updatedRate) => {
-      setCommissionSchemes((prev) =>
-        prev.map((s) => {
-          if (s.id === updatedRate.id) {
-            return updatedRate;
-          }
-          if (updatedRate.isDefault) {
-            // Unset isDefault for all others
-            return { ...s, isDefault: false };
-          }
-          return s;
-        })
+  // Commission Rates Handlers  
+  const handleCommissionRateDelete = async (id) => {
+    try {
+      await api.delete(`/api/v1/commission-rates/${id}`);
+      setCommissionRates((prevRates) =>
+        prevRates.filter((rate) => rate.id !== id)
       );
-    };
+    } catch (err) {
+      setSchemeError("Failed to delete rate. Please try again later.");
+      console.error("Failed to delete rate:", err);
+    }
+  };  
+
+  const ApplyUpdatedCommissionRate = (updatedRate) => {
+    setCommissionSchemes((prev) =>
+      prev.map((s) => {
+        if (s.id === updatedRate.id) {
+          return updatedRate;
+        }
+        if (updatedRate.isDefault) {
+          // Unset isDefault for all others
+          return { ...s, isDefault: false };
+        }
+        return s;
+      })
+    );
+  };
 
   
   // Company Commission Scheme Handlers
-    const handleOpenCreateCompanyCommissionSchemeModal = () => {
-      setCompanyCommissionSchemeError(null);
-      setShowModalCreateCompanyCommissionScheme(true)
-    };
 
-    const handleCloseCreateCompanyCommissionSchemeModal = () => {
+     const handleCloseCreateCompanyCommissionSchemeModal = () => {
       setShowModalCreateCompanyCommissionScheme(false);
     };
 
@@ -229,11 +198,10 @@ const Commission = () => {
           prevCompany.filter((company) => company.id !== id)
         );
       } catch (err) {
-        console.error("Failed to delete scheme:", err);
         setSchemeError("Failed to delete scheme. Please try again later.");
+        console.error("Failed to delete scheme:", err);
       }
     };  
-
 
 
   return (
@@ -244,7 +212,7 @@ const Commission = () => {
           <h1 className="text-2xl font-extrabold">COMMISSION SCHEME</h1>
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center font-medium"
-            onClick={handleOpenCreateSchemeModal}
+            onClick={ () => { setSchemeError(null); setShowModalCreateCommissionScheme(true)}}
           >
             + Create New Scheme
           </button>
@@ -254,7 +222,7 @@ const Commission = () => {
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p>{schemeError}</p>
+              <p className="whitespace-pre-line">{schemeError}</p>
             </div>
           </div>
         )}
@@ -279,7 +247,7 @@ const Commission = () => {
                   return (                             
                         <tr key={scheme.id} 
                             className={`border-b last:border-b-0 cursor-pointer divide-x divide-gray-300  ${isSelected ? "bg-indigo-100" : ""}`}
-                            onClick={() => handleRowClickScheme(scheme)}
+                            onClick={() => { setSelectedCommissionScheme(scheme); console.log("Selected scheme:", scheme);}}
                         >
                           <td className="py-2 px-4">{scheme.nameTag}</td>
                           <td className="py-2 px-4">{scheme.description}</td>
@@ -294,17 +262,13 @@ const Commission = () => {
                           <td className="py-2 px-4 flex justify-end gap-2">
                             <button 
                               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                              onClick={() => {
-                                handleOpenEditSchemeModal(scheme)
-                              }}
+                              onClick={() => { setShowModalEditCommissionScheme(true) }}
                             >
                               Edit
                             </button>
                             <button 
                               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                              onClick={() => { 
-                                handleDeleteCommissionScheme(scheme.id)
-                              }}
+                              onClick={() => { handleCommissionSchemeDelete(scheme.id) }}
                             >
                               Delete
                             </button>
@@ -319,16 +283,16 @@ const Commission = () => {
 
         {showModalCreateCommissionScheme && (
           <CommissionSchemeCreateModal
-            onClose={handleCloseCreateSchemeModal}
-            onCreated={handleSchemeCreated}
+            onClose={() => setShowModalCreateCommissionScheme(false)}
+            onCreated={ (newScheme) => {setCommissionSchemes((prevSchemes) => [...prevSchemes, newScheme]) }}
           />
         )}
 
         {showModalEditCommissionScheme && (
           <CommissionSchemeEditModal
             scheme={selectedCommissionScheme}
-            onClose={handleCloseEditSchemeModal}
-            onUpdated={handleSchemeUpdated}
+            onClose={() => setShowModalEditCommissionScheme(false)}
+            onUpdated={applyUpdatedScheme}
           />
         )}
         
@@ -338,7 +302,7 @@ const Commission = () => {
           <h1 className="text-2xl font-extrabold">COMMISSION RATES</h1>
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center font-medium"
-            onClick={handleOpenCreateCommissionRateModal}
+            onClick={()=> { setCommissionRateError(null); setShowModalCreateCommissionRate(true) }}
           >
             + Create New Commision Rate
           </button>
@@ -348,7 +312,7 @@ const Commission = () => {
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p>{commissionRateError}</p>
+              <p className="whitespace-pre-line">{commissionRateError}</p>
             </div>
           </div>
         )}
@@ -378,24 +342,20 @@ const Commission = () => {
                     return (  
                             <tr key={rate.id} 
                               className={`border-b last:border-b-0 cursor-pointer divide-x divide-gray-300  ${isSelected ? "bg-indigo-100" : ""}`}
-                              onClick={() => handleRowClickCommissionRate(rate)}
+                              onClick={() => { setSelectedCommissionRate(rate); console.log("Selected rate:", rate) }}
                             >
                               <td className="py-2 px-4">{rate.currency}</td>
                               <td className="py-2 px-4">{rate.rate}</td>
                               <td className="py-2 px-4 flex justify-end gap-2">
                                 <button 
                                   className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                                  onClick={() => {
-                                      handleOpenEditCommissionRateModal(rate)
-                                  }}
+                                  onClick={() => { setShowModalEditCommissionRate(true) }}
                                 >
                                   Edit
                                 </button>
                                 <button 
                                   className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                                  onClick={() => { 
-                                      handleDeleteCommissionRate(rate.id)
-                                  }}
+                                  onClick={() => { handleCommissionRateDelete(rate.id) }}
                                 >
                                   Delete
                                 </button>
@@ -409,17 +369,18 @@ const Commission = () => {
         </div>
 
         {showModalCreateCommissionRate && (
-          <CommissionSchemeCreateModal
-            onClose={handleCloseCreateCommissionRateModal}
-            onCreated={handleCommissionRateCreated}
+          <CommissionRateCreateModal
+            selectedScheme={selectedCommissionScheme}
+            onClose={() => { setShowModalCreateCommissionRate(false)}}
+            onCreated={(newRate)=> { setCommissionRates((prevRates) => [...prevRates, newRate]) }}
           />
         )}
 
         {showModalEditCommissionRate && (
-          <CommissionSchemeEditModal
-            scheme={selectedCommissionRate}
-            onClose={handleCloseEditCommissionRateModal}
-            onUpdated={handleCommissionRateUpdated}
+          <CommissionRateEditModal
+            selectedCommissionRate={selectedCommissionRate}
+            onClose={()=> { setShowModalEditCommissionRate(false) }}
+            onUpdated={ApplyUpdatedCommissionRate}
           />
         )}
 
@@ -430,7 +391,7 @@ const Commission = () => {
           <h1 className="text-2xl font-extrabold">COMPANY COMMISSION SCHEME</h1>
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center font-medium"
-            onClick={handleOpenCreateCompanyCommissionSchemeModal}
+            onClick={()=> { setCompanyCommissionSchemeError(null); setShowModalCreateCompanyCommissionScheme(true) }}
           >
             + Set Commision Scheme
           </button>
@@ -440,10 +401,15 @@ const Commission = () => {
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p>{companyCommissionSchemeError}</p>
+              <p className="whitespace-pre-line">{companyCommissionSchemeError}</p>
             </div>
           </div>
         )}
+
+        <div className="mb-[3mm]">
+          <span>Commission Tag: </span>
+          <span className="font-bold">{selectedCommissionScheme?.nameTag}</span>
+        </div>
         
 
         <div className="bg-white shadow rounded">
