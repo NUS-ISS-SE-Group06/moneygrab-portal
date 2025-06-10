@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 
 const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
-  const [userId, setUserId] = useState(1);
+  const [userId] = useState(1);
   const [nameTag, setNameTag] = useState("");
   const [description, setDescription] = useState("");
   const [isDefault, setIsDefault] = useState(false);
@@ -17,19 +17,25 @@ const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
   }, [scheme]);
 
   const handleSave = async () => {
-    setError(null);
+    const errors = [];
+    setError("");
 
     if (!nameTag) {
-      setError("Commission tag is required.");
+      errors.push("Commission tag is required.");
+    } 
+
+    if (errors.length > 0) {
+      setError(errors.join("\n"));
       return;
     }
+
 
     try {
       const response = await api.put(`/api/v1/schemes/${scheme.id}`, {
         nameTag,
         description,
         isDefault,
-        createdBy: scheme.createdBy,
+        createdBy: userId,
       });
 
       onUpdated(response.data);
@@ -85,7 +91,7 @@ const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p>{error}</p>
+              <p className="whitespace-pre-line">{error}</p>
             </div>
           </div>     
         )}

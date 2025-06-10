@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 
-const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
+const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onCreated }) => {
   const [userId] = useState(1);
-  const [commissionRate, setCommissionRate] = useState({
-    currencyId: null,
-    currency: "",
-    schemeId: selectedScheme?.id,
-    nameTag: selectedScheme?.nameTag, 
-    rate: null,
-  });
-
-
+  //const [symbol] = useState(selectedSymbol);
+  //const [symbol, setSymbol] = useState({});
+  const [commissionRate, setCommissionRate] = useState(selectedCommissionRate);
   const [error, setError] = useState("");
   const [currencies,setCurrencies] = useState([]);
+
+
+    //const [scheme] = useState(selectedScheme);
+    //const [symbol, setSymbol] = useState({});
+
+
+  
+
 
 useEffect(() => {
   const fetchCurrencies = async () => {
@@ -50,13 +52,18 @@ useEffect(() => {
     const errors = [];
     setError("");
 
-    if (!commissionRate?.schemeId) {
-      errors.push("Commission scheme is required.");
+    if (!commissionRate?.id) {
+      errors.push("Commission rate is required.");
     } 
+
+    if (!commissionRate?.nameTag) {
+      errors.push("Commission tag is required.");
+    }
 
     if (!commissionRate?.currencyId) {
       errors.push("Symbol is required.");
     }
+
 
     if (!commissionRate?.rate || isNaN(commissionRate?.rate) || Number(commissionRate?.rate) <= 0) {
       errors.push("A valid commission rate greater than 0 is required.");
@@ -69,23 +76,24 @@ useEffect(() => {
 
 
     try {
-      const response = await api.post("/api/v1/commission-rates", {
+      const response = await api.put(`/api/v1/commission-rates/${commissionRate.id}`, {
         currencyId: commissionRate?.currencyId,
         schemeId: commissionRate?.schemeId,
         rate: commissionRate?.rate,
-        createdBy: userId,
+        updatedBy: userId,
       });
 
-      const created = response.data;
-      const enrinched = {
-        ...created,
-        currency: commissionRate?.currency,
-        schemeId: commissionRate?.schemeId,
-        nameTag: commissionRate?.nameTag,
-      };
-      console.log("Response from server:", enrinched);
 
-      onCreated(enrinched);
+
+
+      //const created = response.data;
+      //const enrinched = {
+      //  ...created,
+        //currency: symbol?.currency
+      //};
+      console.log("Response from server:", response.data);
+
+      onCreated(response.data);
       onClose();
 
     } catch (err) {
@@ -103,25 +111,14 @@ useEffect(() => {
           onClick={onClose}
           aria-label="Close"
         >×</button>
-        <h2 className="text-2xl font-bold mb-3 text-gray-900">Create Commission Rates</h2>
+        <h2 className="text-2xl font-bold mb-3 text-gray-900">Edit Commission Rates</h2>
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag || '—'}</p>
               <label className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
-              <select
-                className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-                value={commissionRate?.currencyId}
-                onChange={(e) => {
-                                  const id=parseInt(e.target.value);
-                                  const symbol = e.target.options[e.target.selectedIndex].text;
-                                  setCommissionRate({...commissionRate,currencyId: id, currency: symbol});
-                }}
-              >
-                <option value="">Select Symbol</option>
-                {currencies.map( (item) => (
-                  <option key={item.id} value={item.id}>{item.currency}</option>
-                ))}
-              </select>
+              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">
+                {commissionRate?.currency || '—'}
+              </p>
               <label className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
                 type="number"
@@ -129,7 +126,7 @@ useEffect(() => {
                 placeholder="Enter commission rate (e.g. 0.5)"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionRate?.rate}
-                onChange={(e) => setCommissionRate({ ...commissionRate, rate: e.target.value })}
+                onChange={(e) => setCommissionRate( {...commissionRate, rate:e.target.value } )}
               />
         </div>
 
@@ -156,4 +153,4 @@ useEffect(() => {
   );
 }
 
-export default CommissionRateCreateModal;
+export default CommissionRateEditModal;
