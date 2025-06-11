@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api/axios";
+import api from '../api/axios';
 
 const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
   const [userId] = useState(1);
