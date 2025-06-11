@@ -1,8 +1,9 @@
-import axios from "axios";
+// src/api/axios.js
+const axios = require('axios');
 
 const api = axios.create({
-  baseURL: "http://localhost:8688",
-  // You can also add default headers, auth tokens, etc.
+  baseURL: 'http://localhost:8688',
+  // …any other defaults you need
 });
 
-export default api;
+module.exports = api;
