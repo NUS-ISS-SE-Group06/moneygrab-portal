@@ -29,12 +29,25 @@ const CommissionSchemeCreateModal = ({ onClose, onCreated}) => {
         updatedBy: userId,
       });
 
+      const created = response.data;
+      const enrinched = {
+        ...created
+      };
 
-      onCreated(response.data);
+      console.log("Response from server:", enrinched);
+
+      onCreated(enrinched);
       onClose();
+      
     } catch (err) {
       console.error(err);
-      setError("Failed to create commission scheme.");
+
+      const message =
+        err?.response?.data ||
+        err?.message ||
+        "Failed to save the form. Please try again.";
+
+      setError(message);
     }
 
   }

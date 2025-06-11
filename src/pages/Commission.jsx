@@ -7,6 +7,7 @@ import CommissionRateEditModal from "../components/CommissionRateEditModal";
 
 
 const Commission = () => {
+  const [userId] = useState(1);
   const [loadingSchemes, setLoadingSchemes] = useState(false);
   const [loadingRates, setLoadingRates] = useState(false);
   const [loadingCompanySchemes, setLoadingCompanySchemes] = useState(false);
@@ -96,14 +97,13 @@ const Commission = () => {
   }, [selectedCommissionScheme]);
 
   // Commission Scheme Handlers
-  const applyUpdatedScheme = (updatedScheme) => {
+  const applyUpdatedScheme = (updated) => {
     setCommissionSchemes((prev) =>
       prev.map((s) => {
-        if (s.id === updatedScheme.id) {
-          return updatedScheme;
+        if (s.id === updated.id) {
+          return updated;
         }
-        if (updatedScheme.isDefault) {
-          // Unset isDefault for all others
+        if (updated.isDefault) {
           return { ...s, isDefault: false };
         }
         return s;
@@ -112,39 +112,41 @@ const Commission = () => {
   };
 
   const handleCommissionSchemeDelete = async (id) => {
+    setSchemeError(null);
+
     try {
-      await api.delete(`/api/v1/schemes/${id}`);
-      setCommissionSchemes((prevSchemes) =>
-        prevSchemes.filter((scheme) => scheme.id !== id)
+      await api.delete(`/api/v1/schemes/${id}`, {
+        params: {
+          userId
+        }
+      });
+        setCommissionSchemes((prev) =>
+        prev.filter((item) => item.id !== id)
       );
+
       setSelectedCommissionScheme(null);
+
     } catch (err) {
-      setSchemeError("Failed to delete scheme. Please try again later.");
-      console.error("Failed to delete scheme:", err);
+      console.error(err);
+
+      const message =
+        err?.response?.data ||
+        err?.message ||
+        "Failed to delete the form. Please try again.";
+
+      setSchemeError(message);
     }
+
   };  
 
   // Commission Rates Handlers  
-  const handleCommissionRateDelete = async (id) => {
-    try {
-      await api.delete(`/api/v1/commission-rates/${id}`);
-      setCommissionRates((prevRates) =>
-        prevRates.filter((rate) => rate.id !== id)
-      );
-    } catch (err) {
-      setSchemeError("Failed to delete rate. Please try again later.");
-      console.error("Failed to delete rate:", err);
-    }
-  };  
-
-  const ApplyUpdatedCommissionRate = (updatedRate) => {
-    setCommissionSchemes((prev) =>
+  const ApplyUpdatedCommissionRate = (updated) => {
+    setCommissionRates((prev) =>
       prev.map((s) => {
-        if (s.id === updatedRate.id) {
-          return updatedRate;
+        if (s.id === updated.id) {
+          return updated;
         }
-        if (updatedRate.isDefault) {
-          // Unset isDefault for all others
+        if (updated.isDefault) {
           return { ...s, isDefault: false };
         }
         return s;
@@ -152,31 +154,61 @@ const Commission = () => {
     );
   };
 
+
+
+  const handleCommissionRateDelete = async (id) => {
+    setCommissionRateError(null);
+    try {
+      await api.delete(`/api/v1/commission-rates/${id}`, {
+        params: {
+          userId
+        }
+      });
+
+      setCommissionRates((prev) =>
+        prev.filter((item) => item.id !== id)
+      );
+    } catch (err) {
+      console.error(err);
+
+      const message =
+        err?.response?.data ||
+        err?.message ||
+        "Failed to delete the form. Please try again.";
+      
+      setCommissionRateError(message);
+    }
+
+  }; 
+
   
   // Company Commission Scheme Handlers
+  // TO DO: TO BE DELETED
 
      const handleCloseCreateCompanyCommissionSchemeModal = () => {
-      setShowModalCreateCompanyCommissionScheme(false);
+      //setShowModalCreateCompanyCommissionScheme(false);
     };
 
     const handleOpenEditCompanyCommissionSchemeModal = (scheme) => {
-      setShowModalEditCompanyCommissionScheme(true);
+      //setShowModalEditCompanyCommissionScheme(true);
     };
 
     const handleCloseEditCompanyCommissionSchemeModal = () => {
-      setShowModalEditCompanyCommissionScheme(false);
+      //setShowModalEditCompanyCommissionScheme(false);
     };  
 
     const handleRowClickCompanyCommissionScheme = (company) => {
-      setSelectedCompanyCommissionScheme(company);
-      console.log("Selected company:", company);
+      //setSelectedCompanyCommissionScheme(company);
+      //console.log("Selected company:", company);
     }
 
     const handleCompanyCommissionSchemeCreated = (newCompany) => {
-      setCommissionSchemes((prevCompany) => [...prevCompany, newCompany]);
+
+      //setCommissionSchemes((prevCompany) => [...prevCompany, newCompany]);
     };
 
     const handleCompanyCommissionSchemeUpdated = (updatedCompany) => {
+      /*
       setCommissionSchemes((prev) =>
         prev.map((s) => {
           if (s.id === updatedCompany.id) {
@@ -189,10 +221,11 @@ const Commission = () => {
           return s;
         })
       );
+      */
     };
 
     const handleDeleteCompanyCommissionScheme = async (id) => {
-      try {
+      /*try {
         await api.delete(`/api/v1/company-commission-scheme/${id}`);
         setCompanyCommissionSchemes((prevCompany) =>
           prevCompany.filter((company) => company.id !== id)
@@ -200,7 +233,7 @@ const Commission = () => {
       } catch (err) {
         setSchemeError("Failed to delete scheme. Please try again later.");
         console.error("Failed to delete scheme:", err);
-      }
+      } */
     };  
 
 

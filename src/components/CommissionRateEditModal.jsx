@@ -1,51 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from "../api/axios";
 
-const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onCreated }) => {
+const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
   const [userId] = useState(1);
-  //const [symbol] = useState(selectedSymbol);
-  //const [symbol, setSymbol] = useState({});
   const [commissionRate, setCommissionRate] = useState(selectedCommissionRate);
   const [error, setError] = useState("");
-  const [currencies,setCurrencies] = useState([]);
-
-
-    //const [scheme] = useState(selectedScheme);
-    //const [symbol, setSymbol] = useState({});
-
-
-  
-
-
-useEffect(() => {
-  const fetchCurrencies = async () => {
-    setError("");
-
-    try {
-      //const response = await api.get("/api/v1/currencies");
-      //setCurrencies(response.data);
-
-      // MOCK CURRENCY DATA
-      const mockedResponse = {
-        data: [
-          { id: "1", currency: "SGD" },
-          { id: "2", currency: "USD" },
-          { id: "3", currency: "EUR" },
-          { id: "4", currency: "MYR" },
-          { id: "5", currency: "IDR" }
-        ]
-      };
-
-      setCurrencies(mockedResponse.data);
-
-    } catch(err) {
-        console.error("Failed to fetch currencies:", err);
-        setError("Failed to fetch currencies.");
-    }
-  };
-
-  fetchCurrencies();
-}, []);
 
 
   const handleSave = async () => {
@@ -76,29 +35,35 @@ useEffect(() => {
 
 
     try {
+      const { id, currencyId, schemeId, rate } = commissionRate;
+
       const response = await api.put(`/api/v1/commission-rates/${commissionRate.id}`, {
-        currencyId: commissionRate?.currencyId,
-        schemeId: commissionRate?.schemeId,
-        rate: commissionRate?.rate,
+        id,
+        currencyId,
+        schemeId,
+        rate,
         updatedBy: userId,
       });
 
+      const created = response.data;
+      const enrinched = {
+        ...created
+      };
 
+      console.log("Response from server:", enrinched);
 
-
-      //const created = response.data;
-      //const enrinched = {
-      //  ...created,
-        //currency: symbol?.currency
-      //};
-      console.log("Response from server:", response.data);
-
-      onCreated(response.data);
+      onUpdated(enrinched);
       onClose();
 
     } catch (err) {
       console.error(err);
-      setError("Failed to create commission rate.");
+
+      const message =
+        err?.response?.data ||
+        err?.message ||
+        "Failed to save the form. Please try again.";
+
+      setError(message);
     }
 
   }
