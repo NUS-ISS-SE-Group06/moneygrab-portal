@@ -77,20 +77,28 @@ useEffect(() => {
       });
 
       const created = response.data;
+
       const enrinched = {
         ...created,
         currency: commissionRate?.currency,
         schemeId: commissionRate?.schemeId,
         nameTag: commissionRate?.nameTag,
       };
-      console.log("Response from server:", enrinched);
 
+      console.log("Response from server:", enrinched);
+      
       onCreated(enrinched);
       onClose();
 
     } catch (err) {
       console.error(err);
-      setError("Failed to create commission rate.");
+
+      const message =
+        err?.response?.data ||
+        err?.message ||
+        "Failed to save the form. Please try again.";
+
+      setError(message);
     }
 
   }
