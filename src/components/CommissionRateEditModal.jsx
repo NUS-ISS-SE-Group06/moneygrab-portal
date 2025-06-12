@@ -36,8 +36,7 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
 
     try {
       const { id, currencyId, schemeId, rate } = commissionRate;
-
-      const response = await api.put(`/api/v1/commission-rates/${commissionRate.id}`, {
+      const response = await api.put(`/api/v1/commission-rates/${id}`, {
         id,
         currencyId,
         schemeId,
@@ -46,13 +45,10 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
       });
 
       const created = response.data;
-      const enrinched = {
-        ...created
-      };
 
-      console.log("Response from server:", enrinched);
+      console.log("Response from server:", created);
 
-      onUpdated(enrinched);
+      onUpdated(created);
       onClose();
 
     } catch (err) {
@@ -79,19 +75,18 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
         <h2 className="text-2xl font-bold mb-3 text-gray-900">Edit Commission Rates</h2>
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
-              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag || '—'}</p>
+              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag ?? '—'}</p>
               <label className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">
-                {commissionRate?.currency || '—'}
+                {commissionRate?.currency ?? '—'}
               </p>
               <label className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
                 type="number"
-                step="0.01"
-                placeholder="Enter commission rate (e.g. 0.5)"
+                placeholder="Enter commission rate (e.g. 0.50)"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-                value={commissionRate?.rate}
-                onChange={(e) => setCommissionRate( {...commissionRate, rate:e.target.value } )}
+                value={commissionRate?.rate ?? ""}
+                onChange={(e) => { setCommissionRate( {...commissionRate, rate: e.target.value } )} }          
               />
         </div>
 

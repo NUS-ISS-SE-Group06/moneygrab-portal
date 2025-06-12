@@ -1,7 +1,5 @@
-// src/sidebar.js
-
 import React, { useRef, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 
 const navItems = [
   { label: "Account", path: "/account" },
@@ -45,7 +43,7 @@ function Sidebar({ width }) {
   );
 }
 
-export default function LayoutWithResizableSidebar({ children }) {
+export default function LayoutWithResizableSidebar() {
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [dragging, setDragging] = useState(false);
 
@@ -83,7 +81,9 @@ export default function LayoutWithResizableSidebar({ children }) {
         onMouseDown={onMouseDown}
         style={{ zIndex: 10, userSelect: "none" }}
       />
-      <main className="flex-1 p-10">{children}</main>
+      <main className="flex-1 p-10">
+        <Outlet />
+      </main>
     </div>
   );
 }

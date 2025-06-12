@@ -13,15 +13,15 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
 
 
   const [error, setError] = useState("");
-  const [currencies,setCurrencies] = useState([]);
+  const [currencyList,setCurrencyList] = useState([]);
 
 useEffect(() => {
   const fetchCurrencies = async () => {
     setError("");
 
     try {
-      //const response = await api.get("/api/v1/currencies");
-      //setCurrencies(response.data);
+      //const response = await api.get(`/api/v1/currencies`);
+      //setCurrencyList(response.data);
 
       // MOCK CURRENCY DATA
       const mockedResponse = {
@@ -34,11 +34,11 @@ useEffect(() => {
         ]
       };
 
-      setCurrencies(mockedResponse.data);
+      setCurrencyList(mockedResponse.data);
 
     } catch(err) {
-        console.error("Failed to fetch currencies:", err);
-        setError("Failed to fetch currencies.");
+        console.error("Failed to fetch currencyList:", err);
+        setError("Failed to fetch currencyList.");
     }
   };
 
@@ -69,7 +69,7 @@ useEffect(() => {
 
 
     try {
-      const response = await api.post("/api/v1/commission-rates", {
+      const response = await api.post(`/api/v1/commission-rates`, {
         currencyId: commissionRate?.currencyId,
         schemeId: commissionRate?.schemeId,
         rate: commissionRate?.rate,
@@ -114,19 +114,19 @@ useEffect(() => {
         <h2 className="text-2xl font-bold mb-3 text-gray-900">Create Commission Rates</h2>
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
-              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag || '—'}</p>
+              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag ?? '—'}</p>
               <label className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
               <select
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-                value={commissionRate?.currencyId}
+                value={commissionRate?.currencyId ?? "" }
                 onChange={(e) => {
-                                  const id=parseInt(e.target.value);
-                                  const symbol = e.target.options[e.target.selectedIndex].text;
-                                  setCommissionRate({...commissionRate,currencyId: id, currency: symbol});
+                                  const selectedId=parseInt(e.target.value);
+                                  const selectedName = e.target.options[e.target.selectedIndex].text;
+                                  setCommissionRate({...commissionRate,currencyId: selectedId, currency: selectedName});
                 }}
               >
                 <option value="">Select Symbol</option>
-                {currencies.map( (item) => (
+                {currencyList.map( (item) => (
                   <option key={item.id} value={item.id}>{item.currency}</option>
                 ))}
               </select>
@@ -136,7 +136,7 @@ useEffect(() => {
                 step="0.01"
                 placeholder="Enter commission rate (e.g. 0.5)"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-                value={commissionRate?.rate}
+                value={commissionRate?.rate ?? ""}
                 onChange={(e) => setCommissionRate({ ...commissionRate, rate: e.target.value })}
               />
         </div>
