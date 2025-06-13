@@ -7,6 +7,7 @@ import {
 import LayoutWithResizableSidebar from "./components/sidebar";
 import ManageAccounts from "./ManageAccounts";
 import Commission from "./pages/Commission";
+import MoneyChanger from "./pages/MoneyChanger";
 
 function ComingSoon({ label }) {
   return (
@@ -25,12 +26,12 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <Navigate to="/account" replace /> },
         { path: "account", element: <ManageAccounts /> },
-        { path: "money-changer", element: <ComingSoon label="Money Changer" /> },
+        { path: "money-changer", element: <MoneyChanger /> }, // Replaced ComingSoon with MoneyChanger
         { path: "fx-rate-upload", element: <ComingSoon label="FX Rate Upload" /> },
         { path: "commission", element: <Commission label="Commission Scheme" /> },
         { path: "currency", element: <ComingSoon label="Currency" /> },
         { path: "compute-rates", element: <ComingSoon label="Compute Rates" /> },
-        { path: "view-rates", element: <ComingSoon label="View Rates" /> },
+        { path: "view-rates", element: <ComingSoon label="ComingSoon" /> },
         { path: "currency-codes", element: <ComingSoon label="Currency Codes" /> },
         { path: "transactions", element: <ComingSoon label="Transactions" /> },
       ],
