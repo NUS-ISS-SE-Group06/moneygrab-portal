@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from '../api/axios';
+import PropTypes from "prop-types";
 
 const CompanyCommissionSchemeEditModal = ({ selectedCompanyCommissionScheme, onClose, onUpdated}) => {
   const [userId] = useState(1);
@@ -121,5 +122,11 @@ useEffect(() => {
     </div>
   );
 }
+
+CompanyCommissionSchemeEditModal.propTypes = {
+  selectedCompanyCommissionScheme: PropTypes.object.isRequired, 
+  onClose: PropTypes.func.isRequired,
+  onUpdated: PropTypes.func.isRequired
+};
 
 export default CompanyCommissionSchemeEditModal;

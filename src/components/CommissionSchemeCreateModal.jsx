@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from '../api/axios';
+import PropTypes from "prop-types";
 
 const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
   const [userId] = useState(1);
@@ -105,6 +106,11 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
       </div>
     </div>
   );
+}
+
+CommissionSchemeCreateModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onCreated: PropTypes.func.isRequired
 }
 
 export default CommissionSchemeCreateModal;
