@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from '../api/axios';
+import PropTypes from "prop-types";
 
 const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
   const [userId] = useState(1);
@@ -111,6 +112,12 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
       </div>
     </div>
   );
+}
+
+CommissionRateEditModal.propTypes = {
+  selectedCommissionRate: PropTypes.object.isRequired, 
+  onClose: PropTypes.func.isRequired,
+  onUpdated: PropTypes.func.isRequired
 }
 
 export default CommissionRateEditModal;
