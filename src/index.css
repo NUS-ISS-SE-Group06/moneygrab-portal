@@ -8,3 +8,6 @@
 .animate-fade-in {
   animation: fade-in 0.2s cubic-bezier(.38,1.06,.57,.98);
 }
+.input {
+  @apply border border-gray-300 rounded px-3 py-2 focus:outline-blue-400;
+}
