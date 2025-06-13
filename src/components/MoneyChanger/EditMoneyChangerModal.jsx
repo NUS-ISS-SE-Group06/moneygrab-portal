@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types"; // Import PropTypes
 
 const locationsList = ["Tampines", "Simei"];
 
@@ -11,25 +12,25 @@ export default function EditMoneyChangerModal({ onClose, data }) {
   const [error, setError] = useState("");
   const [selectedLocations, setSelectedLocations] = useState(["Simei"]); // example
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
   const handleFile = (e, key) => {
-    setForm(f => ({ ...f, [key]: e.target.files[0] }));
+    setForm((f) => ({ ...f, [key]: e.target.files[0] }));
   };
 
-  const handleLocationSelect = loc => {
+  const handleLocationSelect = (loc) => {
     if (!selectedLocations.includes(loc)) {
       setSelectedLocations([...selectedLocations, loc]);
     }
   };
-  const handleLocationDeselect = loc => {
-    setSelectedLocations(selectedLocations.filter(l => l !== loc));
+  const handleLocationDeselect = (loc) => {
+    setSelectedLocations(selectedLocations.filter((l) => l !== loc));
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     // TODO: API call or validation logic
     if (!form.company || !form.email) {
@@ -156,25 +157,27 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <label className="font-semibold">Location List</label>
               <div className="flex gap-2 mb-1">
                 <div className="flex-1 bg-gray-50 border rounded p-2">
-                  {locationsList.filter(l => !selectedLocations.includes(l)).map(loc => (
-                    <div key={loc} className="flex justify-between items-center">
-                      <span>{loc}</span>
-                      <button
-                        type="button"
-                        className="text-blue-600 underline text-xs"
-                        onClick={() => handleLocationSelect(loc)}
-                      >
-                        Select
-                      </button>
-                    </div>
-                  ))}
+                  {locationsList
+                    .filter((l) => !selectedLocations.includes(l))
+                    .map((loc) => (
+                      <div key={loc} className="flex justify-between items-center">
+                        <span>{loc}</span>
+                        <button
+                          type="button"
+                          className="text-blue-600 underline text-xs"
+                          onClick={() => handleLocationSelect(loc)}
+                        >
+                          Select
+                        </button>
+                      </div>
+                    ))}
                   {locationsList.length === selectedLocations.length && (
                     <div className="text-gray-400 text-xs">All selected</div>
                   )}
                 </div>
                 <div className="flex-1 bg-gray-100 border rounded p-2">
                   <div className="font-semibold text-xs mb-1">Selected Location</div>
-                  {selectedLocations.map(loc => (
+                  {selectedLocations.map((loc) => (
                     <div key={loc} className="flex justify-between items-center">
                       <span>{loc}</span>
                       <button
@@ -211,7 +214,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
                 type="file"
                 accept=".jpg,.png,.gif,.pdf"
                 className="block mt-1"
-                onChange={e => handleFile(e, "logo")}
+                onChange={(e) => handleFile(e, "logo")}
               />
               <div className="text-xs text-gray-400">
                 Supported format: JPG/PNG/GIF/PDF
@@ -223,7 +226,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
                 type="file"
                 accept=".jpg,.png,.gif,.pdf"
                 className="block mt-1"
-                onChange={e => handleFile(e, "kyc")}
+                onChange={(e) => handleFile(e, "kyc")}
               />
               <div className="text-xs text-gray-400">
                 Supported format: JPG/PNG/GIF/PDF
@@ -250,3 +253,20 @@ export default function EditMoneyChangerModal({ onClose, data }) {
     </div>
   );
 }
+
+// PropTypes definition
+EditMoneyChangerModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  data: PropTypes.shape({
+    company: PropTypes.string,
+    email: PropTypes.string,
+    date: PropTypes.string,
+    uen: PropTypes.string,
+    address: PropTypes.string,
+    country: PropTypes.string,
+    postalCode: PropTypes.string,
+    notes: PropTypes.string,
+    schema: PropTypes.string,
+    role: PropTypes.string,
+  }).isRequired,
+};

@@ -1,17 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CreateMoneyChangerModal from "./CreateMoneyChangerModal";
 import EditMoneyChangerModal from "./EditMoneyChangerModal";
+import PropTypes from "prop-types"; // Import PropTypes
 
-// Initial data
-const initialData = [
+// Sample fallback data
+const sampleData = [
   {
-    id: "01",
-    accountNo: "12345",
-    company: "ABC Pvt Ltd",
-    uen: "202456780M",
-    date: "23 Mar 2024",
-    schema: "Scheme-01",
+    id: 1,
+    companyName: "Sample Company 1",
+    email: "sample1@example.com",
+    dateOfIncorporation: "2023-01-01",
+    address: "123 Sample St #1",
     country: "Singapore",
+    postalCode: "S12345",
+    notes: "Sample notes 1",
+    uen: "SAMPLE1XYZ",
+    schemeId: 1,
+    createdAt: "2025-06-13T09:00:00",
+    updatedAt: "2025-06-13T09:00:00",
+    createdBy: null,
+    updatedBy: null,
+    isDeleted: false,
+  },
+  {
+    id: 2,
+    companyName: "Sample Company 2",
+    email: "sample2@example.com",
+    dateOfIncorporation: "2023-02-01",
+    address: "123 Sample St #2",
+    country: "Singapore",
+    postalCode: "S12346",
+    notes: "Sample notes 2",
+    uen: "SAMPLE2XYZ",
+    schemeId: 2,
+    createdAt: "2025-06-13T09:00:00",
+    updatedAt: "2025-06-13T09:00:00",
+    createdBy: null,
+    updatedBy: null,
+    isDeleted: false,
   },
 ];
 
@@ -20,39 +46,115 @@ export default function MoneyChangerList() {
   const [showEdit, setShowEdit] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [error, setError] = useState("");
-  const [rows, setRows] = useState(initialData); // State to manage rows
+  const [rows, setRows] = useState([]);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [showBanner, setShowBanner] = useState(false);
+
+  // Fetch money changers from API or use sample data
+  useEffect(() => {
+    const fetchMoneyChangers = async () => {
+      if (isOffline) {
+        setRows(sampleData);
+        setShowBanner(true);
+        setError("Offline mode: Displaying sample data.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:8688/api/v1/money-changers", {
+          // Uncomment and replace with your token if required
+          // headers: {
+          //   Authorization: "Bearer YOUR_API_TOKEN",
+          //   "Content-Type": "application/json",
+          // },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+        }
+        const data = await response.json();
+        setRows(data);
+        setError("");
+        setShowBanner(false);
+      } catch (err) {
+        setRows(sampleData);
+        setShowBanner(true);
+        setError(`API error: ${err.message}. Displaying sample data.`);
+        console.error("Fetch error:", err);
+      }
+    };
+
+    fetchMoneyChangers();
+
+    const handleOnline = () => {
+      setIsOffline(false);
+      fetchMoneyChangers();
+    };
+    const handleOffline = () => {
+      setIsOffline(true);
+      setRows(sampleData);
+      setShowBanner(true);
+      setError("Offline mode: Displaying sample data.");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [isOffline]);
 
   const handleSaveAccount = (data) => {
     console.log("handleSaveAccount called with data:", data);
-    // Simple validation
-    if (!data.email || !data.companyName) { // Changed from data.company to data.companyName
+    if (!data.email || !data.companyName) {
       setError("Please fill all fields.");
       console.log("Validation failed, error set:", error);
       return;
     }
     setError("");
 
-    // Generate a new ID and add the new record
-    const newId = String(rows.length + 1).padStart(2, "0");
     const newRow = {
-      id: newId,
-      accountNo: "00000", // Default or generate as needed
-      company: data.companyName, // Use companyName from form
-      uen: data.uen || "NEWUEN",
-      date: data.date || new Date().toLocaleDateString(),
-      schema: data.schema,
+      id: rows.length + 1,
+      companyName: data.companyName,
+      email: data.email,
+      dateOfIncorporation: data.date,
+      address: data.address,
       country: data.country,
+      postalCode: data.postalCode,
+      notes: data.notes,
+      uen: data.uen,
+      schemeId: parseInt(data.schema.split("-")[1]) || 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: null,
+      updatedBy: null,
+      isDeleted: false,
     };
 
-    const updatedRows = [...rows, newRow];
-    console.log("Updated rows:", updatedRows);
-    setRows(updatedRows); // Update state with new record
-    console.log("Rows state after update:", rows); // Note: Logs old state due to async
-    setShowCreate(false); // Close modal
+    setRows([...rows, newRow]);
+    setShowCreate(false);
+
+    // TODO: Implement API POST request for persistence
+  };
+
+  const dismissBanner = () => {
+    setShowBanner(false);
   };
 
   return (
     <div>
+      {showBanner && (
+        <div className="bg-yellow-100 text-red-700 p-4 mb-4 flex justify-between items-center">
+          <span>{error}</span>
+          <button
+            onClick={dismissBanner}
+            className="ml-4 text-red-700 hover:text-red-900"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <h2 className="text-2xl font-bold mb-2">MANAGE MONEY CHANGER</h2>
       <div className="flex justify-end mb-4">
         <button
@@ -66,8 +168,8 @@ export default function MoneyChangerList() {
         <thead>
           <tr>
             <th>Id</th>
-            <th>Account No</th>
             <th>Company Name</th>
+            <th>Email</th>
             <th>UEN No</th>
             <th>Date of Incorporation</th>
             <th>Schema</th>
@@ -79,11 +181,11 @@ export default function MoneyChangerList() {
           {rows.map((row) => (
             <tr key={row.id}>
               <td>{row.id}</td>
-              <td>{row.accountNo}</td>
-              <td>{row.company}</td>
+              <td>{row.companyName}</td>
+              <td>{row.email}</td>
               <td>{row.uen}</td>
-              <td>{row.date}</td>
-              <td>{row.schema}</td>
+              <td>{row.dateOfIncorporation}</td>
+              <td>{`Scheme-${row.schemeId}`}</td>
               <td>{row.country}</td>
               <td>
                 <button
@@ -123,10 +225,15 @@ export default function MoneyChangerList() {
   );
 }
 
-function ModalOverlay({ children }) {
+// ModalOverlay component with PropTypes
+export function ModalOverlay({ children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       {children}
     </div>
   );
 }
+
+ModalOverlay.propTypes = {
+  children: PropTypes.node.isRequired,
+};

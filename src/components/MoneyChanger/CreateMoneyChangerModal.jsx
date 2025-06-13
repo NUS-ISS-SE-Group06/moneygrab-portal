@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types"; // Import PropTypes
 
 const initialState = {
   companyName: "",
@@ -267,3 +268,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
     </div>
   );
 }
+
+// PropTypes definition
+CreateMoneyChangerModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+};
