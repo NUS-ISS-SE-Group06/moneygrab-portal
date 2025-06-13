@@ -1,26 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from '../api/axios';
 
-const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
+const CommissionSchemeEditModal = ({ selectedScheme, onClose, onUpdated }) => {
   const [userId] = useState(1);
-  const [nameTag, setNameTag] = useState("");
-  const [description, setDescription] = useState("");
-  const [isDefault, setIsDefault] = useState(false);
+  const [commissionScheme, setCommissionScheme]= useState(selectedScheme);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (scheme) {
-      setNameTag(scheme.nameTag || "");
-      setDescription(scheme.description || "");
-      setIsDefault(scheme.isDefault || false);
-    }
-  }, [scheme]);
 
   const handleSave = async () => {
     const errors = [];
     setError("");
 
-    if (!nameTag) {
+    if (!commissionScheme?.nameTag) {
       errors.push("Commission tag is required.");
     } 
 
@@ -31,7 +21,8 @@ const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
 
 
     try {
-      const response = await api.put(`/api/v1/schemes/${scheme.id}`, {
+      const { id, description, isDefault } = commissionScheme;
+      const response = await api.put(`/api/v1/schemes/${id}`, {
         description,
         isDefault,
         updatedBy: userId,
@@ -39,13 +30,9 @@ const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
 
       const created = response.data;
 
-      const enrinched = {
-        ...created
-      };
+      console.log("Response from server:", created);
 
-      console.log("Response from server:", enrinched);
-
-      onUpdated(enrinched);
+      onUpdated(created);
       onClose();
 
     } catch (err) {
@@ -77,25 +64,27 @@ const CommissionSchemeEditModal = ({ scheme, onClose, onUpdated }) => {
           </label>
           <input
             type="text"
+            maxLength={100} 
             placeholder="Enter Commission Tag"
             className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-            value={nameTag}
-            onChange={(e) => setNameTag(e.target.value)}
+            value={commissionScheme?.nameTag ?? ""} 
+            onChange={(e) => setCommissionScheme( {...commissionScheme, nameTag:e.target.value } )}
             readOnly
           />
           <label className="block mb-2 font-semibold text-gray-800">Description</label>
           <textarea
+            maxLength={500} 
             placeholder="Enter Description"
             className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={commissionScheme?.description ?? ""}
+            onChange={(e) => setCommissionScheme( {...commissionScheme, description:e.target.value } )}
           />
           <label className="block mb-2 font-semibold text-gray-800">
             <input
               type="checkbox"
-              checked={isDefault}
+              checked={commissionScheme?.isDefault ?? false}
               className="accent-indigo-500"
-              onChange={(e) => setIsDefault(e.target.checked)}
+              onChange={(e) => setCommissionScheme( {...commissionScheme, isDefault:e.target.checked } )}
             />
             &nbsp;Default Commission Scheme
           </label>
