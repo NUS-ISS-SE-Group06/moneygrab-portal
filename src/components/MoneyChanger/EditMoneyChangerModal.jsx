@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import api from '../../api/axios';
+import api from "../../api/axios";
 
 const locationsList = ["Tampines", "Simei"];
 
@@ -12,6 +12,8 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [kycPreview, setKycPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,7 +21,24 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   };
 
   const handleFileChange = (e, key) => {
-    setForm((prev) => ({ ...prev, [key]: e.target.files[0] }));
+    const file = e.target.files[0];
+    setForm((prev) => ({ ...prev, [key]: file }));
+
+    // Generate preview for the file
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (key === "logo") {
+          setLogoPreview(reader.result);
+        } else if (key === "kyc") {
+          setKycPreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      if (key === "logo") setLogoPreview(null);
+      else if (key === "kyc") setKycPreview(null);
+    }
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -227,21 +246,39 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
               <label className="block font-semibold text-gray-700">Logo</label>
               <input
                 type="file"
-                accept=".jpg,.png,.gif,.pdf"
+                accept=".jpeg,.png,.gif,.pdf"
                 className="w-full p-2 border rounded"
                 onChange={(e) => handleFileChange(e, "logo")}
               />
-              <div className="text-xs text-gray-500">Supported: JPG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
+              {logoPreview && (
+                <div className="mt-2">
+                  <img
+                    src={logoPreview}
+                    alt="Logo Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <label className="block font-semibold text-gray-700">KYC</label>
               <input
                 type="file"
-                accept=".jpg,.png,.gif,.pdf"
+                accept=".jpeg,.png,.gif,.pdf"
                 className="w-full p-2 border rounded"
                 onChange={(e) => handleFileChange(e, "kyc")}
               />
-              <div className="text-xs text-gray-500">Supported: JPG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
+              {kycPreview && (
+                <div className="mt-2">
+                  <img
+                    src={kycPreview}
+                    alt="KYC Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import api from '../../api/axios';
+import api from "../../api/axios";
 
 const initialState = {
   companyName: "",
@@ -23,6 +23,8 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [kycPreview, setKycPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +32,24 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   };
 
   const handleFileChange = (e, key) => {
-    setForm((prev) => ({ ...prev, [key]: e.target.files[0] }));
+    const file = e.target.files[0];
+    setForm((prev) => ({ ...prev, [key]: file }));
+
+    // Generate preview for the file
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (key === "logo") {
+          setLogoPreview(reader.result);
+        } else if (key === "kyc") {
+          setKycPreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      if (key === "logo") setLogoPreview(null);
+      else if (key === "kyc") setKycPreview(null);
+    }
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -250,6 +269,15 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
                 Browse
               </label>
               <div className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF, PDF</div>
+              {logoPreview && (
+                <div className="mt-2">
+                  <img
+                    src={logoPreview}
+                    alt="Logo Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
               <div className="text-gray-400 mb-2">Upload KYC</div>
@@ -267,6 +295,15 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
                 Browse
               </label>
               <div className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF, PDF</div>
+              {kycPreview && (
+                <div className="mt-2">
+                  <img
+                    src={kycPreview}
+                    alt="KYC Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
