@@ -1,142 +1,91 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import CreateMoneyChangerModal from "./CreateMoneyChangerModal";
 import EditMoneyChangerModal from "./EditMoneyChangerModal";
-import PropTypes from "prop-types"; // Import PropTypes
-import api from '../../api/axios';
+import api from "../../api/axios";
+import PropTypes from "prop-types";
 
-// Sample fallback data
-const sampleData = [
-  {
-    id: 1,
-    companyName: "Sample Company 1",
-    email: "sample1@example.com",
-    dateOfIncorporation: "2023-01-01",
-    address: "123 Sample St #1",
-    country: "Singapore",
-    postalCode: "S12345",
-    notes: "Sample notes 1",
-    uen: "SAMPLE1XYZ",
-    schemeId: 1,
-    createdAt: "2025-06-13T09:00:00",
-    updatedAt: "2025-06-13T09:00:00",
-    createdBy: null,
-    updatedBy: null,
-    isDeleted: false,
-  },
-  {
-    id: 2,
-    companyName: "Sample Company 2",
-    email: "sample2@example.com",
-    dateOfIncorporation: "2023-02-01",
-    address: "123 Sample St #2",
-    country: "Singapore",
-    postalCode: "S12346",
-    notes: "Sample notes 2",
-    uen: "SAMPLE2XYZ",
-    schemeId: 2,
-    createdAt: "2025-06-13T09:00:00",
-    updatedAt: "2025-06-13T09:00:00",
-    createdBy: null,
-    updatedBy: null,
-    isDeleted: false,
-  },
-];
-
-export default function MoneyChangerList() {
+const MoneyChangerList = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [error, setError] = useState("");
-  const [rows, setRows] = useState([]);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [showBanner, setShowBanner] = useState(false);
+  const [moneyChangers, setMoneyChangers] = useState([]);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Fetch money changers from API or use sample data
+  const fetchMoneyChangers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get("/api/v1//money-changers");
+      if (!response.data) {
+        throw new Error("No data received from API");
+      }
+      setMoneyChangers(response.data);
+      setError(null);
+    } catch (err) {
+      setError(`Failed to fetch money changers: ${err.message}`);
+      console.error("Fetch error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchMoneyChangers = async () => {
-      if (isOffline) {
-        setRows(sampleData);
-        setShowBanner(true);
-        setError("Offline mode: Displaying sample data.");
-        return;
-      }
-
-      try {
-        const response = await api.get(`/api/v1/money-changers`);
-        setRows(response.data);
-        setError("");
-        setShowBanner(false);
-      } catch (err) {
-        setRows(sampleData);
-        setShowBanner(true);
-        setError(`API error: ${err.message}. Displaying sample data.`);
-        console.error("Fetch error:", err);
-      }
-    };
-
     fetchMoneyChangers();
+  }, [fetchMoneyChangers, refreshTrigger]);
 
-    const handleOnline = () => {
-      setIsOffline(false);
-      fetchMoneyChangers();
-    };
-    const handleOffline = () => {
-      setIsOffline(true);
-      setRows(sampleData);
-      setShowBanner(true);
-      setError("Offline mode: Displaying sample data.");
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, [isOffline]);
-
-  const handleSaveAccount = (data) => {
-    console.log("handleSaveAccount called with data:", data);
-    if (!data.email || !data.companyName) {
-      setError("Please fill all fields.");
-      console.log("Validation failed, error set:", error);
+  const handleSaveAccount = (newData) => {
+    if (!newData.email || !newData.companyName) {
+      setError("Company Name and Email are required.");
       return;
     }
-    setError("");
-
-    const newRow = {
-      id: rows.length + 1,
-      companyName: data.companyName,
-      email: data.email,
-      dateOfIncorporation: data.date,
-      address: data.address,
-      country: data.country,
-      postalCode: data.postalCode,
-      notes: data.notes,
-      uen: data.uen,
-      schemeId: parseInt(data.schema.split("-")[1]) || 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: null,
-      updatedBy: null,
-      isDeleted: false,
-    };
-
-    setRows([...rows, newRow]);
+    setError(null);
+    setRefreshTrigger((prev) => prev + 1);
     setShowCreate(false);
+  };
 
-    // TODO: Implement API POST request for persistence
+  const handleUpdate = (updatedRow) => {
+    setMoneyChangers((prev) =>
+      prev.map((row) => (row.id === updatedRow.id ? updatedRow : row))
+    );
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this money changer?")) {
+      try {
+        const response = await api.delete(`/money-changers/${id}`);
+        if (response.status !== 200 && response.status !== 204) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        console.log(`Deleted money changer with id: ${id}`);
+        setRefreshTrigger((prev) => prev + 1);
+      } catch (err) {
+        setError(`Failed to delete: ${err.message}`);
+        console.error("Delete error:", err);
+      }
+    }
+  };
+
+  const handleModalClose = (success) => {
+    if (success) {
+      setRefreshTrigger((prev) => prev + 1);
+    }
+    setShowEdit(false);
+    setSelectedRow(null);
   };
 
   const dismissBanner = () => {
-    setShowBanner(false);
+    setError(null);
   };
 
+  if (isLoading) {
+    return <div className="text-center p-4">Loading money changers...</div>;
+  }
+
   return (
-    <div>
-      {showBanner && (
-        <div className="bg-yellow-100 text-red-700 p-4 mb-4 flex justify-between items-center">
+    <div className="container mx-auto p-4">
+      {error && (
+        <div className="bg-yellow-100 text-red-700 p-4 mb-4 flex justify-between items-center rounded">
           <span>{error}</span>
           <button
             onClick={dismissBanner}
@@ -146,10 +95,10 @@ export default function MoneyChangerList() {
           </button>
         </div>
       )}
-      <h2 className="text-2xl font-bold mb-2">MANAGE MONEY CHANGER</h2>
+      <h2 className="text-2xl font-bold mb-4">Manage Money Changers</h2>
       <div className="flex justify-end mb-4">
         <button
-          className="px-4 py-2 bg-indigo-500 text-white rounded"
+          className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
           onClick={() => setShowCreate(true)}
         >
           + Create New Money Changer
@@ -157,30 +106,30 @@ export default function MoneyChangerList() {
       </div>
       <table className="w-full bg-white rounded shadow">
         <thead>
-          <tr>
-            <th>Id</th>
-            <th>Company Name</th>
-            <th>Email</th>
-            <th>UEN No</th>
-            <th>Date of Incorporation</th>
-            <th>Schema</th>
-            <th>Country</th>
-            <th></th>
+          <tr className="bg-gray-100">
+            <th className="p-2 text-left">Id</th>
+            <th className="p-2 text-left">Company Name</th>
+            <th className="p-2 text-left">Email</th>
+            <th className="p-2 text-left">UEN No</th>
+            <th className="p-2 text-left">Date of Incorporation</th>
+            <th className="p-2 text-left">Schema</th>
+            <th className="p-2 text-left">Country</th>
+            <th className="p-2 text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <td>{row.id}</td>
-              <td>{row.companyName}</td>
-              <td>{row.email}</td>
-              <td>{row.uen}</td>
-              <td>{row.dateOfIncorporation}</td>
-              <td>{`Scheme-${row.schemeId}`}</td>
-              <td>{row.country}</td>
-              <td>
+          {moneyChangers.map((row) => (
+            <tr key={row.id} className="border-t">
+              <td className="p-2">{row.id}</td>
+              <td className="p-2">{row.companyName}</td>
+              <td className="p-2">{row.email}</td>
+              <td className="p-2">{row.uen}</td>
+              <td className="p-2">{row.dateOfIncorporation}</td>
+              <td className="p-2">{`Scheme-${row.schemeId}`}</td>
+              <td className="p-2">{row.country}</td>
+              <td className="p-2">
                 <button
-                  className="bg-indigo-500 text-white px-3 py-1 rounded mr-2"
+                  className="bg-indigo-500 text-white px-3 py-1 rounded mr-2 hover:bg-indigo-600"
                   onClick={() => {
                     setSelectedRow(row);
                     setShowEdit(true);
@@ -188,7 +137,10 @@ export default function MoneyChangerList() {
                 >
                   Edit
                 </button>
-                <button className="bg-indigo-200 text-indigo-800 px-3 py-1 rounded">
+                <button
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  onClick={() => handleDelete(row.id)}
+                >
                   Delete
                 </button>
               </td>
@@ -198,23 +150,26 @@ export default function MoneyChangerList() {
       </table>
 
       {showCreate && (
-        <CreateMoneyChangerModal onClose={() => setShowCreate(false)} onSave={handleSaveAccount} />
+        <ModalOverlay>
+          <CreateMoneyChangerModal
+            onClose={() => setShowCreate(false)}
+            onSave={handleSaveAccount}
+          />
+        </ModalOverlay>
       )}
 
       {showEdit && selectedRow && (
         <ModalOverlay>
           <EditMoneyChangerModal
             data={selectedRow}
-            onClose={() => {
-              setShowEdit(false);
-              setSelectedRow(null);
-            }}
+            onClose={handleModalClose}
+            onUpdate={handleUpdate}
           />
         </ModalOverlay>
       )}
     </div>
   );
-}
+};
 
 // ModalOverlay component with PropTypes
 export function ModalOverlay({ children }) {
@@ -228,3 +183,5 @@ export function ModalOverlay({ children }) {
 ModalOverlay.propTypes = {
   children: PropTypes.node.isRequired,
 };
+
+export default MoneyChangerList;
