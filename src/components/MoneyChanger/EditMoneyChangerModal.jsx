@@ -3,14 +3,17 @@ import PropTypes from "prop-types"; // Import PropTypes
 
 const locationsList = ["Tampines", "Simei"];
 
-export default function EditMoneyChangerModal({ onClose, data }) {
+export default function EditMoneyChangerModal({ onClose, data, onUpdate }) {
+  // Log data to debug
+  console.log("Received data:", data);
+
   const [form, setForm] = useState({
     ...data,
     logo: null,
     kyc: null,
   });
   const [error, setError] = useState("");
-  const [selectedLocations, setSelectedLocations] = useState(["Simei"]); // example
+  const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,15 +33,48 @@ export default function EditMoneyChangerModal({ onClose, data }) {
     setSelectedLocations(selectedLocations.filter((l) => l !== loc));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: API call or validation logic
-    if (!form.company || !form.email) {
+    // Validation
+    if (!form.companyName || !form.email) {
       setError("Company Name and Email are required.");
       return;
     }
-    // ...submit logic
-    onClose();
+
+    try {
+      const updateData = {
+        ...form,
+        locations: selectedLocations,
+        // Exclude file fields if not handled by the backend yet
+        logo: undefined,
+        kyc: undefined,
+      };
+
+      const response = await fetch(`http://localhost:8688/api/v1/money-changers/${data.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          // Uncomment and add token if required
+          // "Authorization": "Bearer YOUR_API_TOKEN",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Update successful:", result);
+      if (onUpdate) {
+        onUpdate(result); // Update parent state with the response
+      }
+      setError("");
+      onClose(true); // Pass true to indicate success
+    } catch (err) {
+      setError(`Failed to update: ${err.message}. Please try again.`);
+      console.error("Update error:", err);
+    }
   };
 
   return (
@@ -63,7 +99,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <input
                 className="input w-full bg-gray-100"
                 name="email"
-                value={form.email}
+                value={form.email || ""}
                 readOnly
                 disabled
               />
@@ -72,8 +108,8 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <label className="font-semibold">Company Name</label>
               <input
                 className="input w-full bg-gray-100"
-                name="company"
-                value={form.company}
+                name="companyName"
+                value={form.companyName || ""}
                 readOnly
                 disabled
               />
@@ -90,9 +126,9 @@ export default function EditMoneyChangerModal({ onClose, data }) {
             <div>
               <label className="font-semibold">Date of Incorporation</label>
               <input
-                className="input w-full bg-gray-100"
+                className="input w-long bg-gray-100"
                 type="text"
-                value={form.date}
+                value={form.dateOfIncorporation || ""}
                 readOnly
                 disabled
               />
@@ -102,7 +138,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <input
                 className="input w-full"
                 name="uen"
-                value={form.uen}
+                value={form.uen || ""}
                 onChange={handleChange}
               />
             </div>
@@ -111,7 +147,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <textarea
                 className="input w-full"
                 name="address"
-                value={form.address}
+                value={form.address || ""}
                 onChange={handleChange}
                 rows={2}
               />
@@ -122,7 +158,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
                 <select
                   className="input"
                   name="country"
-                  value={form.country}
+                  value={form.country || ""}
                   onChange={handleChange}
                 >
                   <option>Singapore</option>
@@ -135,7 +171,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
                 <input
                   className="input"
                   name="postalCode"
-                  value={form.postalCode}
+                  value={form.postalCode || ""}
                   onChange={handleChange}
                 />
               </div>
@@ -145,7 +181,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <textarea
                 className="input w-full"
                 name="notes"
-                value={form.notes}
+                value={form.notes || ""}
                 onChange={handleChange}
                 rows={2}
               />
@@ -200,7 +236,7 @@ export default function EditMoneyChangerModal({ onClose, data }) {
               <select
                 className="input w-full"
                 name="schema"
-                value={form.schema}
+                value={form.schema || ""}
                 onChange={handleChange}
               >
                 <option>Scheme - 01</option>
@@ -257,10 +293,12 @@ export default function EditMoneyChangerModal({ onClose, data }) {
 // PropTypes definition
 EditMoneyChangerModal.propTypes = {
   onClose: PropTypes.func.isRequired,
+  onUpdate: PropTypes.func, // Optional callback
   data: PropTypes.shape({
-    company: PropTypes.string,
+    id: PropTypes.number.isRequired,
+    companyName: PropTypes.string,
     email: PropTypes.string,
-    date: PropTypes.string,
+    dateOfIncorporation: PropTypes.string,
     uen: PropTypes.string,
     address: PropTypes.string,
     country: PropTypes.string,
@@ -268,5 +306,6 @@ EditMoneyChangerModal.propTypes = {
     notes: PropTypes.string,
     schema: PropTypes.string,
     role: PropTypes.string,
+    locations: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
 };

@@ -42,15 +42,49 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
     setSelectedLocations(selectedLocations.filter((l) => l !== loc));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.companyName || !form.email) {
       setError("Company Name and Email are required.");
       return;
     }
-    onSave({ ...form, locations: selectedLocations });
-    setError("");
-    onClose();
+
+    try {
+      const createData = {
+        ...form,
+        locations: selectedLocations,
+        // Exclude file fields if not handled by the backend yet
+        logo: undefined,
+        kyc: undefined,
+        schemeId: parseInt(form.schema.split("-")[1]) || 1, // Convert schema to schemeId
+      };
+
+      const response = await fetch("http://localhost:8688/api/v1/money-changers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Uncomment and add token if required
+          // "Authorization": "Bearer YOUR_API_TOKEN",
+        },
+        body: JSON.stringify(createData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Create successful:", result);
+      if (onSave) {
+        onSave(result); // Pass the created record to the parent
+      }
+      setError("");
+      setForm(initialState); // Reset form
+      onClose(); // Close modal on success
+    } catch (err) {
+      setError(`Failed to create: ${err.message}. Please try again.`);
+      console.error("Create error:", err);
+    }
   };
 
   return (

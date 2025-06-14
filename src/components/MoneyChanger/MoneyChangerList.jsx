@@ -50,6 +50,7 @@ export default function MoneyChangerList() {
   const [rows, setRows] = useState([]);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [showBanner, setShowBanner] = useState(false);
+  const [refresh, setRefresh] = useState(false); // Flag to trigger refetch
 
   // Fetch money changers from API or use sample data
   useEffect(() => {
@@ -75,62 +76,58 @@ export default function MoneyChangerList() {
     };
 
     fetchMoneyChangers();
+  }, [isOffline, refresh]); // Add refresh as dependency
 
-    const handleOnline = () => {
-      setIsOffline(false);
-      fetchMoneyChangers();
-    };
-    const handleOffline = () => {
-      setIsOffline(true);
-      setRows(sampleData);
-      setShowBanner(true);
-      setError("Offline mode: Displaying sample data.");
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, [isOffline]);
-
-  const handleSaveAccount = (data) => {
-    console.log("handleSaveAccount called with data:", data);
-    if (!data.email || !data.companyName) {
+  const handleSaveAccount = (newData) => {
+    console.log("handleSaveAccount called with data:", newData);
+    if (!newData.email || !newData.companyName) {
       setError("Please fill all fields.");
       console.log("Validation failed, error set:", error);
       return;
     }
     setError("");
-
-    const newRow = {
-      id: rows.length + 1,
-      companyName: data.companyName,
-      email: data.email,
-      dateOfIncorporation: data.date,
-      address: data.address,
-      country: data.country,
-      postalCode: data.postalCode,
-      notes: data.notes,
-      uen: data.uen,
-      schemeId: parseInt(data.schema.split("-")[1]) || 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: null,
-      updatedBy: null,
-      isDeleted: false,
-    };
-
-    setRows([...rows, newRow]);
+    setRefresh(!refresh); // Trigger refetch to get the latest data from the API
     setShowCreate(false);
+  };
 
-    // TODO: Implement API POST request for persistence
+  const handleUpdate = (updatedRow) => {
+    setRows(rows.map((row) => (row.id === updatedRow.id ? updatedRow : row)));
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this money changer?")) {
+      try {
+        const response = await fetch(`http://localhost:8688/api/v1/money-changers/${id}`, {
+          method: "DELETE",
+          headers: {
+            // Uncomment and add token if required
+            // "Authorization": "Bearer YOUR_API_TOKEN",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        console.log(`Deleted money changer with id: ${id}`);
+        setRefresh(!refresh); // Trigger refetch to update the list
+      } catch (err) {
+        setError(`Failed to delete: ${err.message}. Please try again.`);
+        console.error("Delete error:", err);
+      }
+    }
   };
 
   const dismissBanner = () => {
     setShowBanner(false);
+  };
+
+  const handleModalClose = (success) => {
+    if (success) {
+      setRefresh(!refresh); // Trigger refetch on successful update
+    }
+    setShowEdit(false);
+    setSelectedRow(null);
   };
 
   return (
@@ -188,7 +185,10 @@ export default function MoneyChangerList() {
                 >
                   Edit
                 </button>
-                <button className="bg-indigo-200 text-indigo-800 px-3 py-1 rounded">
+                <button
+                  className="bg-red-500 text-white px-3 py-1 rounded"
+                  onClick={() => handleDelete(row.id)}
+                >
                   Delete
                 </button>
               </td>
@@ -198,17 +198,17 @@ export default function MoneyChangerList() {
       </table>
 
       {showCreate && (
-        <CreateMoneyChangerModal onClose={() => setShowCreate(false)} onSave={handleSaveAccount} />
+        <ModalOverlay>
+          <CreateMoneyChangerModal onClose={() => setShowCreate(false)} onSave={handleSaveAccount} />
+        </ModalOverlay>
       )}
 
       {showEdit && selectedRow && (
         <ModalOverlay>
           <EditMoneyChangerModal
             data={selectedRow}
-            onClose={() => {
-              setShowEdit(false);
-              setSelectedRow(null);
-            }}
+            onClose={handleModalClose}
+            onUpdate={handleUpdate}
           />
         </ModalOverlay>
       )}
