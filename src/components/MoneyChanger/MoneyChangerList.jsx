@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import CreateMoneyChangerModal from "./CreateMoneyChangerModal";
 import EditMoneyChangerModal from "./EditMoneyChangerModal";
 import PropTypes from "prop-types"; // Import PropTypes
+import api from '../../api/axios';
 
 // Sample fallback data
 const sampleData = [
@@ -61,18 +62,8 @@ export default function MoneyChangerList() {
       }
 
       try {
-        const response = await fetch("http://localhost:8688/api/v1/money-changers", {
-          // Uncomment and replace with your token if required
-          // headers: {
-          //   Authorization: "Bearer YOUR_API_TOKEN",
-          //   "Content-Type": "application/json",
-          // },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
-        }
-        const data = await response.json();
-        setRows(data);
+        const response = await api.get(`/api/v1/money-changers`);
+        setRows(response.data);
         setError("");
         setShowBanner(false);
       } catch (err) {
