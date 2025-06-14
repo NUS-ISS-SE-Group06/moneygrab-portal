@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types"; // Import PropTypes
+import React, { useState, useCallback } from "react";
+import PropTypes from "prop-types";
+import api from '../../api/axios';
 
 const initialState = {
   companyName: "",
@@ -18,29 +19,29 @@ const initialState = {
 
 const locationsList = ["Tampines", "Simei"];
 
-export default function CreateMoneyChangerModal({ onClose, onSave }) {
+const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState(initialState);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFile = (e, key) => {
-    setForm((f) => ({ ...f, [key]: e.target.files[0] }));
+  const handleFileChange = (e, key) => {
+    setForm((prev) => ({ ...prev, [key]: e.target.files[0] }));
   };
 
-  const handleLocationSelect = (loc) => {
+  const handleLocationSelect = useCallback((loc) => {
     if (!selectedLocations.includes(loc)) {
-      setSelectedLocations([...selectedLocations, loc]);
+      setSelectedLocations((prev) => [...prev, loc]);
     }
-  };
+  }, [selectedLocations]);
 
-  const handleLocationDeselect = (loc) => {
-    setSelectedLocations(selectedLocations.filter((l) => l !== loc));
-  };
+  const handleLocationDeselect = useCallback((loc) => {
+    setSelectedLocations((prev) => prev.filter((l) => l !== loc));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,36 +54,22 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
       const createData = {
         ...form,
         locations: selectedLocations,
-        // Exclude file fields if not handled by the backend yet
         logo: undefined,
         kyc: undefined,
-        schemeId: parseInt(form.schema.split("-")[1]) || 1, // Convert schema to schemeId
+        schemeId: parseInt(form.schema.split("-")[1]) || 1,
       };
 
-      const response = await fetch("http://localhost:8688/api/v1/money-changers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Uncomment and add token if required
-          // "Authorization": "Bearer YOUR_API_TOKEN",
-        },
-        body: JSON.stringify(createData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      const response = await api.post("/api/v1/money-changers", createData);
+      if (!response.data) {
+        throw new Error(`No data received! Status: ${response.status}`);
       }
-
-      const result = await response.json();
-      console.log("Create successful:", result);
-      if (onSave) {
-        onSave(result); // Pass the created record to the parent
-      }
-      setError("");
-      setForm(initialState); // Reset form
-      onClose(); // Close modal on success
+      const result = response.data;
+      if (onSave) onSave(result);
+      setError(null);
+      setForm(initialState);
+      onClose();
     } catch (err) {
-      setError(`Failed to create: ${err.message}. Please try again.`);
+      setError(`Creation failed: ${err.message}`);
       console.error("Create error:", err);
     }
   };
@@ -95,7 +82,7 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => onClose()}
           className="absolute right-4 top-4 text-2xl text-gray-400 hover:text-gray-600"
         >
           ×
@@ -104,9 +91,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600">Company Name</label>
+              <label className="block font-semibold text-gray-700">Company Name</label>
               <input
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 name="companyName"
                 value={form.companyName}
                 onChange={handleChange}
@@ -115,9 +102,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Email</label>
+              <label className="block font-semibold text-gray-700">Email</label>
               <input
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
@@ -126,9 +113,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Date of Incorporation</label>
+              <label className="block font-semibold text-gray-700">Date of Incorporation</label>
               <input
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 type="date"
                 name="date"
                 value={form.date}
@@ -136,9 +123,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Address</label>
+              <label className="block font-semibold text-gray-700">Address</label>
               <textarea
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 name="address"
                 value={form.address}
                 onChange={handleChange}
@@ -147,10 +134,10 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               />
             </div>
             <div className="flex gap-4">
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-600">Country</label>
+              <div className="flex-1">
+                <label className="block font-semibold text-gray-700">Country</label>
                 <select
-                  className="input w-full mt-1"
+                  className="w-full p-2 border rounded"
                   name="country"
                   value={form.country}
                   onChange={handleChange}
@@ -160,10 +147,10 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
                   <option>India</option>
                 </select>
               </div>
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-600">Postal Code</label>
+              <div className="flex-1">
+                <label className="block font-semibold text-gray-700">Postal Code</label>
                 <input
-                  className="input w-full mt-1"
+                  className="w-full p-2 border rounded"
                   name="postalCode"
                   value={form.postalCode}
                   onChange={handleChange}
@@ -171,9 +158,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Money Changer Notes</label>
+              <label className="block font-semibold text-gray-700">Notes</label>
               <textarea
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 name="notes"
                 value={form.notes}
                 onChange={handleChange}
@@ -184,17 +171,17 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
           </div>
           <div className="space-y-4">
             <div className="flex gap-4">
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-600">Location List</label>
-                <div className="bg-gray-50 p-2 rounded mt-1 h-24 overflow-y-auto">
+              <div className="flex-1">
+                <label className="block font-semibold text-gray-700">Location List</label>
+                <div className="bg-gray-50 p-2 rounded h-24 overflow-y-auto">
                   {locationsList
                     .filter((l) => !selectedLocations.includes(l))
                     .map((loc) => (
-                      <div key={loc} className="flex justify-between items-center py-1">
+                      <div key={loc} className="flex justify-between p-1">
                         <span className="text-sm text-gray-700">{loc}</span>
                         <button
                           type="button"
-                          className="text-indigo-600 text-sm underline"
+                          className="text-indigo-600 underline text-sm"
                           onClick={() => handleLocationSelect(loc)}
                         >
                           Select
@@ -203,18 +190,18 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
                     ))}
                 </div>
               </div>
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-600">Selected Location</label>
-                <div className="bg-gray-50 p-2 rounded mt-1 h-24 overflow-y-auto">
+              <div className="flex-1">
+                <label className="block font-semibold text-gray-700">Selected Locations</label>
+                <div className="bg-gray-50 p-2 rounded h-24 overflow-y-auto">
                   {selectedLocations.map((loc) => (
-                    <div key={loc} className="flex justify-between items-center py-1">
+                    <div key={loc} className="flex justify-between p-1">
                       <span className="text-sm text-gray-700">{loc}</span>
                       <button
                         type="button"
-                        className="text-red-600 text-sm underline"
+                        className="text-red-500 underline text-sm"
                         onClick={() => handleLocationDeselect(loc)}
                       >
-                        DeSelect
+                        Deselect
                       </button>
                     </div>
                   ))}
@@ -225,9 +212,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">UEN</label>
+              <label className="block font-semibold text-gray-700">UEN</label>
               <input
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 name="uen"
                 value={form.uen}
                 onChange={handleChange}
@@ -235,9 +222,9 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Schema</label>
+              <label className="block font-semibold text-gray-700">Schema</label>
               <select
-                className="input w-full mt-1"
+                className="w-full p-2 border rounded"
                 name="schema"
                 value={form.schema}
                 onChange={handleChange}
@@ -248,52 +235,51 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
               </select>
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-gray-400 mb-2">Drop logo/other files here</div>
-              <div className="text-gray-500 text-sm">Supported format: JPG/PNG/GIF/PDF</div>
+              <div className="text-gray-400 mb-2">Upload Logo</div>
               <input
                 type="file"
                 accept=".jpg,.png,.gif,.pdf"
                 className="hidden"
-                onChange={(e) => handleFile(e, "logo")}
+                onChange={(e) => handleFileChange(e, "logo")}
                 id="logo-upload"
               />
               <label
                 htmlFor="logo-upload"
-                className="mt-2 inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
+                className="inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
               >
-                Browse files
+                Browse
               </label>
+              <div className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF, PDF</div>
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-gray-400 mb-2">Drop KYC here</div>
-              <div className="text-gray-500 text-sm">Supported format: JPG/PNG/GIF/PDF</div>
+              <div className="text-gray-400 mb-2">Upload KYC</div>
               <input
                 type="file"
                 accept=".jpg,.png,.gif,.pdf"
                 className="hidden"
-                onChange={(e) => handleFile(e, "kyc")}
+                onChange={(e) => handleFileChange(e, "kyc")}
                 id="kyc-upload"
               />
               <label
                 htmlFor="kyc-upload"
-                className="mt-2 inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
+                className="inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
               >
-                Browse files
+                Browse
               </label>
+              <div className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF, PDF</div>
             </div>
           </div>
         </div>
         {error && (
           <div className="bg-yellow-100 text-red-700 p-3 mt-4 rounded">
-            <b>Error Message</b>
-            <br />
-            {error}
+            <strong>Error</strong>
+            <p>{error}</p>
           </div>
         )}
         <div className="flex justify-end mt-6">
           <button
             type="submit"
-            className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow hover:bg-indigo-600 transition"
+            className="bg-indigo-500 text-white px-6 py-2 rounded shadow hover:bg-indigo-600 transition"
           >
             Save
           </button>
@@ -301,10 +287,11 @@ export default function CreateMoneyChangerModal({ onClose, onSave }) {
       </form>
     </div>
   );
-}
+};
 
-// PropTypes definition
 CreateMoneyChangerModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };
+
+export default CreateMoneyChangerModal;
