@@ -16,7 +16,7 @@ const MoneyChangerList = () => {
   const fetchMoneyChangers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/api/v1//money-changers");
+      const response = await api.get("/api/v1/money-changers");
       if (!response.data) {
         throw new Error("No data received from API");
       }
