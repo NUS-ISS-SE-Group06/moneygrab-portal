@@ -16,7 +16,7 @@ const MoneyChangerList = () => {
   const fetchMoneyChangers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/api/v1//money-changers");
+      const response = await api.get("/api/v1/money-changers");
       if (!response.data) {
         throw new Error("No data received from API");
       }
@@ -53,7 +53,7 @@ const MoneyChangerList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this money changer?")) {
       try {
-        const response = await api.delete(`/money-changers/${id}`);
+        const response = await api.delete(`/api/v1/money-changers/${id}`);
         if (response.status !== 200 && response.status !== 204) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
