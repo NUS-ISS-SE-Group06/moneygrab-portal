@@ -9,6 +9,10 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
     ...data,
     logo: null,
     kyc: null,
+    logoBase64: "",
+    logoFilename: "",
+    kycBase64: "",
+    kycFilename: "",
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
@@ -22,20 +26,44 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
 
   const handleFileChange = (e, key) => {
     const file = e.target.files[0];
-    setForm((prev) => ({ ...prev, [key]: file }));
-
-    // Generate preview for the file
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        const base64String = reader.result;
+        setForm((prev) => {
+          if (key === "logo") {
+            return {
+              ...prev,
+              logo: file,
+              logoBase64: base64String,
+              logoFilename: file.name,
+            };
+          } else if (key === "kyc") {
+            return {
+              ...prev,
+              kyc: file,
+              kycBase64: base64String,
+              kycFilename: file.name,
+            };
+          }
+          return prev;
+        });
         if (key === "logo") {
-          setLogoPreview(reader.result);
+          setLogoPreview(base64String);
         } else if (key === "kyc") {
-          setKycPreview(reader.result);
+          setKycPreview(base64String);
         }
       };
       reader.readAsDataURL(file);
     } else {
+      setForm((prev) => {
+        if (key === "logo") {
+          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
+        } else if (key === "kyc") {
+          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
+        }
+        return prev;
+      });
       if (key === "logo") setLogoPreview(null);
       else if (key === "kyc") setKycPreview(null);
     }
@@ -64,6 +92,10 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
+        logoBase64: form.logoBase64,
+        logoFilename: form.logoFilename,
+        kycBase64: form.kycBase64,
+        kycFilename: form.kycFilename,
       };
 
       const response = await api.put(`/api/v1/money-changers/${data.id}`, updateData);
@@ -265,11 +297,11 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
               <label className="block font-semibold text-gray-700">KYC</label>
               <input
                 type="file"
-                accept=".jpeg,.png,.gif,.pdf"
+                accept=".pdf"
                 className="w-full p-2 border rounded"
                 onChange={(e) => handleFileChange(e, "kyc")}
               />
-              <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500">Supported:PDF</div>
               {kycPreview && (
                 <div className="mt-2">
                   <img
