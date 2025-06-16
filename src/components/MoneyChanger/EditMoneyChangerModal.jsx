@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import api from '../../api/axios';
+import api from "../../api/axios";
 
 const locationsList = ["Tampines", "Simei"];
 
@@ -9,9 +9,15 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
     ...data,
     logo: null,
     kyc: null,
+    logoBase64: "",
+    logoFilename: "",
+    kycBase64: "",
+    kycFilename: "",
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [kycPreview, setKycPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,7 +25,48 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   };
 
   const handleFileChange = (e, key) => {
-    setForm((prev) => ({ ...prev, [key]: e.target.files[0] }));
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setForm((prev) => {
+          if (key === "logo") {
+            return {
+              ...prev,
+              logo: file,
+              logoBase64: base64String,
+              logoFilename: file.name,
+            };
+          } else if (key === "kyc") {
+            return {
+              ...prev,
+              kyc: file,
+              kycBase64: base64String,
+              kycFilename: file.name,
+            };
+          }
+          return prev;
+        });
+        if (key === "logo") {
+          setLogoPreview(base64String);
+        } else if (key === "kyc") {
+          setKycPreview(base64String);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setForm((prev) => {
+        if (key === "logo") {
+          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
+        } else if (key === "kyc") {
+          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
+        }
+        return prev;
+      });
+      if (key === "logo") setLogoPreview(null);
+      else if (key === "kyc") setKycPreview(null);
+    }
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -45,6 +92,10 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
+        logoBase64: form.logoBase64,
+        logoFilename: form.logoFilename,
+        kycBase64: form.kycBase64,
+        kycFilename: form.kycFilename,
       };
 
       const response = await api.put(`/api/v1/money-changers/${data.id}`, updateData);
@@ -227,21 +278,39 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
               <label className="block font-semibold text-gray-700">Logo</label>
               <input
                 type="file"
-                accept=".jpg,.png,.gif,.pdf"
+                accept=".jpeg,.png,.gif,.pdf"
                 className="w-full p-2 border rounded"
                 onChange={(e) => handleFileChange(e, "logo")}
               />
-              <div className="text-xs text-gray-500">Supported: JPG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
+              {logoPreview && (
+                <div className="mt-2">
+                  <img
+                    src={logoPreview}
+                    alt="Logo Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <label className="block font-semibold text-gray-700">KYC</label>
               <input
                 type="file"
-                accept=".jpg,.png,.gif,.pdf"
+                accept=".pdf"
                 className="w-full p-2 border rounded"
                 onChange={(e) => handleFileChange(e, "kyc")}
               />
-              <div className="text-xs text-gray-500">Supported: JPG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500">Supported:PDF</div>
+              {kycPreview && (
+                <div className="mt-2">
+                  <img
+                    src={kycPreview}
+                    alt="KYC Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

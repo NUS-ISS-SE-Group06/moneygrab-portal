@@ -1,15 +1,13 @@
 import axios from "axios";
 
 const api = axios.create({
-  /*
-  In your local development environment, you can use the following base URL:
-  */
-  /*baseURL: 'http://localhost:8688'*/
+  baseURL: "https://r6zsml2v4c.execute-api.ap-southeast-1.amazonaws.com/PRD",
+  headers: {
+    "Content-Type": "application/json",
+  },
 
-  /*
-  In production, use the following base URL:
-  */
-  baseURL: 'https://r6zsml2v4c.execute-api.ap-southeast-1.amazonaws.com/PRD' // Replace with your actual API base URL
+  // Uncomment and add token if required
+  // headers: { "Authorization": `Bearer ${process.env.API_TOKEN}` },
 });
 
 export default api;
