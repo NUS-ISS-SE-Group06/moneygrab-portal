@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import api from '../../api/axios';
+import api from "../../api/axios";
 
 const initialState = {
   companyName: "",
@@ -15,6 +15,10 @@ const initialState = {
   logo: null,
   kyc: null,
   locations: [],
+  logoBase64: "",
+  logoFilename: "",
+  kycBase64: "",
+  kycFilename: "",
 };
 
 const locationsList = ["Tampines", "Simei"];
@@ -23,6 +27,8 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [kycPreview, setKycPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +36,48 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   };
 
   const handleFileChange = (e, key) => {
-    setForm((prev) => ({ ...prev, [key]: e.target.files[0] }));
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setForm((prev) => {
+          if (key === "logo") {
+            return {
+              ...prev,
+              logo: file,
+              logoBase64: base64String,
+              logoFilename: file.name,
+            };
+          } else if (key === "kyc") {
+            return {
+              ...prev,
+              kyc: file,
+              kycBase64: base64String,
+              kycFilename: file.name,
+            };
+          }
+          return prev;
+        });
+        if (key === "logo") {
+          setLogoPreview(base64String);
+        } else if (key === "kyc") {
+          setKycPreview(base64String);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setForm((prev) => {
+        if (key === "logo") {
+          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
+        } else if (key === "kyc") {
+          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
+        }
+        return prev;
+      });
+      if (key === "logo") setLogoPreview(null);
+      else if (key === "kyc") setKycPreview(null);
+    }
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -57,6 +104,10 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
         logo: undefined,
         kyc: undefined,
         schemeId: parseInt(form.schema.split("-")[1]) || 1,
+        logoBase64: form.logoBase64,
+        logoFilename: form.logoFilename,
+        kycBase64: form.kycBase64,
+        kycFilename: form.kycFilename,
       };
 
       const response = await api.post("/api/v1/money-changers", createData);
@@ -238,7 +289,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               <div className="text-gray-400 mb-2">Upload Logo</div>
               <input
                 type="file"
-                accept=".jpg,.png,.gif,.pdf"
+                accept=".jpeg,.png,.gif"
                 className="hidden"
                 onChange={(e) => handleFileChange(e, "logo")}
                 id="logo-upload"
@@ -249,13 +300,22 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               >
                 Browse
               </label>
-              <div className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500 mt-1">Supported: JPEG, PNG, GIF</div>
+              {logoPreview && (
+                <div className="mt-2">
+                  <img
+                    src={logoPreview}
+                    alt="Logo Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
               <div className="text-gray-400 mb-2">Upload KYC</div>
               <input
                 type="file"
-                accept=".jpg,.png,.gif,.pdf"
+                accept=".pdf"
                 className="hidden"
                 onChange={(e) => handleFileChange(e, "kyc")}
                 id="kyc-upload"
@@ -266,7 +326,16 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               >
                 Browse
               </label>
-              <div className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF, PDF</div>
+              <div className="text-xs text-gray-500 mt-1">Supported:PDF</div>
+              {kycPreview && (
+                <div className="mt-2">
+                  <img
+                    src={kycPreview}
+                    alt="KYC Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
