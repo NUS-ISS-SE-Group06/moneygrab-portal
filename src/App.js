@@ -1,13 +1,13 @@
 import React from "react";
 import {
   createBrowserRouter,
-  RouterProvider,
-  Navigate,
+  RouterProvider
 } from "react-router-dom";
 import LayoutWithResizableSidebar from "./components/sidebar";
 import ManageAccounts from "./ManageAccounts";
 import Commission from "./pages/Commission";
 import MoneyChanger from "./pages/MoneyChanger";
+import Home from "./pages/Home";
 
 function ComingSoon({ label }) {
   return (
@@ -24,7 +24,7 @@ const router = createBrowserRouter(
       path: "/",
       element: <LayoutWithResizableSidebar />,
       children: [
-        { index: true, element: <Navigate to="/account" replace /> },
+        { index: true, element: <Home /> },
         { path: "account", element: <ManageAccounts /> },
         { path: "money-changer", element: <MoneyChanger /> }, // Replaced ComingSoon with MoneyChanger
         { path: "fx-rate-upload", element: <ComingSoon label="FX Rate Upload" /> },
