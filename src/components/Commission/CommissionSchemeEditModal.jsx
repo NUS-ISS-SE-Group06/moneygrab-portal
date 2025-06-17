@@ -71,7 +71,7 @@ const CommissionSchemeEditModal = ({ selectedScheme, onClose, onUpdated }) => {
             value={commissionScheme?.nameTag ?? ""} 
             onChange={(e) => setCommissionScheme( {...commissionScheme, nameTag:e.target.value } )}
             readOnly
-          />
+            />
           <label className="block mb-2 font-semibold text-gray-800">Description</label>
           <textarea
             maxLength={500} 
