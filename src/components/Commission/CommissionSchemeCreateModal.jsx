@@ -65,7 +65,7 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionScheme?.nameTag ?? ""}
                 onChange={(e) => setCommissionScheme({...commissionScheme, nameTag: e.target.value})}
-              />
+                />
               <label className="block mb-2 font-semibold text-gray-800">Description </label>
               <textarea
                 maxLength={500} 
@@ -73,7 +73,7 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionScheme?.description ?? ""}
                 onChange={(e) => setCommissionScheme({...commissionScheme, description: e.target.value})}
-              />
+                />
               <label className="block mb-2 font-semibold text-gray-800">
                 <input
                   type="checkbox"
