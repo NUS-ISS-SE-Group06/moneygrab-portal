@@ -4,9 +4,9 @@ import PropTypes from "prop-types";
 
 const CompanyCommissionSchemeEditModal = ({ selectedCompanyCommissionScheme, onClose, onUpdated}) => {
   const [userId] = useState(1);
-  const [companyCommissionScheme, setcompanyCommissionScheme] = useState(selectedCompanyCommissionScheme);
+  const [companyCommissionScheme, setCompanyCommissionScheme] = useState(selectedCompanyCommissionScheme);
   const [error, setError] = useState("");
-  const [moneyChangerList,setmoneyChangerLisst] = useState([]);
+  const [moneyChangerList,setMoneyChangerList] = useState([]);
 
 useEffect(() => {
   const fetchmoneyChanger = async () => {
@@ -14,7 +14,7 @@ useEffect(() => {
 
     try {
       const response = await api.get('/api/v1/money-changers');
-      setmoneyChangerLisst(response.data);
+      setMoneyChangerList(response.data);
 
     } catch(err) {
         console.error("Failed to fetch moneyChangerList:", err);
@@ -90,7 +90,7 @@ useEffect(() => {
                 onChange={(e) => {
                                   const selectedId=parseInt(e.target.value);
                                   const selectedName = e.target.options[e.target.selectedIndex].text;
-                                  setcompanyCommissionScheme({...companyCommissionScheme,moneyChangerId: selectedId, companyName: selectedName});
+                                  setCompanyCommissionScheme({...companyCommissionScheme,moneyChangerId: selectedId, companyName: selectedName});
                 }}
               >
                 <option value="">Select Money Changer</option>
