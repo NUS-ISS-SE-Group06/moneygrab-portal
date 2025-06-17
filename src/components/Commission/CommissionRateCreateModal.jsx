@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from '../api/axios';
+import api from '../../api/axios';
 import PropTypes from "prop-types";
 
 const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
@@ -11,7 +11,7 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
     nameTag: selectedScheme?.nameTag, 
     rate: null,
   });
-
+ 
 
   const [error, setError] = useState("");
   const [currencyList,setCurrencyList] = useState([]);

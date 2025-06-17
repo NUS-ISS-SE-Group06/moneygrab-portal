@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from '../api/axios';
+import api from '../../api/axios';
 import PropTypes from "prop-types";
 
 const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
@@ -12,7 +12,7 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
     const errors = [];
     setError("");
 
-    if (!commissionRate?.id) {
+    if (!commissionRate?.id) { 
       errors.push("Commission rate is required.");
     } 
 
