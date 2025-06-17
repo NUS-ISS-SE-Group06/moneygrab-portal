@@ -1,11 +1,11 @@
 import React, {useEffect, useState } from "react";
 import api from "../api/axios";
-import CommissionSchemeCreateModal from "../components/CommissionSchemeCreateModal";
-import CommissionSchemeEditModal from "../components/CommissionSchemeEditModal";
-import CommissionRateCreateModal from "../components/CommissionRateCreateModal"; 
-import CommissionRateEditModal from "../components/CommissionRateEditModal"; 
-import CompanyCommissionSchemeCreateModel from "../components/CompanyCommissionSchemeCreateModal"; 
-import CompanyCommissionSchemeEditModel from "../components/CompanyCommissionSchemeEditModal"; 
+import CommissionSchemeCreateModal from "../components/Commission/CommissionSchemeCreateModal";
+import CommissionSchemeEditModal from "../components/Commission/CommissionSchemeEditModal";
+import CommissionRateCreateModal from "../components/Commission/CommissionRateCreateModal"; 
+import CommissionRateEditModal from "../components/Commission/CommissionRateEditModal"; 
+import CompanyCommissionSchemeCreateModel from "../components/Commission/CompanyCommissionSchemeCreateModal"; 
+import CompanyCommissionSchemeEditModel from "../components/Commission/CompanyCommissionSchemeEditModal"; 
 
 
 const Commission = () => {
@@ -253,7 +253,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           </div>
         )}
 
-        <div className="bg-white shadow rounded">
+        <div className="w-3/4 bg-white shadow rounded">
           {loadingScheme ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
@@ -349,7 +349,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
         </div>
 
 
-        <div className="bg-white shadow rounded">
+        <div className="w-3/4 bg-white shadow rounded">
           {loadingCommissionRate ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
@@ -438,7 +438,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
         </div>
         
 
-        <div className="bg-white shadow rounded">
+        <div className="w-3/4 bg-white shadow rounded">
           {loadingCompanyCommissionScheme ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (

@@ -5,7 +5,6 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-
   // Uncomment and add token if required
   // headers: { "Authorization": `Bearer ${process.env.API_TOKEN}` },
 });

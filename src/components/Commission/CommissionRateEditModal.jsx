@@ -1,39 +1,57 @@
 import React, { useState } from "react";
-import api from '../api/axios';
+import api from '../../api/axios';
 import PropTypes from "prop-types";
 
-const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
+const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
   const [userId] = useState(1);
-  const [commissionScheme,setCommissionScheme]= useState({nameTag: null, description: null, isDefault: false});
+  const [commissionRate, setCommissionRate] = useState(selectedCommissionRate);
   const [error, setError] = useState("");
+
 
   const handleSave = async () => {
     const errors = [];
     setError("");
 
-    if (!commissionScheme?.nameTag) {
-      errors.push("Commission tag is required.");
+    if (!commissionRate?.id) { 
+      errors.push("Commission rate is required.");
     } 
 
+    if (!commissionRate?.nameTag) {
+      errors.push("Commission tag is required.");
+    }
+
+    if (!commissionRate?.currencyId) {
+      errors.push("Symbol is required.");
+    }
+
+
+    if (!commissionRate?.rate || isNaN(commissionRate?.rate) || Number(commissionRate?.rate) <= 0) {
+      errors.push("A valid commission rate greater than 0 is required.");
+    }
+    
     if (errors.length > 0) {
       setError(errors.join("\n"));
       return;
     }
 
+
     try {
-      const response = await api.post(`/api/v1/schemes`, {
-        nameTag: commissionScheme?.nameTag,
-        description: commissionScheme?.description,
-        createdBy: userId,
+      const { id, currencyId, schemeId, rate } = commissionRate;
+      const response = await api.put(`/api/v1/commission-rates/${id}`, {
+        id,
+        currencyId,
+        schemeId,
+        rate,
+        updatedBy: userId,
       });
 
       const created = response.data;
 
       console.log("Response from server:", created);
 
-      onCreated(created);
+      onUpdated(created);
       onClose();
-      
+
     } catch (err) {
       console.error(err);
 
@@ -55,34 +73,22 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
           onClick={onClose}
           aria-label="Close"
         >×</button>
-        <h2 className="text-2xl font-bold mb-3 text-gray-900">Create Commission Scheme</h2>
+        <h2 className="text-2xl font-bold mb-3 text-gray-900">Edit Commission Rates</h2>
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
+              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag ?? '—'}</p>
+              <label className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
+              <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">
+                {commissionRate?.currency ?? '—'}
+              </p>
+              <label className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
-                maxLength={100} 
-                type="text"
-                placeholder="Enter Commission Tag"
+                type="number"
+                placeholder="Enter commission rate (e.g. 0.50)"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-                value={commissionScheme?.nameTag ?? ""}
-                onChange={(e) => setCommissionScheme({...commissionScheme, nameTag: e.target.value})}
+                value={commissionRate?.rate ?? ""}
+                onChange={(e) => { setCommissionRate( {...commissionRate, rate: e.target.value } )} }          
               />
-              <label className="block mb-2 font-semibold text-gray-800">Description </label>
-              <textarea
-                maxLength={500} 
-                placeholder="Enter Description"
-                className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
-                value={commissionScheme?.description ?? ""}
-                onChange={(e) => setCommissionScheme({...commissionScheme, description: e.target.value})}
-              />
-              <label className="block mb-2 font-semibold text-gray-800">
-                <input
-                  type="checkbox"
-                  checked={commissionScheme?.isDefault ?? false}
-                  className="accent-indigo-500"
-                  onChange={(e) => setCommissionScheme({...commissionScheme, isDefault: e.target.checked})}
-                  />
-                &nbsp;Default Commission Scheme 
-              </label>
         </div>
 
         {error && (
@@ -108,9 +114,10 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
   );
 }
 
-CommissionSchemeCreateModal.propTypes = {
+CommissionRateEditModal.propTypes = {
+  selectedCommissionRate: PropTypes.object.isRequired, 
   onClose: PropTypes.func.isRequired,
-  onCreated: PropTypes.func.isRequired
+  onUpdated: PropTypes.func.isRequired
 }
 
-export default CommissionSchemeCreateModal;
+export default CommissionRateEditModal;
