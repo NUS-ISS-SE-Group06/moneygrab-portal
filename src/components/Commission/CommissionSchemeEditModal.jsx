@@ -79,14 +79,14 @@ const CommissionSchemeEditModal = ({ selectedScheme, onClose, onUpdated }) => {
             className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
             value={commissionScheme?.description ?? ""}
             onChange={(e) => setCommissionScheme( {...commissionScheme, description:e.target.value } )}
-          />
+            />
           <label className="block mb-2 font-semibold text-gray-800">
             <input
               type="checkbox"
               checked={commissionScheme?.isDefault ?? false}
               className="accent-indigo-500"
               onChange={(e) => setCommissionScheme( {...commissionScheme, isDefault:e.target.checked } )}
-            />
+              />
             &nbsp;Default Commission Scheme
           </label>
         </div>
