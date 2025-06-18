@@ -81,32 +81,26 @@ function AuthInit() {
   const [initError, setInitError] = useState(null);
 
   useEffect(() => {
-    const fetchTokens = async () => {
+    const initializeAuth = async () => {
       try {
-        console.log("AuthInit: Attempting to fetch auth session...");
+        console.log("AuthInit: Checking auth session...");
         const session = await fetchAuthSession();
-        console.log("AuthInit: Session result:", session);
+        console.log("AuthInit: Session check complete:", {
+          hasTokens: !!session?.tokens,
+          hasIdToken: !!session?.tokens?.idToken,
+          hasAccessToken: !!session?.tokens?.accessToken
+        });
         
-        const idToken = session.tokens?.idToken?.toString();
-        const accessToken = session.tokens?.accessToken?.toString();
-
-        if (idToken && accessToken) {
-          localStorage.setItem("idToken", idToken);
-          localStorage.setItem("accessToken", accessToken);
-          console.log("AuthInit: Tokens stored successfully");
-        } else {
-          console.log("AuthInit: No tokens found in session");
-        }
+        // No need to manually store tokens - Amplify handles this automatically
+        
       } catch (error) {
-        console.log("AuthInit: Not logged in yet or error occurred:", error);
-        // Clear any stale tokens
-        localStorage.removeItem("idToken");
-        localStorage.removeItem("accessToken");
+        console.log("AuthInit: No active session:", error.message);
+        // This is normal if user is not logged in
       }
     };
     
-    fetchTokens().catch(error => {
-      console.error("AuthInit: Failed to fetch tokens:", error);
+    initializeAuth().catch(error => {
+      console.error("AuthInit: Initialization failed:", error);
       setInitError(error);
     });
   }, []);
