@@ -9,17 +9,15 @@ function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
     const checkSession = async () => {
       try {
         const session = await fetchAuthSession();
         if (session.tokens?.idToken) {
           console.log("Login: User already authenticated, redirecting...");
-          navigate('/'); // already logged in
+          navigate('/');
         }
       } catch {
-        // not logged in, continue showing login
         console.log("Login: No existing session found");
       }
     };
@@ -33,32 +31,18 @@ function Login() {
 
     try {
       console.log("Login: Attempting to sign in...");
-      
-      // Sign in with Cognito
-      const signInResult = await signIn({ username, password });
-      console.log("Login: Sign in successful:", signInResult);
-
-      // Verify we have a valid session after sign in
+      await signIn({ username, password });
       const session = await fetchAuthSession();
-      console.log("Login: Session verified:", {
-        hasIdToken: !!session.tokens?.idToken,
-        hasAccessToken: !!session.tokens?.accessToken
-      });
 
       if (!session.tokens?.idToken) {
         throw new Error("Authentication successful but no tokens received");
       }
 
-      // No need to manually store tokens - Amplify does this automatically
-      console.log("Login: Redirecting to home page...");
       navigate('/', { replace: true });
-      
     } catch (error) {
       console.error("Login failed:", error);
-      
-      // Provide user-friendly error messages
+
       let errorMessage = "Login failed. Please check your credentials.";
-      
       if (error.name === 'UserNotConfirmedException') {
         errorMessage = "Please confirm your account before signing in.";
       } else if (error.name === 'NotAuthorizedException') {
@@ -68,7 +52,7 @@ function Login() {
       } else if (error.name === 'TooManyRequestsException') {
         errorMessage = "Too many login attempts. Please try again later.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -76,61 +60,91 @@ function Login() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: '15px' }}>
-          <input 
-            type="text" 
-            placeholder="Username" 
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.heading}>Sign In</h2>
+        <form onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="Username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)} 
-            required 
+            onChange={(e) => setUsername(e.target.value)}
+            required
             disabled={isLoading}
-            style={{ width: '100%', padding: '8px', fontSize: '16px' }}
+            style={styles.input}
           />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <input 
-            type="password" 
-            placeholder="Password" 
+          <input
+            type="password"
+            placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
+            onChange={(e) => setPassword(e.target.value)}
+            required
             disabled={isLoading}
-            style={{ width: '100%', padding: '8px', fontSize: '16px' }}
+            style={styles.input}
           />
-        </div>
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          style={{ 
-            width: '100%', 
-            padding: '10px', 
-            fontSize: '16px',
-            backgroundColor: isLoading ? '#ccc' : '#007bff',
-            color: 'white',
-            border: 'none',
-            cursor: isLoading ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {isLoading ? 'Signing In...' : 'Sign In'}
-        </button>
-      </form>
-      {error && (
-        <p style={{ 
-          color: 'red', 
-          marginTop: '15px', 
-          padding: '10px', 
-          backgroundColor: '#fee', 
-          border: '1px solid #fcc',
-          borderRadius: '4px'
-        }}>
-          {error}
-        </p>
-      )}
+          <button
+            type="submit"
+            disabled={isLoading}
+            style={{
+              ...styles.button,
+              backgroundColor: isLoading ? '#bbb' : '#007bff',
+              cursor: isLoading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isLoading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
+        {error && <div style={styles.errorBox}>{error}</div>}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    backgroundColor: '#f3f4f6',
+    height: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    padding: '40px',
+    borderRadius: '8px',
+    boxShadow: '0 0 20px rgba(0,0,0,0.1)',
+    width: '100%',
+    maxWidth: '400px'
+  },
+  heading: {
+    marginBottom: '30px',
+    textAlign: 'center',
+    color: '#333'
+  },
+  input: {
+    width: '100%',
+    padding: '12px 14px',
+    marginBottom: '15px',
+    fontSize: '16px',
+    borderRadius: '4px',
+    border: '1px solid #ccc'
+  },
+  button: {
+    width: '100%',
+    padding: '12px',
+    fontSize: '16px',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px'
+  },
+  errorBox: {
+    marginTop: '15px',
+    backgroundColor: '#ffe6e6',
+    color: '#cc0000',
+    padding: '10px',
+    borderRadius: '4px',
+    border: '1px solid #ffcccc'
+  }
+};
 
 export default Login;
