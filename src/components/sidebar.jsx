@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, {useState, useEffect, useCallback } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 
 const navItems = [
@@ -49,17 +49,17 @@ export default function LayoutWithResizableSidebar() {
 
   const onMouseDown = () => setDragging(true);
 
-  const onMouseMove = (e) => {
+  const onMouseMove = useCallback((e) => {
     if (!dragging) return;
     document.body.style.userSelect = "none";
     const newWidth = e.clientX;
     if (newWidth >= 160 && newWidth <= 360) setSidebarWidth(newWidth);
-  };
+  }, [dragging]);
 
-  const onMouseUp = () => {
+  const onMouseUp = useCallback(() => {
     setDragging(false);
     document.body.style.userSelect = "";
-  };
+  }, []);
 
   useEffect(() => {
     if (dragging) {
@@ -70,12 +70,11 @@ export default function LayoutWithResizableSidebar() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [dragging]);
+  }, [dragging, onMouseMove, onMouseUp]);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar width={sidebarWidth} />
-      {/* Drag handle */}
       <div
         className="w-2 cursor-ew-resize bg-gray-200 hover:bg-blue-300 transition"
         onMouseDown={onMouseDown}

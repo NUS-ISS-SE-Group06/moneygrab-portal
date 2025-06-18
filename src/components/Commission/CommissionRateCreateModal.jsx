@@ -21,22 +21,8 @@ useEffect(() => {
     setError("");
 
     try {
-      //const response = await api.get(`/api/v1/currencies`);
-      //setCurrencyList(response.data);
-
-      // MOCK CURRENCY DATA
-      const mockedResponse = {
-        data: [
-          { id: "1", currency: "SGD" },
-          { id: "2", currency: "USD" },
-          { id: "3", currency: "EUR" },
-          { id: "4", currency: "MYR" },
-          { id: "5", currency: "IDR" }
-        ]
-      };
-
-      setCurrencyList(mockedResponse.data);
-
+      const response = await api.get(`/api/v1/currencies`);
+      setCurrencyList(response.data);
     } catch(err) {
         console.error("Failed to fetch currencyList:", err);
         setError("Failed to fetch currencyList.");
