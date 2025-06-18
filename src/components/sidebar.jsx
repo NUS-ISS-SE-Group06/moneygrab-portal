@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
+import LogoutButton from "./Auth/LogoutButton";
 
 const navItems = [
   { label: "Account", path: "/account" },
@@ -18,13 +19,16 @@ function Sidebar({ width }) {
 
   return (
     <aside
-      className="bg-white border-r px-4 py-6 h-screen"
+      className="bg-white border-r px-4 py-6 h-screen flex flex-col"
       style={{ width, minWidth: 160, maxWidth: 360, transition: "width 0.1s" }}
     >
+      {/* Header */}
       <div className="flex items-center mb-10">
         <span className="font-bold text-lg">MoneyGrab</span>
       </div>
-      <nav className="space-y-2 text-gray-700">
+      
+      {/* Navigation - flex-1 makes this section take up remaining space */}
+      <nav className="space-y-2 text-gray-700 flex-1">
         {navItems.map((item) => (
           <Link
             key={item.path}
@@ -39,6 +43,11 @@ function Sidebar({ width }) {
           </Link>
         ))}
       </nav>
+      
+      {/* Logout Button - positioned at bottom */}
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <LogoutButton />
+      </div>
     </aside>
   );
 }
