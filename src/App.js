@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -50,11 +51,16 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Add PropTypes validation for ErrorBoundary
+ErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 // Configure Amplify with error handling
 try {
   console.log("Amplify configuration being used:", awsConfig);
   
-  // Validate configuration before applying
+  // Validate configuration before applying - Fixed: Using optional chaining
   if (!awsConfig?.Auth?.Cognito?.userPoolId || !awsConfig?.Auth?.Cognito?.userPoolClientId) {
     throw new Error("Invalid AWS configuration: Missing required Cognito settings");
   }
