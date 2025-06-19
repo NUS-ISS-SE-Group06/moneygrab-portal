@@ -60,7 +60,7 @@ ErrorBoundary.propTypes = {
 try {
   console.log("Amplify configuration being used:", awsConfig);
   
-  // Validate configuration before applying - Fixed: Using optional chaining
+  // Validate configuration before applying - Fixed: Using optional chaining consistently
   if (!awsConfig?.Auth?.Cognito?.userPoolId || !awsConfig?.Auth?.Cognito?.userPoolClientId) {
     throw new Error("Invalid AWS configuration: Missing required Cognito settings");
   }
@@ -81,6 +81,11 @@ function ComingSoon({ label }) {
     </div>
   );
 }
+
+// Add PropTypes validation for ComingSoon
+ComingSoon.propTypes = {
+  label: PropTypes.string.isRequired,
+};
 
 // Enhanced AuthInit component with error handling
 function AuthInit() {
