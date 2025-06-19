@@ -142,8 +142,8 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold text-gray-700">Company Name</label>
-              <input
+              <label htmlFor="companyName" className="block font-semibold text-gray-700">Company Name</label>
+              <input id="companyName"
                 className="w-full p-2 border rounded"
                 name="companyName"
                 value={form.companyName}
@@ -153,8 +153,8 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Email</label>
-              <input
+              <label htmlFor="email" className="block font-semibold text-gray-700">Email</label>
+              <input id="email"
                 className="w-full p-2 border rounded"
                 name="email"
                 value={form.email}
