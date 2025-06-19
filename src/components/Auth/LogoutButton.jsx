@@ -1,5 +1,6 @@
 // components/Auth/LogoutButton.js
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { signOut } from '@aws-amplify/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,6 +43,11 @@ const LogoutButton = ({ className = '' }) => {
       {isLoggingOut ? 'Signing out...' : 'Logout'}
     </button>
   );
+};
+
+// Add PropTypes validation
+LogoutButton.propTypes = {
+  className: PropTypes.string,
 };
 
 export default LogoutButton;
