@@ -1,10 +1,9 @@
 // Home.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { fetchAuthSession } from "@aws-amplify/auth";
 
 const Home = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
