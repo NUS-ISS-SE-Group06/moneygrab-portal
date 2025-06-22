@@ -44,8 +44,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
-  const [logoPreview, setLogoPreview] = useState(null);
-  const [kycPreview, setKycPreview] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null); // Only used for logo
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,8 +81,6 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         });
         if (key === "logo") {
           setLogoPreview(base64String);
-        } else if (key === "kyc") {
-          setKycPreview(base64String);
         }
       };
       reader.readAsDataURL(file);
@@ -97,7 +94,6 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         return prev;
       });
       if (key === "logo") setLogoPreview(null);
-      else if (key === "kyc") setKycPreview(null);
     }
   };
 
@@ -136,7 +132,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
-        schemeId: schemeIdMap[form.scheme] || 1, // Use mapped value or default to 1
+        schemeId: schemeIdMap[form.scheme] || 1,
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
@@ -152,7 +148,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
       setError(null);
       onClose(true);
     } catch (err) {
-      setError(`Update failed: ${err.message}`);
+      setError(`Update failed: ${err.response?.status || err.message}`);
       console.error("Update error:", err);
     }
   };
@@ -384,8 +380,8 @@ EditMoneyChangerModal.propTypes = {
   onUpdate: PropTypes.func,
   data: PropTypes.shape({
     id: PropTypes.number.isRequired,
-    companyName: PropTypes.string,
-    email: PropTypes.string,
+    companyName: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired,
     dateOfIncorporation: PropTypes.string,
     uen: PropTypes.string,
     address: PropTypes.string,
@@ -396,6 +392,10 @@ EditMoneyChangerModal.propTypes = {
     role: PropTypes.string,
     locations: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
+};
+
+EditMoneyChangerModal.defaultProps = {
+  onUpdate: null,
 };
 
 export default EditMoneyChangerModal;
