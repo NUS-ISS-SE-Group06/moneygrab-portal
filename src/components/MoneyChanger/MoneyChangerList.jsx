@@ -112,7 +112,7 @@ const MoneyChangerList = () => {
             <th className="p-2 text-left">Email</th>
             <th className="p-2 text-left">UEN No</th>
             <th className="p-2 text-left">Date of Incorporation</th>
-            <th className="p-2 text-left">Schema</th>
+            <th className="p-2 text-left">Scheme</th>
             <th className="p-2 text-left">Country</th>
             <th className="p-2 text-left">Actions</th>
           </tr>

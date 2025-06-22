@@ -2,7 +2,35 @@ import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
 
-const locationsList = ["Tampines", "Simei"];
+const locationsList = [
+  "Ang Mo Kio",
+  "Bedok",
+  "Bishan",
+  "Bukit Batok",
+  "Bukit Merah",
+  "Bukit Panjang",
+  "Bukit Timah",
+  "Central Area",
+  "Choa Chu Kang",
+  "Clementi",
+  "Geylang",
+  "Hougang",
+  "Jurong East",
+  "Jurong West",
+  "Kallang",
+  "Marine Parade",
+  "Novena",
+  "Pasir Ris",
+  "Punggol",
+  "Queenstown",
+  "Sembawang",
+  "Sengkang",
+  "Serangoon",
+  "Tampines",
+  "Toa Payoh",
+  "Woodlands",
+  "Yishun",
+];
 
 const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   const [form, setForm] = useState({
@@ -21,7 +49,11 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const newForm = { ...prev, [name]: value };
+      console.log("Updated form:", newForm); // Debug log
+      return newForm;
+    });
   };
 
   const handleFileChange = (e, key) => {
@@ -87,11 +119,24 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
     }
 
     try {
+      const schemeIdMap = {
+        "Scheme - 01": 1,
+        "Scheme - 02": 2,
+        "Scheme - 03": 3,
+        "Scheme - 04": 4,
+        "Scheme - 05": 5,
+        "Scheme - 06": 6,
+        "Scheme - 07": 7,
+        "Scheme - 08": 8,
+        "Scheme - 09": 9,
+        "Scheme - 10": 10,
+      };
       const updateData = {
         ...form,
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
+        schemeId: schemeIdMap[form.scheme] || 1, // Use mapped value or default to 1
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
@@ -225,7 +270,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
             <div>
               <label className="block font-semibold text-gray-700">Locations</label>
               <div className="flex gap-2">
-                <div className="flex-1 bg-gray-50 p-2 rounded">
+                <div className="flex-1 bg-gray-50 p-2 rounded h-48 overflow-y-auto">
                   {locationsList
                     .filter((l) => !selectedLocations.includes(l))
                     .map((loc) => (
@@ -241,7 +286,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
                       </div>
                     ))}
                 </div>
-                <div className="flex-1 bg-gray-100 p-2 rounded">
+                <div className="flex-1 bg-gray-100 p-2 rounded h-48 overflow-y-auto">
                   <div className="text-sm font-semibold mb-1">Selected</div>
                   {selectedLocations.map((loc) => (
                     <div key={loc} className="flex justify-between p-1">
@@ -262,16 +307,23 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
               </div>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Schema</label>
+              <label className="block font-semibold text-gray-700">Scheme</label>
               <select
                 className="w-full p-2 border rounded"
-                name="schema"
-                value={form.schema || ""}
+                name="scheme"
+                value={form.scheme || ""}
                 onChange={handleChange}
               >
-                <option>Scheme - 01</option>
-                <option>Scheme - 02</option>
-                <option>Scheme - 03</option>
+                <option value="Scheme - 01">Scheme - 01</option>
+                <option value="Scheme - 02">Scheme - 02</option>
+                <option value="Scheme - 03">Scheme - 03</option>
+                <option value="Scheme - 04">Scheme - 04</option>
+                <option value="Scheme - 05">Scheme - 05</option>
+                <option value="Scheme - 06">Scheme - 06</option>
+                <option value="Scheme - 07">Scheme - 07</option>
+                <option value="Scheme - 08">Scheme - 08</option>
+                <option value="Scheme - 09">Scheme - 09</option>
+                <option value="Scheme - 10">Scheme - 10</option>
               </select>
             </div>
             <div>
@@ -301,15 +353,9 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
                 className="w-full p-2 border rounded"
                 onChange={(e) => handleFileChange(e, "kyc")}
               />
-              <div className="text-xs text-gray-500">Supported:PDF</div>
-              {kycPreview && (
-                <div className="mt-2">
-                  <img
-                    src={kycPreview}
-                    alt="KYC Preview"
-                    className="max-w-xs max-h-32 object-contain"
-                  />
-                </div>
+              <div className="text-xs text-gray-500">Supported: PDF</div>
+              {form.kycFilename && (
+                <div className="mt-2 text-sm text-gray-700">{form.kycFilename}</div>
               )}
             </div>
           </div>
@@ -346,7 +392,7 @@ EditMoneyChangerModal.propTypes = {
     country: PropTypes.string,
     postalCode: PropTypes.string,
     notes: PropTypes.string,
-    schema: PropTypes.string,
+    scheme: PropTypes.string,
     role: PropTypes.string,
     locations: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
