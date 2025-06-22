@@ -5,12 +5,12 @@ import api from "../../api/axios";
 const initialState = {
   companyName: "",
   email: "",
-  date: "",
+  dateOfIncorporation: "",
   address: "",
   country: "Singapore",
   postalCode: "",
   uen: "",
-  schema: "Scheme - 01",
+  scheme: "Scheme - 01",
   notes: "",
   logo: null,
   kyc: null,
@@ -21,7 +21,35 @@ const initialState = {
   kycFilename: "",
 };
 
-const locationsList = ["Tampines", "Simei"];
+const locationsList = [
+  "Ang Mo Kio",
+  "Bedok",
+  "Bishan",
+  "Bukit Batok",
+  "Bukit Merah",
+  "Bukit Panjang",
+  "Bukit Timah",
+  "Central Area",
+  "Choa Chu Kang",
+  "Clementi",
+  "Geylang",
+  "Hougang",
+  "Jurong East",
+  "Jurong West",
+  "Kallang",
+  "Marine Parade",
+  "Novena",
+  "Pasir Ris",
+  "Punggol",
+  "Queenstown",
+  "Sembawang",
+  "Sengkang",
+  "Serangoon",
+  "Tampines",
+  "Toa Payoh",
+  "Woodlands",
+  "Yishun",
+];
 
 const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState(initialState);
@@ -92,8 +120,8 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.companyName || !form.email) {
-      setError("Company Name and Email are required.");
+    if (!form.companyName || !form.email || !form.dateOfIncorporation) {
+      setError("Company Name, Email, and Date of Incorporation are required.");
       return;
     }
 
@@ -103,7 +131,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
-        schemeId: parseInt(form.schema.split("-")[1]) || 1,
+        schemeId: parseInt(form.scheme.split("-")[1]) || 1,
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
@@ -168,9 +196,10 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               <input
                 className="w-full p-2 border rounded"
                 type="date"
-                name="date"
-                value={form.date}
+                name="dateOfIncorporation"
+                value={form.dateOfIncorporation}
                 onChange={handleChange}
+                required
               />
             </div>
             <div>
@@ -273,16 +302,23 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Schema</label>
+              <label className="block font-semibold text-gray-700">Scheme</label>
               <select
                 className="w-full p-2 border rounded"
-                name="schema"
-                value={form.schema}
+                name="scheme"
+                value={form.scheme}
                 onChange={handleChange}
               >
-                <option>Scheme - 01</option>
-                <option>Scheme - 02</option>
-                <option>Scheme - 03</option>
+                <option value="Scheme - 01">Scheme - 01</option>
+                <option value="Scheme - 02">Scheme - 02</option>
+                <option value="Scheme - 03">Scheme - 03</option>
+                <option value="Scheme - 04">Scheme - 04</option>
+                <option value="Scheme - 05">Scheme - 05</option>
+                <option value="Scheme - 06">Scheme - 06</option>
+                <option value="Scheme - 07">Scheme - 07</option>
+                <option value="Scheme - 08">Scheme - 08</option>
+                <option value="Scheme - 09">Scheme - 09</option>
+                <option value="Scheme - 10">Scheme - 10</option>
               </select>
             </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
@@ -326,15 +362,9 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
               >
                 Browse
               </label>
-              <div className="text-xs text-gray-500 mt-1">Supported:PDF</div>
-              {kycPreview && (
-                <div className="mt-2">
-                  <img
-                    src={kycPreview}
-                    alt="KYC Preview"
-                    className="max-w-xs max-h-32 object-contain"
-                  />
-                </div>
+              <div className="text-xs text-gray-500 mt-1">Supported: PDF</div>
+              {form.kycFilename && (
+                <div className="mt-2 text-sm text-gray-700">{form.kycFilename}</div>
               )}
             </div>
           </div>
