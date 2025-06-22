@@ -7,6 +7,7 @@ import {
 import LayoutWithResizableSidebar from "./components/sidebar";
 import ManageAccounts from "./ManageAccounts";
 import Commission from "./pages/Commission";
+import Currency from "./pages/Currency";
 import MoneyChanger from "./pages/MoneyChanger";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -147,7 +148,7 @@ try {
           { path: "money-changer", element: <MoneyChanger /> },
           { path: "fx-rate-upload", element: <ComingSoon label="FX Rate Upload" /> },
           { path: "commission", element: <Commission label="Commission Scheme" /> },
-          { path: "currency", element: <ComingSoon label="Currency" /> },
+          { path: "currency", element: <Currency label="Currency" /> },
           { path: "compute-rates", element: <ComingSoon label="Compute Rates" /> },
           { path: "view-rates", element: <ComingSoon label="ComingSoon" /> },
           { path: "currency-codes", element: <ComingSoon label="Currency Codes" /> },
