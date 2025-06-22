@@ -51,11 +51,31 @@ const locationsList = [
   "Yishun",
 ];
 
+const FileUpload = ({ label, accept, id, onChange, preview, filename }) => (
+  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+    <div className="text-gray-400 mb-2">{label}</div>
+    <input type="file" accept={accept} className="hidden" onChange={onChange} id={id} />
+    <label
+      htmlFor={id}
+      className="inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
+    >
+      Browse
+    </label>
+    <div className="text-xs text-gray-500 mt-1">Supported: {accept.replace(/\./g, ", ")}</div>
+    {preview && (
+      <div className="mt-2">
+        <img src={preview} alt={`${label} Preview`} className="max-w-xs max-h-32 object-contain" />
+      </div>
+    )}
+    {filename && <div className="mt-2 text-sm text-gray-700">{filename}</div>}
+  </div>
+);
+
 const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
-  const [logoPreview, setLogoPreview] = useState(null); // Only used for logo
+  const [logoPreview, setLogoPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,45 +83,47 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   };
 
   const handleFileChange = (e, key) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setForm((prev) => {
-          if (key === "logo") {
-            return {
-              ...prev,
-              logo: file,
-              logoBase64: base64String,
-              logoFilename: file.name,
-            };
-          } else if (key === "kyc") {
-            return {
-              ...prev,
-              kyc: file,
-              kycBase64: base64String,
-              kycFilename: file.name,
-            };
-          }
-          return prev;
-        });
-        if (key === "logo") {
-          setLogoPreview(base64String);
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
+    const file = e.target.files?.[0];
+    const fileConfig = {
+      logo: {
+        preview: setLogoPreview,
+        updates: { logo: null, logoBase64: "", logoFilename: "" },
+        setValues: (base64) => ({
+          logo: file,
+          logoBase64: base64,
+          logoFilename: file.name,
+        }),
+      },
+      kyc: {
+        preview: null,
+        updates: { kyc: null, kycBase64: "", kycFilename: "" },
+        setValues: (base64) => ({
+          kyc: file,
+          kycBase64: base64,
+          kycFilename: file.name,
+        }),
+      },
+    };
+
+    if (!file) {
       setForm((prev) => {
-        if (key === "logo") {
-          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
-        } else if (key === "kyc") {
-          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
-        }
-        return prev;
+        const updates = fileConfig[key].updates;
+        if (fileConfig[key].preview) fileConfig[key].preview(null);
+        return { ...prev, ...updates };
       });
-      if (key === "logo") setLogoPreview(null);
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setForm((prev) => {
+        const newValues = fileConfig[key].setValues(base64String);
+        if (fileConfig[key].preview) fileConfig[key].preview(base64String);
+        return { ...prev, ...newValues };
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -138,8 +160,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
-      const result = response.data;
-      if (onSave) onSave(result);
+      if (onSave) onSave(response.data);
       setError(null);
       setForm(initialState);
       onClose();
@@ -317,52 +338,22 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
                 <option value="Scheme - 10">Scheme - 10</option>
               </select>
             </div>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-gray-400 mb-2">Upload Logo</div>
-              <input
-                type="file"
-                accept=".jpeg,.png,.gif"
-                className="hidden"
-                onChange={(e) => handleFileChange(e, "logo")}
-                id="logo-upload"
-              />
-              <label
-                htmlFor="logo-upload"
-                className="inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
-              >
-                Browse
-              </label>
-              <div className="text-xs text-gray-500 mt-1">Supported: JPEG, PNG, GIF</div>
-              {logoPreview && (
-                <div className="mt-2">
-                  <img
-                    src={logoPreview}
-                    alt="Logo Preview"
-                    className="max-w-xs max-h-32 object-contain"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-gray-400 mb-2">Upload KYC</div>
-              <input
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={(e) => handleFileChange(e, "kyc")}
-                id="kyc-upload"
-              />
-              <label
-                htmlFor="kyc-upload"
-                className="inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 cursor-pointer"
-              >
-                Browse
-              </label>
-              <div className="text-xs text-gray-500 mt-1">Supported: PDF</div>
-              {form.kycFilename && (
-                <div className="mt-2 text-sm text-gray-700">{form.kycFilename}</div>
-              )}
-            </div>
+            <FileUpload
+              label="Upload Logo"
+              accept=".jpeg,.png,.gif"
+              id="logo-upload"
+              onChange={(e) => handleFileChange(e, "logo")}
+              preview={logoPreview}
+              filename={form.logoFilename}
+            />
+            <FileUpload
+              label="Upload KYC"
+              accept=".pdf"
+              id="kyc-upload"
+              onChange={(e) => handleFileChange(e, "kyc")}
+              preview={null}
+              filename={form.kycFilename}
+            />
           </div>
         </div>
         {error && (

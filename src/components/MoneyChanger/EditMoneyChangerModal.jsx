@@ -32,6 +32,26 @@ const locationsList = [
   "Yishun",
 ];
 
+const FileUpload = ({ label, accept, id, onChange, preview, filename }) => (
+  <div>
+    <label className="block font-semibold text-gray-700">{label}</label>
+    <input
+      type="file"
+      accept={accept}
+      className="w-full p-2 border rounded"
+      onChange={onChange}
+      id={id}
+    />
+    <div className="text-xs text-gray-500">Supported: {accept.replace(/\./g, ", ")}</div>
+    {preview && (
+      <div className="mt-2">
+        <img src={preview} alt={`${label} Preview`} className="max-w-xs max-h-32 object-contain" />
+      </div>
+    )}
+    {filename && <div className="mt-2 text-sm text-gray-700">{filename}</div>}
+  </div>
+);
+
 const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   const [form, setForm] = useState({
     ...data,
@@ -44,57 +64,55 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
-  const [logoPreview, setLogoPreview] = useState(null); // Only used for logo
+  const [logoPreview, setLogoPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => {
-      const newForm = { ...prev, [name]: value };
-      console.log("Updated form:", newForm); // Debug log
-      return newForm;
-    });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e, key) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setForm((prev) => {
-          if (key === "logo") {
-            return {
-              ...prev,
-              logo: file,
-              logoBase64: base64String,
-              logoFilename: file.name,
-            };
-          } else if (key === "kyc") {
-            return {
-              ...prev,
-              kyc: file,
-              kycBase64: base64String,
-              kycFilename: file.name,
-            };
-          }
-          return prev;
-        });
-        if (key === "logo") {
-          setLogoPreview(base64String);
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
+    const file = e.target.files?.[0];
+    const fileConfig = {
+      logo: {
+        preview: setLogoPreview,
+        updates: { logo: null, logoBase64: "", logoFilename: "" },
+        setValues: (base64) => ({
+          logo: file,
+          logoBase64: base64,
+          logoFilename: file.name,
+        }),
+      },
+      kyc: {
+        preview: null,
+        updates: { kyc: null, kycBase64: "", kycFilename: "" },
+        setValues: (base64) => ({
+          kyc: file,
+          kycBase64: base64,
+          kycFilename: file.name,
+        }),
+      },
+    };
+
+    if (!file) {
       setForm((prev) => {
-        if (key === "logo") {
-          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
-        } else if (key === "kyc") {
-          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
-        }
-        return prev;
+        const updates = fileConfig[key].updates;
+        if (fileConfig[key].preview) fileConfig[key].preview(null);
+        return { ...prev, ...updates };
       });
-      if (key === "logo") setLogoPreview(null);
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setForm((prev) => {
+        const newValues = fileConfig[key].setValues(base64String);
+        if (fileConfig[key].preview) fileConfig[key].preview(base64String);
+        return { ...prev, ...newValues };
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -138,13 +156,11 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         kycBase64: form.kycBase64,
         kycFilename: form.kycFilename,
       };
-
       const response = await api.put(`/api/v1/money-changers/${data.id}`, updateData);
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
-      const result = response.data;
-      if (onUpdate) onUpdate(result);
+      if (onUpdate) onUpdate(response.data);
       setError(null);
       onClose(true);
     } catch (err) {
@@ -322,38 +338,22 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
                 <option value="Scheme - 10">Scheme - 10</option>
               </select>
             </div>
-            <div>
-              <label className="block font-semibold text-gray-700">Logo</label>
-              <input
-                type="file"
-                accept=".jpeg,.png,.gif,.pdf"
-                className="w-full p-2 border rounded"
-                onChange={(e) => handleFileChange(e, "logo")}
-              />
-              <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
-              {logoPreview && (
-                <div className="mt-2">
-                  <img
-                    src={logoPreview}
-                    alt="Logo Preview"
-                    className="max-w-xs max-h-32 object-contain"
-                  />
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-700">KYC</label>
-              <input
-                type="file"
-                accept=".pdf"
-                className="w-full p-2 border rounded"
-                onChange={(e) => handleFileChange(e, "kyc")}
-              />
-              <div className="text-xs text-gray-500">Supported: PDF</div>
-              {form.kycFilename && (
-                <div className="mt-2 text-sm text-gray-700">{form.kycFilename}</div>
-              )}
-            </div>
+            <FileUpload
+              label="Logo"
+              accept=".jpeg,.png,.gif,.pdf"
+              id="logo-upload"
+              onChange={(e) => handleFileChange(e, "logo")}
+              preview={logoPreview}
+              filename={form.logoFilename}
+            />
+            <FileUpload
+              label="KYC"
+              accept=".pdf"
+              id="kyc-upload"
+              onChange={(e) => handleFileChange(e, "kyc")}
+              preview={null}
+              filename={form.kycFilename}
+            />
           </div>
         </div>
         {error && (
