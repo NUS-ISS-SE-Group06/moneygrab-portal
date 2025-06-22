@@ -52,7 +52,7 @@ const Currency = () => {
               <thead>
                 <tr className="bg-gray-100 text-gray-700 divide-x divide-gray-300">
                    <th className="py-2 px-4">Currency Id</th>
-                  <th className="py-2 px-4">Currency Code</th>
+                  <th className="py-2 px-4">Symbol</th>
                   <th className="py-2 px-4 py-2 px-4 w-[60%]">Description</th>
                 </tr>
               </thead>
