@@ -55,8 +55,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
-  const [logoPreview, setLogoPreview] = useState(null);
-  const [kycPreview, setKycPreview] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null); // Only used for logo
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -89,8 +88,6 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
         });
         if (key === "logo") {
           setLogoPreview(base64String);
-        } else if (key === "kyc") {
-          setKycPreview(base64String);
         }
       };
       reader.readAsDataURL(file);
@@ -104,7 +101,6 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
         return prev;
       });
       if (key === "logo") setLogoPreview(null);
-      else if (key === "kyc") setKycPreview(null);
     }
   };
 
@@ -148,7 +144,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
       setForm(initialState);
       onClose();
     } catch (err) {
-      setError(`Creation failed: ${err.message}`);
+      setError(`Creation failed: ${err.response?.status || err.message}`);
       console.error("Create error:", err);
     }
   };
