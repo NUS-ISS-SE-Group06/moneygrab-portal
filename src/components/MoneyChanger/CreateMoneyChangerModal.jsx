@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
 
@@ -139,8 +139,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold text-gray-700">Email</label>
+              <label htmlFor="email" className="block font-semibold text-gray-700">Email</label>
               <input
+                id="email"
                 className="w-full p-2 border rounded"
                 name="email"
                 value={form.email}
@@ -148,8 +149,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Company Name</label>
+              <label htmlFor="companyName" className="block font-semibold text-gray-700">Company Name</label>
               <input
+                id="companyName"
                 className="w-full p-2 border rounded"
                 name="companyName"
                 value={form.companyName}
@@ -157,8 +159,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Role</label>
+              <label htmlFor="role" className="block font-semibold text-gray-700">Role</label>
               <input
+                id="role"
                 className="w-full p-2 border rounded bg-gray-100"
                 value={form.role}
                 readOnly
@@ -166,8 +169,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Date of Incorporation</label>
+              <label htmlFor="dateOfIncorporation" className="block font-semibold text-gray-700">Date of Incorporation</label>
               <input
+                id="dateOfIncorporation"
                 className="w-full p-2 border rounded"
                 type="text"
                 name="dateOfIncorporation"
@@ -176,8 +180,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">UEN</label>
+              <label htmlFor="uen" className="block font-semibold text-gray-700">UEN</label>
               <input
+                id="uen"
                 className="w-full p-2 border rounded"
                 name="uen"
                 value={form.uen}
@@ -185,8 +190,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Address</label>
+              <label htmlFor="address" className="block font-semibold text-gray-700">Address</label>
               <textarea
+                id="address"
                 className="w-full p-2 border rounded"
                 name="address"
                 value={form.address}
@@ -196,8 +202,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block font-semibold text-gray-700">Country</label>
+                <label htmlFor="country" className="block font-semibold text-gray-700">Country</label>
                 <select
+                  id="country"
                   className="w-full p-2 border rounded"
                   name="country"
                   value={form.country}
@@ -209,8 +216,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block font-semibold text-gray-700">Postal Code</label>
+                <label htmlFor="postalCode" className="block font-semibold text-gray-700">Postal Code</label>
                 <input
+                  id="postalCode"
                   className="w-full p-2 border rounded"
                   name="postalCode"
                   value={form.postalCode}
@@ -219,8 +227,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               </div>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Notes</label>
+              <label htmlFor="notes" className="block font-semibold text-gray-700">Notes</label>
               <textarea
+                id="notes"
                 className="w-full p-2 border rounded"
                 name="notes"
                 value={form.notes}
@@ -231,8 +240,8 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold text-gray-700">Locations</label>
-              <div className="flex gap-2">
+              <label htmlFor="locations" className="block font-semibold text-gray-700">Locations</label>
+              <fieldset id="locations" className="flex gap-2">
                 <div className="flex-1 bg-gray-50 p-2 rounded">
                   {locationsList
                     .filter((l) => !selectedLocations.includes(l))
@@ -267,11 +276,12 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                     <div className="text-gray-400 text-sm">None selected</div>
                   )}
                 </div>
-              </div>
+              </fieldset>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Scheme</label>
+              <label htmlFor="scheme" className="block font-semibold text-gray-700">Scheme</label>
               <select
+                id="scheme"
                 className="w-full p-2 border rounded"
                 name="scheme"
                 value={form.scheme}
@@ -283,8 +293,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               </select>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Logo</label>
+              <label htmlFor="logo" className="block font-semibold text-gray-700">Logo</label>
               <input
+                id="logo"
                 type="file"
                 accept=".jpeg,.png,.gif,.pdf"
                 className="w-full p-2 border rounded"
@@ -293,8 +304,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">KYC</label>
+              <label htmlFor="kyc" className="block font-semibold text-gray-700">KYC</label>
               <input
+                id="kyc"
                 type="file"
                 accept=".pdf"
                 className="w-full p-2 border rounded"
