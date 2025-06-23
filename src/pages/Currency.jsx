@@ -1,18 +1,17 @@
 import React, {useEffect, useState } from "react";
 import api from "../api/axios";
+import {CURRENCY_LIST_CACHE_KEY, CURRENCY_LIST_CACHE_DURATION } from "../constants/cache"
 
-const CACHE_KEY ="currencyListData";
-const CACHE_DURATION = 60 * 60 * 1000; //1 hour
 
 const Currency = () => {
   const [loadingCurrency, setLoadingCurrency] = useState(false);
   const [currencyError, setCurrencyError] = useState(null);
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const [currencyList,setCurrencyList] = useState(() => {
-    const cached = localStorage.getItem(CACHE_KEY);
+    const cached = localStorage.getItem(CURRENCY_LIST_CACHE_KEY);
     if (!cached) return [];
     const parsed = JSON.parse(cached);
-    const isExpired = Date.now() - parsed.savedAt > CACHE_DURATION;
+    const isExpired = Date.now() - parsed.savedAt > CURRENCY_LIST_CACHE_DURATION;
     return isExpired ? [] : parsed.data;
   });
 
@@ -26,7 +25,7 @@ const Currency = () => {
         try {
           const response = await api.get("/api/v1/currencies");
           setCurrencyList(response.data);
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
+          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
         } catch (err) {
           setCurrencyError("Failed to load currency list. Please try again later.");
           console.error("Currency Error:", err);
