@@ -18,14 +18,12 @@ const ManageCurrency = () => {
     
     const fetchData = async () => {
       setLoadingMoneyChangerCurrencies(true);
-
       try {
         const response = await api.get("/api/v1/money-changers-currencies", {
           params: {
             moneyChangerId: moneyChanger?.id
           }
         });
-
         setMoneyChangerCurrencies(response.data);
       } catch (err) {
         setMoneyChangerCurrencyError("Failed to load money changer currency. Please try again later.");
