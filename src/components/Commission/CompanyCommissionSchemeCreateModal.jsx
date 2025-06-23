@@ -94,8 +94,9 @@ useEffect(() => {
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{companyCommissionScheme?.nameTag ?? '—'}</p>
-              <label className="block mb-2 font-semibold text-gray-800">Money Changer <span className="text-red-500">*</span></label>
+              <label htmlFor="commission-scheme-select" className="block mb-2 font-semibold text-gray-800">Money Changer <span className="text-red-500">*</span></label>
               <select
+                id="commission-scheme-select"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={companyCommissionScheme?.moneyChangerId ?? ""}
                 onChange={(e) => {
