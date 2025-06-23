@@ -503,7 +503,8 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           />
         )}
 
-
+      <hr className="border-t border-grey my-6" />
+      
       </main>
     </div>
   );
