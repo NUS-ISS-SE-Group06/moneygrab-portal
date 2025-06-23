@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from '../../api/axios';
 import PropTypes from "prop-types";
-
-const CACHE_KEY ="currencyListData";
-const CACHE_DURATION = 60 * 60 * 1000; //1 hour
+import {CURRENCY_LIST_CACHE_KEY, CURRENCY_LIST_CACHE_DURATION } from "../../constants/cache"
 
 
 const ManageCurrencyCodeCreateModal = ({moneychanger,onClose, onCreated}) => {
@@ -11,10 +9,10 @@ const ManageCurrencyCodeCreateModal = ({moneychanger,onClose, onCreated}) => {
   const [moneyChangerCurrency,setMoneyChangerCurrency]= useState({ moneyChangerId: moneychanger?.id, companyName: moneychanger?.companyName, currencyId: null, currency: null, currencyDescription: null });
   const [error, setError] = useState("");
   const [currencyList,setCurrencyList] = useState(() => {
-    const cached = localStorage.getItem(CACHE_KEY);
+    const cached = localStorage.getItem(CURRENCY_LIST_CACHE_KEY);
     if (!cached) return [];
     const parsed = JSON.parse(cached);
-    const isExpired = Date.now() - parsed.savedAt > CACHE_DURATION;
+    const isExpired = Date.now() - parsed.savedAt > CURRENCY_LIST_CACHE_DURATION;
     return isExpired ? [] : parsed.data;
   });
 
@@ -25,7 +23,7 @@ const ManageCurrencyCodeCreateModal = ({moneychanger,onClose, onCreated}) => {
         try {
           const response = await api.get(`/api/v1/currencies`);
           setCurrencyList(response.data);
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
+          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
         } catch(err) {
             console.error("Failed to fetch currencyList:", err);
             setError("Failed to fetch currencyList.");
