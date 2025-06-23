@@ -8,27 +8,38 @@ jest.mock("axios");
 
 describe("CreateMoneyChangerModal", () => {
   const onCloseMock = jest.fn();
-  const onSaveMock = jest.fn();
+  const onCreateMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
- it("submits form successfully", async () => {
-  axios.post.mockResolvedValueOnce({ data: { id: 1, companyName: "Test Co" } });
+  it("submits form successfully", async () => {
+    // Mock API response
+    axios.post.mockResolvedValueOnce({
+      data: { id: 1, companyName: "Test Co" }
+    });
 
-  render(<CreateMoneyChangerModal onClose={onCloseMock} onSave={onSaveMock} />);
+    // Render component with required props
+    render(
+      <CreateMoneyChangerModal
+        onClose={onCloseMock}
+        onCreate={onCreateMock}
+      />
+    );
 
-  await userEvent.type(screen.getByPlaceholderText("Company name"), "Test Co");
-  await userEvent.type(screen.getByPlaceholderText("Email address"), "test@example.com");
+    // Fill form fields
+    await userEvent.type(screen.getByPlaceholderText("Company name"), "Test Co");
+    await userEvent.type(screen.getByPlaceholderText("Email"), "test@example.com");
 
-  fireEvent.submit(screen.getByTestId("moneychanger-form"));
+    // Submit form
+    fireEvent.submit(screen.getByTestId("moneychanger-form"));
 
-  await waitFor(() => {
-    expect(axios.post).toHaveBeenCalled();
-    expect(onSaveMock).toHaveBeenCalledWith({ id: 1, companyName: "Test Co" });
-    expect(onCloseMock).toHaveBeenCalled();
+    // Assertions
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalled();
+      expect(onCreateMock).toHaveBeenCalledWith({ id: 1, companyName: "Test Co" });
+      expect(onCloseMock).toHaveBeenCalledWith(true);
+    });
   });
-});
-
 });
