@@ -127,7 +127,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <form
+      <form data-testid="moneychanger-form"
         className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 relative"
         onSubmit={handleSubmit}
       >
