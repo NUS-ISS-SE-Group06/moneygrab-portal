@@ -60,8 +60,8 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
               <label htmlFor="commission-tag-input" className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <input
                 id="commission-tag-input"
-                maxLength={100} 
                 type="text"
+                maxLength={100} 
                 placeholder="Enter Commission Tag"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionScheme?.nameTag ?? ""}
