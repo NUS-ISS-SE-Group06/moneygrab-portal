@@ -26,7 +26,7 @@ const ManageCurrencyCodeEditModal = ({ selected, onClose, onUpdated }) => {
     const errors = [];
     setError("");
 
-    const { id, moneyChangerId, currencyId, currencyDescription }= moneyChangerCurrency ?? {};
+    const { id, moneyChangerId, currencyId, currency, currencyDescription }= moneyChangerCurrency ?? {};
 
     if (!moneyChangerId) {
       errors.push("Money Changer is required.");
@@ -55,6 +55,7 @@ const ManageCurrencyCodeEditModal = ({ selected, onClose, onUpdated }) => {
 
       const enrinched = {
         ...created,
+        currency,
         currencyDescription,
       };
 
