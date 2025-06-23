@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
 const MoneyChangerList = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
   const [moneyChangers, setMoneyChangers] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +71,7 @@ const MoneyChangerList = () => {
       setRefreshTrigger((prev) => prev + 1);
     }
     setShowEdit(false);
-    setSelectedRow(null);
+    setSelectedId(null);
   };
 
   const dismissBanner = () => {
@@ -131,7 +131,7 @@ const MoneyChangerList = () => {
                 <button
                   className="bg-indigo-500 text-white px-3 py-1 rounded mr-2 hover:bg-indigo-600"
                   onClick={() => {
-                    setSelectedRow(row);
+                    setSelectedId(row.id);
                     setShowEdit(true);
                   }}
                 >
@@ -158,10 +158,10 @@ const MoneyChangerList = () => {
         </ModalOverlay>
       )}
 
-      {showEdit && selectedRow && (
+      {showEdit && selectedId && (
         <ModalOverlay>
           <EditMoneyChangerModal
-            data={selectedRow}
+            id={selectedId}
             onClose={handleModalClose}
             onUpdate={handleUpdate}
           />
