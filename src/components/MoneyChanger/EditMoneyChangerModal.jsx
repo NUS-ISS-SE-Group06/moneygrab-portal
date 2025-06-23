@@ -2,55 +2,7 @@ import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
 
-const locationsList = [
-  "Ang Mo Kio",
-  "Bedok",
-  "Bishan",
-  "Bukit Batok",
-  "Bukit Merah",
-  "Bukit Panjang",
-  "Bukit Timah",
-  "Central Area",
-  "Choa Chu Kang",
-  "Clementi",
-  "Geylang",
-  "Hougang",
-  "Jurong East",
-  "Jurong West",
-  "Kallang",
-  "Marine Parade",
-  "Novena",
-  "Pasir Ris",
-  "Punggol",
-  "Queenstown",
-  "Sembawang",
-  "Sengkang",
-  "Serangoon",
-  "Tampines",
-  "Toa Payoh",
-  "Woodlands",
-  "Yishun",
-];
-
-const FileUpload = ({ label, accept, id, onChange, preview, filename }) => (
-  <div>
-    <label className="block font-semibold text-gray-700">{label}</label>
-    <input
-      type="file"
-      accept={accept}
-      className="w-full p-2 border rounded"
-      onChange={onChange}
-      id={id}
-    />
-    <div className="text-xs text-gray-500">Supported: {accept.replace(/\./g, ", ")}</div>
-    {preview && (
-      <div className="mt-2">
-        <img src={preview} alt={`${label} Preview`} className="max-w-xs max-h-32 object-contain" />
-      </div>
-    )}
-    {filename && <div className="mt-2 text-sm text-gray-700">{filename}</div>}
-  </div>
-);
+const locationsList = ["Tampines", "Simei"];
 
 const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   const [form, setForm] = useState({
@@ -65,54 +17,60 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [kycPreview, setKycPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const newForm = { ...prev, [name]: value };
+      console.log("Updated form:", newForm); // Debug log
+      return newForm;
+    });
   };
 
   const handleFileChange = (e, key) => {
-    const file = e.target.files?.[0];
-    const fileConfig = {
-      logo: {
-        preview: setLogoPreview,
-        updates: { logo: null, logoBase64: "", logoFilename: "" },
-        setValues: (base64) => ({
-          logo: file,
-          logoBase64: base64,
-          logoFilename: file.name,
-        }),
-      },
-      kyc: {
-        preview: null,
-        updates: { kyc: null, kycBase64: "", kycFilename: "" },
-        setValues: (base64) => ({
-          kyc: file,
-          kycBase64: base64,
-          kycFilename: file.name,
-        }),
-      },
-    };
-
-    if (!file) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setForm((prev) => {
+          if (key === "logo") {
+            return {
+              ...prev,
+              logo: file,
+              logoBase64: base64String,
+              logoFilename: file.name,
+            };
+          } else if (key === "kyc") {
+            return {
+              ...prev,
+              kyc: file,
+              kycBase64: base64String,
+              kycFilename: file.name,
+            };
+          }
+          return prev;
+        });
+        if (key === "logo") {
+          setLogoPreview(base64String);
+        } else if (key === "kyc") {
+          setKycPreview(base64String);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
       setForm((prev) => {
-        const updates = fileConfig[key].updates;
-        if (fileConfig[key].preview) fileConfig[key].preview(null);
-        return { ...prev, ...updates };
+        if (key === "logo") {
+          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
+        } else if (key === "kyc") {
+          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
+        }
+        return prev;
       });
-      return;
+      if (key === "logo") setLogoPreview(null);
+      else if (key === "kyc") setKycPreview(null);
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result;
-      setForm((prev) => {
-        const newValues = fileConfig[key].setValues(base64String);
-        if (fileConfig[key].preview) fileConfig[key].preview(base64String);
-        return { ...prev, ...newValues };
-      });
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleLocationSelect = useCallback((loc) => {
@@ -137,34 +95,29 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         "Scheme - 01": 1,
         "Scheme - 02": 2,
         "Scheme - 03": 3,
-        "Scheme - 04": 4,
-        "Scheme - 05": 5,
-        "Scheme - 06": 6,
-        "Scheme - 07": 7,
-        "Scheme - 08": 8,
-        "Scheme - 09": 9,
-        "Scheme - 10": 10,
       };
       const updateData = {
         ...form,
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
-        schemeId: schemeIdMap[form.scheme] || 1,
+        schemeId: schemeIdMap[form.scheme] || 1, // Use mapped value or default to 1
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
         kycFilename: form.kycFilename,
       };
+
       const response = await api.put(`/api/v1/money-changers/${data.id}`, updateData);
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
-      if (onUpdate) onUpdate(response.data);
+      const result = response.data;
+      if (onUpdate) onUpdate(result);
       setError(null);
       onClose(true);
     } catch (err) {
-      setError(`Update failed: ${err.response?.status || err.message}`);
+      setError(`Update failed: ${err.message}`);
       console.error("Update error:", err);
     }
   };
@@ -282,7 +235,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
             <div>
               <label className="block font-semibold text-gray-700">Locations</label>
               <div className="flex gap-2">
-                <div className="flex-1 bg-gray-50 p-2 rounded h-48 overflow-y-auto">
+                <div className="flex-1 bg-gray-50 p-2 rounded">
                   {locationsList
                     .filter((l) => !selectedLocations.includes(l))
                     .map((loc) => (
@@ -298,7 +251,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
                       </div>
                     ))}
                 </div>
-                <div className="flex-1 bg-gray-100 p-2 rounded h-48 overflow-y-auto">
+                <div className="flex-1 bg-gray-100 p-2 rounded">
                   <div className="text-sm font-semibold mb-1">Selected</div>
                   {selectedLocations.map((loc) => (
                     <div key={loc} className="flex justify-between p-1">
@@ -329,31 +282,40 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
                 <option value="Scheme - 01">Scheme - 01</option>
                 <option value="Scheme - 02">Scheme - 02</option>
                 <option value="Scheme - 03">Scheme - 03</option>
-                <option value="Scheme - 04">Scheme - 04</option>
-                <option value="Scheme - 05">Scheme - 05</option>
-                <option value="Scheme - 06">Scheme - 06</option>
-                <option value="Scheme - 07">Scheme - 07</option>
-                <option value="Scheme - 08">Scheme - 08</option>
-                <option value="Scheme - 09">Scheme - 09</option>
-                <option value="Scheme - 10">Scheme - 10</option>
               </select>
             </div>
-            <FileUpload
-              label="Logo"
-              accept=".jpeg,.png,.gif,.pdf"
-              id="logo-upload"
-              onChange={(e) => handleFileChange(e, "logo")}
-              preview={logoPreview}
-              filename={form.logoFilename}
-            />
-            <FileUpload
-              label="KYC"
-              accept=".pdf"
-              id="kyc-upload"
-              onChange={(e) => handleFileChange(e, "kyc")}
-              preview={null}
-              filename={form.kycFilename}
-            />
+            <div>
+              <label className="block font-semibold text-gray-700">Logo</label>
+              <input
+                type="file"
+                accept=".jpeg,.png,.gif,.pdf"
+                className="w-full p-2 border rounded"
+                onChange={(e) => handleFileChange(e, "logo")}
+              />
+              <div className="text-xs text-gray-500">Supported: JPEG, PNG, GIF, PDF</div>
+              {logoPreview && (
+                <div className="mt-2">
+                  <img
+                    src={logoPreview}
+                    alt="Logo Preview"
+                    className="max-w-xs max-h-32 object-contain"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700">KYC</label>
+              <input
+                type="file"
+                accept=".pdf"
+                className="w-full p-2 border rounded"
+                onChange={(e) => handleFileChange(e, "kyc")}
+              />
+              <div className="text-xs text-gray-500">Supported: PDF</div>
+              {form.kycFilename && (
+                <div className="mt-2 text-sm text-gray-700">{form.kycFilename}</div>
+              )}
+            </div>
           </div>
         </div>
         {error && (
@@ -380,8 +342,8 @@ EditMoneyChangerModal.propTypes = {
   onUpdate: PropTypes.func,
   data: PropTypes.shape({
     id: PropTypes.number.isRequired,
-    companyName: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
+    companyName: PropTypes.string,
+    email: PropTypes.string,
     dateOfIncorporation: PropTypes.string,
     uen: PropTypes.string,
     address: PropTypes.string,
@@ -392,10 +354,6 @@ EditMoneyChangerModal.propTypes = {
     role: PropTypes.string,
     locations: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
-};
-
-EditMoneyChangerModal.defaultProps = {
-  onUpdate: null,
 };
 
 export default EditMoneyChangerModal;
