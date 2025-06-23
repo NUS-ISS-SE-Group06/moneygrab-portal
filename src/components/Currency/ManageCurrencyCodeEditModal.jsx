@@ -87,8 +87,8 @@ const ManageCurrencyCodeEditModal = ({ selected, onClose, onUpdated }) => {
         </button>
         <h2 className="text-2xl font-bold mb-3 text-gray-900">Edit Curency Code</h2>
         <div className="mb-8 border-b border-t pb-8 pt-3">
-          <label className="block mb-2 font-semibold text-gray-800">Money Changer <span className="text-red-500">*</span></label>
-          <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{moneyChangerCurrency?.companyName ?? '—'}</p>
+          <label htmlFor="company-name-label" className="block mb-2 font-semibold text-gray-800">Money Changer <span className="text-red-500">*</span></label>
+          <p id="company-name-label" className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{moneyChangerCurrency?.companyName ?? '—'}</p>
             
           <label htmlFor="currency-code-select" className="block mb-2 font-semibold text-gray-800">Currency Code <span className="text-red-500">*</span></label>
           <select
