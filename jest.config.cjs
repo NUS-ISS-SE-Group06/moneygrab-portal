@@ -7,4 +7,5 @@ module.exports = {
     "/node_modules/(?!(axios|react|react-dom|react-router|react-router-dom)/)",
   ],
   moduleFileExtensions: ["js", "jsx"],
+  setupFilesAfterEnv: ["./src/setupTests.js"]
 };
