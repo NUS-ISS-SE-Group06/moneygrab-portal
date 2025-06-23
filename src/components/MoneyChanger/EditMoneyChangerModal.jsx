@@ -1,12 +1,24 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
 
+/**
+ * List of available locations for the money changer.
+ * @type {string[]}
+ */
 const locationsList = ["Tampines", "Simei"];
 
+/**
+ * Modal component for editing money changer details.
+ * @param {Object} props
+ * @param {number} props.id - The ID of the money changer to edit.
+ * @param {function} props.onClose - Callback to close the modal.
+ * @param {function} [props.onUpdate] - Callback to handle update success.
+ * @returns {JSX.Element} The edit money changer modal.
+ */
 const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
   const [form, setForm] = useState({
-    id: id,
+    id,
     companyName: "",
     email: "",
     dateOfIncorporation: "",
@@ -28,129 +40,112 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [logoPreview, setLogoPreview] = useState(null);
   const [kycDownloadUrl, setKycDownloadUrl] = useState(null);
-  const isMounted = useRef(false); // To prevent double fetch on mount
 
-  // Fetch detailed data when id changes
+  /**
+   * Fetches money changer data when the ID changes.
+   */
   useEffect(() => {
-    let isActive = true; // To cancel fetch if component unmounts
+    let isActive = true;
     const fetchData = async () => {
-      if (!id || !isMounted.current) return;
+      if (!id) return;
       try {
-        console.log("Fetching data for id:", id); // Debug log
         const response = await api.get(`/api/v1/money-changers/${id}`);
-        if (!isActive) return; // Prevent state update if unmounted
-        const moneyChangerData = response.data;
-        console.log("Fetched data:", moneyChangerData); // Debug log
-        setForm((prev) => ({
-          ...prev,
-          companyName: moneyChangerData.companyName || prev.companyName,
-          email: moneyChangerData.email || prev.email,
-          dateOfIncorporation: moneyChangerData.dateOfIncorporation || prev.dateOfIncorporation,
-          uen: moneyChangerData.uen || prev.uen,
-          address: moneyChangerData.address || prev.address,
-          country: moneyChangerData.country || prev.country,
-          postalCode: moneyChangerData.postalCode || prev.postalCode,
-          notes: moneyChangerData.notes || prev.notes,
-          scheme: moneyChangerData.scheme || prev.scheme,
-          role: moneyChangerData.role || prev.role,
-          logoBase64: moneyChangerData.logoBase64 || prev.logoBase64,
-          logoFilename: moneyChangerData.logoFilename || prev.logoFilename,
-          kycBase64: moneyChangerData.kycBase64 || prev.kycBase64,
-          kycFilename: moneyChangerData.kycFilename || prev.kycFilename,
-        }));
-        setSelectedLocations(moneyChangerData.locations || []);
-        // Validate and set logo preview with proper data URL
-        if (moneyChangerData.logoBase64) {
-          const mimeType = moneyChangerData.logoFilename
-            ?.split(".")
-            .pop()
-            .toLowerCase() === "pdf"
-            ? "application/pdf"
-            : `image/${moneyChangerData.logoFilename
-                ?.split(".")
-                .pop()
-                .toLowerCase() || "jpeg"}`;
-          setLogoPreview(`data:${mimeType};base64,${moneyChangerData.logoBase64}`);
-        } else {
-          setLogoPreview(null);
-        }
-        // Set KYC download URL
-        if (moneyChangerData.kycBase64) {
-          const byteCharacters = atob(moneyChangerData.kycBase64);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: "application/pdf" });
-          setKycDownloadUrl(URL.createObjectURL(blob));
-        }
+        if (!isActive) return;
+        const data = response.data;
+        updateFormAndState(data);
       } catch (err) {
         if (isActive) {
           setError(`Failed to fetch data: ${err.response?.status || err.message}`);
-          console.error("Fetch error:", err);
         }
       }
     };
 
-    isMounted.current = true;
     fetchData();
-
     return () => {
-      isActive = false; // Cleanup on unmount
-      isMounted.current = false;
+      isActive = false;
     };
   }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => {
-      const newForm = { ...prev, [name]: value };
-      console.log("Updated form:", newForm); // Debug log
-      return newForm;
-    });
+  /**
+   * Updates form and state with fetched data.
+   * @param {Object} data - The money changer data from the API.
+   */
+  const updateFormAndState = (data) => {
+    setForm((prev) => ({
+      ...prev,
+      companyName: data.companyName || prev.companyName,
+      email: data.email || prev.email,
+      dateOfIncorporation: data.dateOfIncorporation || prev.dateOfIncorporation,
+      uen: data.uen || prev.uen,
+      address: data.address || prev.address,
+      country: data.country || prev.country,
+      postalCode: data.postalCode || prev.postalCode,
+      notes: data.notes || prev.notes,
+      scheme: data.scheme || prev.scheme,
+      role: data.role || prev.role,
+      logoBase64: data.logoBase64 || prev.logoBase64,
+      logoFilename: data.logoFilename || prev.logoFilename,
+      kycBase64: data.kycBase64 || prev.kycBase64,
+      kycFilename: data.kycFilename || prev.kycFilename,
+    }));
+    setSelectedLocations(data.locations || []);
+    if (data.logoBase64) {
+      const mimeType = data.logoFilename
+        ?.split(".")
+        .pop()
+        .toLowerCase() === "pdf"
+        ? "application/pdf"
+        : `image/${data.logoFilename?.split(".").pop().toLowerCase() || "jpeg"}`;
+      setLogoPreview(`data:${mimeType};base64,${data.logoBase64}`);
+    } else {
+      setLogoPreview(null);
+    }
+    if (data.kycBase64) {
+      const byteArray = new Uint8Array(
+        [...atob(data.kycBase64)].map((char) => char.charCodeAt(0))
+      );
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+      setKycDownloadUrl(URL.createObjectURL(blob));
+    }
   };
 
+  /**
+   * Handles changes to form input fields.
+   * @param {Object} e - The event object from the input change.
+   */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  /**
+   * Handles file input changes for logo or KYC.
+   * @param {Object} e - The event object from the file input.
+   * @param {string} key - The key indicating "logo" or "kyc".
+   */
   const handleFileChange = (e, key) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result;
-        setForm((prev) => {
-          if (key === "logo") {
-            return {
-              ...prev,
-              logo: file,
-              logoBase64: base64String,
-              logoFilename: file.name,
-            };
-          } else if (key === "kyc") {
-            return {
-              ...prev,
-              kyc: file,
-              kycBase64: base64String,
-              kycFilename: file.name,
-            };
-          }
-          return prev;
-        });
-        if (key === "logo") {
-          setLogoPreview(base64String); // Use raw base64 for uploaded files
-        } else if (key === "kyc") {
-          setKycDownloadUrl(null); // Reset download URL on new upload
-        }
+        setForm((prev) => ({
+          ...prev,
+          ...(key === "logo"
+            ? { logo: file, logoBase64: base64String, logoFilename: file.name }
+            : { kyc: file, kycBase64: base64String, kycFilename: file.name }),
+        }));
+        if (key === "logo") setLogoPreview(base64String);
+        else if (key === "kyc") setKycDownloadUrl(null);
       };
       reader.readAsDataURL(file);
     } else {
-      setForm((prev) => {
-        if (key === "logo") {
-          return { ...prev, logo: null, logoBase64: "", logoFilename: "" };
-        } else if (key === "kyc") {
-          return { ...prev, kyc: null, kycBase64: "", kycFilename: "" };
-        }
-        return prev;
-      });
+      setForm((prev) => ({
+        ...prev,
+        ...(key === "logo"
+          ? { logo: null, logoBase64: "", logoFilename: "" }
+          : { kyc: null, kycBase64: "", kycFilename: "" }),
+      }));
       if (key === "logo") setLogoPreview(null);
       else if (key === "kyc") setKycDownloadUrl(null);
     }
@@ -166,6 +161,10 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
     setSelectedLocations((prev) => prev.filter((l) => l !== loc));
   }, []);
 
+  /**
+   * Handles form submission to update the money changer.
+   * @param {Object} e - The event object from form submission.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.companyName || !form.email) {
@@ -174,11 +173,7 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
     }
 
     try {
-      const schemeIdMap = {
-        "Scheme - 01": 1,
-        "Scheme - 02": 2,
-        "Scheme - 03": 3,
-      };
+      const schemeIdMap = { "Scheme - 01": 1, "Scheme - 02": 2, "Scheme - 03": 3 };
       const updateData = {
         ...form,
         locations: selectedLocations,
@@ -195,13 +190,11 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
-      const result = response.data;
-      if (onUpdate) onUpdate(result);
+      if (onUpdate) onUpdate(response.data);
       setError(null);
       onClose(true);
     } catch (err) {
       setError(`Update failed: ${err.message}`);
-      console.error("Update error:", err);
     }
   };
 
@@ -382,7 +375,6 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
                     src={logoPreview}
                     alt="Logo Preview"
                     className="max-w-xs max-h-32 object-contain"
-                    onError={(e) => console.log("Image load error:", e)} // Debug broken image
                   />
                 </div>
               )}
