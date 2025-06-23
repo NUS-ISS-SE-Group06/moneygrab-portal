@@ -148,6 +148,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                 className="w-full p-2 border rounded"
                 name="email"
                 value={form.email}
+                placeholder="Email"
                 onChange={handleChange}
               />
             </div>
@@ -158,6 +159,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                 className="w-full p-2 border rounded"
                 name="companyName"
                 value={form.companyName}
+                 placeholder="Company name"
                 onChange={handleChange}
               />
             </div>
