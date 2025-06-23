@@ -57,8 +57,9 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
         >×</button>
         <h2 className="text-2xl font-bold mb-3 text-gray-900">Create Commission Scheme</h2>
         <div className="mb-8 border-b border-t pb-8 pt-3">
-              <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
+              <label htmlFor="commission-tag-input" className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <input
+                id="commission-tag-input"
                 maxLength={100} 
                 type="text"
                 placeholder="Enter Commission Tag"
@@ -66,16 +67,18 @@ const CommissionSchemeCreateModal = ({onClose, onCreated}) => {
                 value={commissionScheme?.nameTag ?? ""}
                 onChange={(e) => setCommissionScheme({...commissionScheme, nameTag: e.target.value})}
                 />
-              <label className="block mb-2 font-semibold text-gray-800">Description </label>
+              <label htmlFor="description-textarea" className="block mb-2 font-semibold text-gray-800">Description </label>
               <textarea
+                id="description-textarea"
                 maxLength={500} 
                 placeholder="Enter Description"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionScheme?.description ?? ""}
                 onChange={(e) => setCommissionScheme({...commissionScheme, description: e.target.value})}
                 />
-              <label className="block mb-2 font-semibold text-gray-800">
+              <label htmlFor="isdefault-checkbox" className="block mb-2 font-semibold text-gray-800">
                 <input
+                  id="isdefault-checkbox"
                   type="checkbox"
                   checked={commissionScheme?.isDefault ?? false}
                   className="accent-indigo-500"
