@@ -1,12 +1,22 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
 
 const locationsList = ["Tampines", "Simei"];
 
-const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
+const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
   const [form, setForm] = useState({
-    ...data,
+    id: id,
+    companyName: "",
+    email: "",
+    dateOfIncorporation: "",
+    uen: "",
+    address: "",
+    country: "",
+    postalCode: "",
+    notes: "",
+    scheme: "",
+    role: "Money Changer Staff",
     logo: null,
     kyc: null,
     logoBase64: "",
@@ -15,9 +25,82 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
     kycFilename: "",
   });
   const [error, setError] = useState(null);
-  const [selectedLocations, setSelectedLocations] = useState(data.locations || []);
+  const [selectedLocations, setSelectedLocations] = useState([]);
   const [logoPreview, setLogoPreview] = useState(null);
-  const [kycPreview, setKycPreview] = useState(null);
+  const [kycDownloadUrl, setKycDownloadUrl] = useState(null);
+  const isMounted = useRef(false); // To prevent double fetch on mount
+
+  // Fetch detailed data when id changes
+  useEffect(() => {
+    let isActive = true; // To cancel fetch if component unmounts
+    const fetchData = async () => {
+      if (!id || !isMounted.current) return;
+      try {
+        console.log("Fetching data for id:", id); // Debug log
+        const response = await api.get(`/api/v1/money-changers/${id}`);
+        if (!isActive) return; // Prevent state update if unmounted
+        const moneyChangerData = response.data;
+        console.log("Fetched data:", moneyChangerData); // Debug log
+        setForm((prev) => ({
+          ...prev,
+          companyName: moneyChangerData.companyName || prev.companyName,
+          email: moneyChangerData.email || prev.email,
+          dateOfIncorporation: moneyChangerData.dateOfIncorporation || prev.dateOfIncorporation,
+          uen: moneyChangerData.uen || prev.uen,
+          address: moneyChangerData.address || prev.address,
+          country: moneyChangerData.country || prev.country,
+          postalCode: moneyChangerData.postalCode || prev.postalCode,
+          notes: moneyChangerData.notes || prev.notes,
+          scheme: moneyChangerData.scheme || prev.scheme,
+          role: moneyChangerData.role || prev.role,
+          logoBase64: moneyChangerData.logoBase64 || prev.logoBase64,
+          logoFilename: moneyChangerData.logoFilename || prev.logoFilename,
+          kycBase64: moneyChangerData.kycBase64 || prev.kycBase64,
+          kycFilename: moneyChangerData.kycFilename || prev.kycFilename,
+        }));
+        setSelectedLocations(moneyChangerData.locations || []);
+        // Validate and set logo preview with proper data URL
+        if (moneyChangerData.logoBase64) {
+          const mimeType = moneyChangerData.logoFilename
+            ?.split(".")
+            .pop()
+            .toLowerCase() === "pdf"
+            ? "application/pdf"
+            : `image/${moneyChangerData.logoFilename
+                ?.split(".")
+                .pop()
+                .toLowerCase() || "jpeg"}`;
+          setLogoPreview(`data:${mimeType};base64,${moneyChangerData.logoBase64}`);
+        } else {
+          setLogoPreview(null);
+        }
+        // Set KYC download URL
+        if (moneyChangerData.kycBase64) {
+          const byteCharacters = atob(moneyChangerData.kycBase64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: "application/pdf" });
+          setKycDownloadUrl(URL.createObjectURL(blob));
+        }
+      } catch (err) {
+        if (isActive) {
+          setError(`Failed to fetch data: ${err.response?.status || err.message}`);
+          console.error("Fetch error:", err);
+        }
+      }
+    };
+
+    isMounted.current = true;
+    fetchData();
+
+    return () => {
+      isActive = false; // Cleanup on unmount
+      isMounted.current = false;
+    };
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,9 +136,9 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
           return prev;
         });
         if (key === "logo") {
-          setLogoPreview(base64String);
+          setLogoPreview(base64String); // Use raw base64 for uploaded files
         } else if (key === "kyc") {
-          setKycPreview(base64String);
+          setKycDownloadUrl(null); // Reset download URL on new upload
         }
       };
       reader.readAsDataURL(file);
@@ -69,7 +152,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         return prev;
       });
       if (key === "logo") setLogoPreview(null);
-      else if (key === "kyc") setKycPreview(null);
+      else if (key === "kyc") setKycDownloadUrl(null);
     }
   };
 
@@ -101,14 +184,14 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
-        schemeId: schemeIdMap[form.scheme] || 1, // Use mapped value or default to 1
+        schemeId: schemeIdMap[form.scheme] || 1,
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
         kycFilename: form.kycFilename,
       };
 
-      const response = await api.put(`/api/v1/money-changers/${data.id}`, updateData);
+      const response = await api.put(`/api/v1/money-changers/${form.id}`, updateData);
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
@@ -299,6 +382,7 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
                     src={logoPreview}
                     alt="Logo Preview"
                     className="max-w-xs max-h-32 object-contain"
+                    onError={(e) => console.log("Image load error:", e)} // Debug broken image
                   />
                 </div>
               )}
@@ -314,6 +398,17 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
               <div className="text-xs text-gray-500">Supported: PDF</div>
               {form.kycFilename && (
                 <div className="mt-2 text-sm text-gray-700">{form.kycFilename}</div>
+              )}
+              {kycDownloadUrl && (
+                <div className="mt-2">
+                  <a
+                    href={kycDownloadUrl}
+                    download={form.kycFilename || "kyc_document.pdf"}
+                    className="text-indigo-500 underline text-sm"
+                  >
+                    Download KYC PDF
+                  </a>
+                </div>
               )}
             </div>
           </div>
@@ -338,22 +433,13 @@ const EditMoneyChangerModal = ({ onClose, data, onUpdate }) => {
 };
 
 EditMoneyChangerModal.propTypes = {
+  id: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired,
   onUpdate: PropTypes.func,
-  data: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    companyName: PropTypes.string,
-    email: PropTypes.string,
-    dateOfIncorporation: PropTypes.string,
-    uen: PropTypes.string,
-    address: PropTypes.string,
-    country: PropTypes.string,
-    postalCode: PropTypes.string,
-    notes: PropTypes.string,
-    scheme: PropTypes.string,
-    role: PropTypes.string,
-    locations: PropTypes.arrayOf(PropTypes.string),
-  }).isRequired,
+};
+
+EditMoneyChangerModal.defaultProps = {
+  onUpdate: null,
 };
 
 export default EditMoneyChangerModal;
