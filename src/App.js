@@ -9,6 +9,7 @@ import ManageAccounts from "./ManageAccounts";
 import Commission from "./pages/Commission";
 import Currency from "./pages/Currency";
 import MoneyChanger from "./pages/MoneyChanger";
+import ManageCurrency from "./pages/ManageCurrency";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import { Amplify } from "aws-amplify";
@@ -151,7 +152,7 @@ try {
           { path: "currency", element: <Currency label="Currency" /> },
           { path: "compute-rates", element: <ComingSoon label="Compute Rates" /> },
           { path: "view-rates", element: <ComingSoon label="ComingSoon" /> },
-          { path: "currency-codes", element: <ComingSoon label="Currency Codes" /> },
+          { path: "currency-codes", element: <ManageCurrency label="Manage Currency Codes" /> },
           { path: "transactions", element: <ComingSoon label="Transactions" /> },
         ],
       },
