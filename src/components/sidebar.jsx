@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useCallback } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import LogoutButton from "./Auth/LogoutButton";
+import MoolaLogo from "../assets/moola-logo.png"
 
 const navItems = [
   { label: "Account", path: "/account" },
@@ -23,8 +24,13 @@ function Sidebar({ width }) {
       style={{ width, minWidth: 160, maxWidth: 360, transition: "width 0.1s" }}
     >
       {/* Header */}
-      <div className="flex items-center mb-10">
-        <span className="font-bold text-lg">MoneyGrab</span>
+      <div className="flex items-center space-x-2  mb-10">
+         <img
+          src={MoolaLogo}
+          alt="MoolaFX Logo"
+          className="h-10 w-auto"
+        />
+           <span className="font-bold text-lg">MoneyGrab</span>
       </div>
       
       {/* Navigation - flex-1 makes this section take up remaining space */}
