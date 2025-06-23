@@ -215,8 +215,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold text-gray-700">Email</label>
+              <label htmlFor="email" className="block font-semibold text-gray-700">Email</label>
               <input
+                id="email"
                 className="w-full p-2 border rounded bg-gray-100"
                 name="email"
                 value={form.email || ""}
@@ -225,8 +226,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Company Name</label>
+              <label htmlFor="companyName" className="block font-semibold text-gray-700">Company Name</label>
               <input
+                id="companyName"
                 className="w-full p-2 border rounded bg-gray-100"
                 name="companyName"
                 value={form.companyName || ""}
@@ -235,8 +237,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Role</label>
+              <label htmlFor="role" className="block font-semibold text-gray-700">Role</label>
               <input
+                id="role"
                 className="w-full p-2 border rounded bg-gray-100"
                 value={form.role || "Money Changer Staff"}
                 readOnly
@@ -244,8 +247,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Date of Incorporation</label>
+              <label htmlFor="dateOfIncorporation" className="block font-semibold text-gray-700">Date of Incorporation</label>
               <input
+                id="dateOfIncorporation"
                 className="w-full p-2 border rounded bg-gray-100"
                 type="text"
                 value={form.dateOfIncorporation || ""}
@@ -254,8 +258,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">UEN</label>
+              <label htmlFor="uen" className="block font-semibold text-gray-700">UEN</label>
               <input
+                id="uen"
                 className="w-full p-2 border rounded"
                 name="uen"
                 value={form.uen || ""}
@@ -263,8 +268,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Address</label>
+              <label htmlFor="address" className="block font-semibold text-gray-700">Address</label>
               <textarea
+                id="address"
                 className="w-full p-2 border rounded"
                 name="address"
                 value={form.address || ""}
@@ -274,8 +280,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block font-semibold text-gray-700">Country</label>
+                <label htmlFor="country" className="block font-semibold text-gray-700">Country</label>
                 <select
+                  id="country"
                   className="w-full p-2 border rounded"
                   name="country"
                   value={form.country || ""}
@@ -287,8 +294,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block font-semibold text-gray-700">Postal Code</label>
+                <label htmlFor="postalCode" className="block font-semibold text-gray-700">Postal Code</label>
                 <input
+                  id="postalCode"
                   className="w-full p-2 border rounded"
                   name="postalCode"
                   value={form.postalCode || ""}
@@ -297,8 +305,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               </div>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Notes</label>
+              <label htmlFor="notes" className="block font-semibold text-gray-700">Notes</label>
               <textarea
+                id="notes"
                 className="w-full p-2 border rounded"
                 name="notes"
                 value={form.notes || ""}
@@ -309,8 +318,8 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold text-gray-700">Locations</label>
-              <div className="flex gap-2">
+              <label htmlFor="locations" className="block font-semibold text-gray-700">Locations</label>
+              <div id="locations" className="flex gap-2">
                 <div className="flex-1 bg-gray-50 p-2 rounded">
                   {locationsList
                     .filter((l) => !selectedLocations.includes(l))
@@ -348,8 +357,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               </div>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Scheme</label>
+              <label htmlFor="scheme" className="block font-semibold text-gray-700">Scheme</label>
               <select
+                id="scheme"
                 className="w-full p-2 border rounded"
                 name="scheme"
                 value={form.scheme || ""}
@@ -361,8 +371,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               </select>
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">Logo</label>
+              <label htmlFor="logo" className="block font-semibold text-gray-700">Logo</label>
               <input
+                id="logo"
                 type="file"
                 accept=".jpeg,.png,.gif,.pdf"
                 className="w-full p-2 border rounded"
@@ -380,8 +391,9 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
               )}
             </div>
             <div>
-              <label className="block font-semibold text-gray-700">KYC</label>
+              <label htmlFor="kyc" className="block font-semibold text-gray-700">KYC</label>
               <input
+                id="kyc"
                 type="file"
                 accept=".pdf"
                 className="w-full p-2 border rounded"
