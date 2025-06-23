@@ -173,7 +173,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               <input
                 id="dateOfIncorporation"
                 className="w-full p-2 border rounded"
-                type="text"
+                type="date"
                 name="dateOfIncorporation"
                 value={form.dateOfIncorporation}
                 onChange={handleChange}
@@ -266,7 +266,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                       <button
                         type="button"
                         className="text-red-500 underline text-sm"
-                        onClick={() => handleLocationDeselect(loc)}
+                        onChange={() => handleLocationDeselect(loc)}
                       >
                         Deselect
                       </button>
