@@ -16,21 +16,21 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
   const [error, setError] = useState("");
   const [currencyList,setCurrencyList] = useState([]);
 
-useEffect(() => {
-  const fetchCurrencies = async () => {
-    setError("");
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      setError("");
 
-    try {
-      const response = await api.get(`/api/v1/currencies`);
-      setCurrencyList(response.data);
-    } catch(err) {
-        console.error("Failed to fetch currencyList:", err);
-        setError("Failed to fetch currencyList.");
-    }
-  };
+      try {
+        const response = await api.get(`/api/v1/currencies`);
+        setCurrencyList(response.data);
+      } catch(err) {
+          console.error("Failed to fetch currencyList:", err);
+          setError("Failed to fetch currencyList.");
+      }
+    };
 
-  fetchCurrencies();
-}, []);
+    fetchCurrencies();
+  }, []);
 
 
   const handleSave = async () => {
@@ -102,8 +102,9 @@ useEffect(() => {
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag ?? '—'}</p>
-              <label className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
+              <label htmlFor="currency-select" className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
               <select
+                id="currency-select"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionRate?.currencyId ?? "" }
                 onChange={(e) => {
@@ -117,8 +118,9 @@ useEffect(() => {
                   <option key={item.id} value={item.id}>{item.currency}</option>
                 ))}
               </select>
-              <label className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
+              <label htmlFor="commission-rate-input" className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
+                id="commision-rate-input"
                 type="number"
                 step="0.01"
                 placeholder="Enter commission rate (e.g. 0.5)"
