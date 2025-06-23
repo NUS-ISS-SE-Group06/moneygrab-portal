@@ -124,8 +124,10 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <form
-        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-8 relative"
+
+      <form data-testid="moneychanger-form"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 relative"
+
         onSubmit={handleSubmit}
       >
         <button
@@ -139,12 +141,14 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
+
               <label htmlFor="email" className="block font-semibold text-gray-700">Email</label>
               <input
                 id="email"
                 className="w-full p-2 border rounded"
                 name="email"
                 value={form.email}
+                placeholder="Email"
                 onChange={handleChange}
               />
             </div>
@@ -155,10 +159,12 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                 className="w-full p-2 border rounded"
                 name="companyName"
                 value={form.companyName}
+                 placeholder="Company name"
                 onChange={handleChange}
               />
             </div>
             <div>
+
               <label htmlFor="role" className="block font-semibold text-gray-700">Role</label>
               <input
                 id="role"
@@ -172,6 +178,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               <label htmlFor="dateOfIncorporation" className="block font-semibold text-gray-700">Date of Incorporation</label>
               <input
                 id="dateOfIncorporation"
+
                 className="w-full p-2 border rounded"
                 type="date"
                 name="dateOfIncorporation"
