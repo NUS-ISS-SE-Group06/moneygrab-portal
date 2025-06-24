@@ -2,19 +2,30 @@ import React, {useEffect, useState } from "react";
 import api from "../api/axios";
 import ManageCurrencyCodeCreateModal from "../components/Currency/ManageCurrencyCodeCreateModal";
 import ManageCurrencyCodeEditModal from "../components/Currency/ManageCurrencyCodeEditModal";
+import {MONEY_CHANGER_CURRENCIES_CACHE_KEY, MONEY_CHANGER_CURRENCIES_CACHE_DURATION } from "../constants/cache"
 
 const ManageCurrency = () => {
   const [userId] = useState(1);
   const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
   const [loadingMoneyChangerCurrencies, setLoadingMoneyChangerCurrencies] = useState(false);
-  const [moneyChangerCurrencies, setMoneyChangerCurrencies] = useState([]);
   const [showModalCreateMoneyChangerCurrency, setShowModalCreateMoneyChangerCurrency] = useState(false);
   const [showModalEditMoneyChangerCurrency, setShowModalEditMoneyChangerCurrency] = useState(false);
   const [moneyChangerCurrencyError, setMoneyChangerCurrencyError] = useState(null);
   const [selectedMoneyChangerCurrency, setSelectedMoneyChangerCurrency] = useState(null);
+  const cacheKey = moneyChanger?.id 
+    ? `${MONEY_CHANGER_CURRENCIES_CACHE_KEY}_${moneyChanger?.id}`
+    : null;
+  const [moneyChangerCurrencies, setMoneyChangerCurrencies] = useState(() => {
+    if (!cacheKey) return [];
+    const cached = localStorage.getItem(cacheKey);
+    if(!cached) return [];
+    const parsed = JSON.parse(cached);
+    const isExpired = Date.now() - parsed.savedAt > MONEY_CHANGER_CURRENCIES_CACHE_DURATION;
+    return isExpired ? [] : parsed.data;
+  });
 
   useEffect(() => {
-    if (!moneyChanger?.id) return;
+    if (!moneyChanger?.id ) return;
     
     const fetchData = async () => {
       setLoadingMoneyChangerCurrencies(true);
@@ -25,6 +36,7 @@ const ManageCurrency = () => {
           }
         });
         setMoneyChangerCurrencies(response.data);
+        if(cacheKey) localStorage.setItem(cacheKey, JSON.stringify({ data: response.data, savedAt: Date.now() }));
       } catch (err) {
         setMoneyChangerCurrencyError("Failed to load money changer currency. Please try again later.");
         console.error("Money Changer Currency Error:", err);
@@ -33,25 +45,27 @@ const ManageCurrency = () => {
       }
     };
     fetchData();
-  }, [moneyChanger?.id]);
+  }, [moneyChanger?.id, cacheKey]);
 
 
-  // Money Changer Currecy Handlers
-  const applyUpdateMoneyChangerCurrency = (updatedItem) => {
+  const handleOnCreated = (newData) => {
+    setMoneyChangerCurrencies((prevData) => [...prevData, newData]);
+    if (cacheKey) localStorage.removeItem(cacheKey);
+  };
+
+
+  const handleOnUpdated = (updatedItem) => {
     setMoneyChangerCurrencies((prevItems) =>
       prevItems.map((item) => {
-        if (item.id === updatedItem.id) {
-          return updatedItem;
-        }
-        if (updatedItem.isDefault) {
-          return { ...item, isDefault: false };
-        }
+        if (item.id === updatedItem.id) return updatedItem;
+        if (updatedItem.isDefault) return { ...item, isDefault: false };
         return item;
       })
     );
+    if(cacheKey) localStorage.removeItem(cacheKey);
   };
 
-  const handleMoneyChangerCurrencyDelete = async (item) => {
+  const handleDelete = async (item) => {
     setMoneyChangerCurrencyError(null);
 
     try {
@@ -60,12 +74,9 @@ const ManageCurrency = () => {
           userId
         }
       });
-      setMoneyChangerCurrencies((prev) =>
-        prev.filter((entry) => entry.id !== item.id)
-      );
-
+      setMoneyChangerCurrencies((prev) => prev.filter((entry) => entry.id !== item.id));
       setSelectedMoneyChangerCurrency(null);
-
+      if(cacheKey) localStorage.removeItem(cacheKey);
     } catch (err) {
       console.error(err);
 
@@ -140,7 +151,7 @@ const ManageCurrency = () => {
                             </button>
                             <button 
                               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                              onClick={() => { handleMoneyChangerCurrencyDelete(item) }}
+                              onClick={() => { handleDelete(item) }}
                             >
                               Delete
                             </button>
@@ -157,7 +168,7 @@ const ManageCurrency = () => {
           <ManageCurrencyCodeCreateModal
             moneychanger={moneyChanger}
             onClose={() => setShowModalCreateMoneyChangerCurrency(false)}
-            onCreated={ (newData) => {setMoneyChangerCurrencies((prevData) => [...prevData, newData]) }}
+            onCreated={handleOnCreated}
           />
         )}
 
@@ -165,7 +176,7 @@ const ManageCurrency = () => {
           <ManageCurrencyCodeEditModal
             selected={selectedMoneyChangerCurrency}
             onClose={() => setShowModalEditMoneyChangerCurrency(false)}
-            onUpdated={applyUpdateMoneyChangerCurrency}
+            onUpdated={handleOnUpdated}
           />
         )}
         
