@@ -44,7 +44,8 @@ console.error = (...args) => {
       
       typeof firstArg?.response?.data === "string" &&
       firstArg.response.data.includes("Commission rate for the same currency") || typeof firstArg?.response?.data === "string" &&
-      firstArg.response.data.includes("Rate update failed due to conflict"))
+      firstArg.response.data.includes("Rate update failed due to conflict")|| typeof firstArg?.response?.data === "string" &&
+      firstArg.response.data.includes("Failed to update scheme"))
 
   if (shouldSuppress) return;
 
