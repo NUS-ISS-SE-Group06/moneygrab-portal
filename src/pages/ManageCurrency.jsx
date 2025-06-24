@@ -31,7 +31,6 @@ const ManageCurrency = () => {
     const fetchData = async () => {
       setLoadingMoneyChangerCurrencies(true);
       try {
-        console.error("API Called");
         const response = await api.get("/api/v1/money-changers-currencies", {
           params: {
             moneyChangerId: moneyChanger?.id
