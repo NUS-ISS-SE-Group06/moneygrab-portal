@@ -89,13 +89,7 @@ const ManageCurrency = () => {
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">
-                {error
-                  ? error
-                  : queryError.message
-                }
-
-              </p>
+              <p className="whitespace-pre-line">{error || queryError?.message } </p>
             </div>
           </div>
         )}
