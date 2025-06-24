@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import api from '../api/axios';
+import api from '../../api/axios';
 import PropTypes from "prop-types";
 
 const CompanyCommissionSchemeEditModal = ({ selectedCompanyCommissionScheme, onClose, onUpdated}) => {
   const [userId] = useState(1);
-  const [companyCommissionScheme, setcompanyCommissionScheme] = useState(selectedCompanyCommissionScheme);
+  const [companyCommissionScheme, setCompanyCommissionScheme] = useState(selectedCompanyCommissionScheme);
   const [error, setError] = useState("");
-  const [moneyChangerList,setmoneyChangerLisst] = useState([]);
+  const [moneyChangerList,setMoneyChangerList] = useState([]);
 
 useEffect(() => {
   const fetchmoneyChanger = async () => {
@@ -14,7 +14,7 @@ useEffect(() => {
 
     try {
       const response = await api.get('/api/v1/money-changers');
-      setmoneyChangerLisst(response.data);
+      setMoneyChangerList(response.data);
 
     } catch(err) {
         console.error("Failed to fetch moneyChangerList:", err);
@@ -83,14 +83,15 @@ useEffect(() => {
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{companyCommissionScheme?.nameTag ?? '—'}</p>
-              <label className="block mb-2 font-semibold text-gray-800">Money Changer <span className="text-red-500">*</span></label>
+              <label htmlFor="commission-scheme-select" className="block mb-2 font-semibold text-gray-800">Money Changer <span className="text-red-500">*</span></label>
               <select
+                id="commission-scheme-select"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={companyCommissionScheme?.moneyChangerId ?? ""}
                 onChange={(e) => {
                                   const selectedId=parseInt(e.target.value);
                                   const selectedName = e.target.options[e.target.selectedIndex].text;
-                                  setcompanyCommissionScheme({...companyCommissionScheme,moneyChangerId: selectedId, companyName: selectedName});
+                                  setCompanyCommissionScheme({...companyCommissionScheme,moneyChangerId: selectedId, companyName: selectedName});
                 }}
               >
                 <option value="">Select Money Changer</option>

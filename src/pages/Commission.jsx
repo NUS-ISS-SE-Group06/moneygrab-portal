@@ -1,11 +1,11 @@
 import React, {useEffect, useState } from "react";
 import api from "../api/axios";
-import CommissionSchemeCreateModal from "../components/CommissionSchemeCreateModal";
-import CommissionSchemeEditModal from "../components/CommissionSchemeEditModal";
-import CommissionRateCreateModal from "../components/CommissionRateCreateModal"; 
-import CommissionRateEditModal from "../components/CommissionRateEditModal"; 
-import CompanyCommissionSchemeCreateModel from "../components/CompanyCommissionSchemeCreateModal"; 
-import CompanyCommissionSchemeEditModel from "../components/CompanyCommissionSchemeEditModal"; 
+import CommissionSchemeCreateModal from "../components/Commission/CommissionSchemeCreateModal";
+import CommissionSchemeEditModal from "../components/Commission/CommissionSchemeEditModal";
+import CommissionRateCreateModal from "../components/Commission/CommissionRateCreateModal"; 
+import CommissionRateEditModal from "../components/Commission/CommissionRateEditModal"; 
+import CompanyCommissionSchemeCreateModel from "../components/Commission/CompanyCommissionSchemeCreateModal"; 
+import CompanyCommissionSchemeEditModel from "../components/Commission/CompanyCommissionSchemeEditModal"; 
 
 
 const Commission = () => {
@@ -103,21 +103,17 @@ const Commission = () => {
 
 
   // Commission Scheme Handlers
-  const applyUpdatedScheme = (updatedItem) => {
+  const handleOnUpdatedScheme = (updatedItem) => {
     setCommissionSchemes((prevItems) =>
       prevItems.map((item) => {
-        if (item.id === updatedItem.id) {
-          return updatedItem;
-        }
-        if (updatedItem.isDefault) {
-          return { ...item, isDefault: false };
-        }
+        if (item.id === updatedItem.id) return updatedItem;
+        if (updatedItem.isDefault) return { ...item, isDefault: false };
         return item;
       })
     );
   };
 
-  const handleCommissionSchemeDelete = async (item) => {
+  const handleDeleteCommissionScheme = async (item) => {
     setSchemeError(null);
 
     try {
@@ -126,12 +122,8 @@ const Commission = () => {
           userId
         }
       });
-      setCommissionSchemes((prev) =>
-        prev.filter((entry) => entry.id !== item.id)
-      );
-
+      setCommissionSchemes((prev) => prev.filter((entry) => entry.id !== item.id));
       setselectedScheme(null);
-
     } catch (err) {
       console.error(err);
 
@@ -145,22 +137,18 @@ const Commission = () => {
   };  
 
   // Commission Rates Handlers  
-  const ApplyUpdatedCommissionRate = (updatedItem) => {
+  const handleOnUpdatedCommissionRate = (updatedItem) => {
     setCommissionRates((prevItems) =>
       prevItems.map((item) => {
-        if (item.id === updatedItem.id) {
-          return updatedItem;
-        }
-        if (updatedItem.isDefault) {
-          return { ...item, isDefault: false };
-        }
+        if (item.id === updatedItem.id) return updatedItem;
+        if (updatedItem.isDefault) return { ...item, isDefault: false };
         return item;
       })
     );
   };
 
 
-  const handleCommissionRateDelete = async (item) => {
+  const handleDeleteCommissionRate = async (item) => {
     setCommissionRateError(null);
     try {
       await api.delete(`/api/v1/commission-rates/${item.id}`, {
@@ -168,9 +156,7 @@ const Commission = () => {
           userId
         }
       });
-      setCommissionRates((prev) =>
-        prev.filter((entry) => entry.id !== item.id)
-      );
+      setCommissionRates((prev) => prev.filter((entry) => entry.id !== item.id) );
     } catch (err) {
       console.error(err);
 
@@ -186,15 +172,11 @@ const Commission = () => {
 
   
   // Company Commission Scheme Handlers
-  const ApplyUpdatedCompanyCommissionScheme = (updatedItem) => {
+  const handleOnUpdatedCompanyCommissionScheme = (updatedItem) => {
     setCompanyCommissionSchemes((prevItems) =>
       prevItems.map((item) => {
-        if (item.id === updatedItem.id) {
-          return updatedItem;
-        }
-        if (updatedItem.isDefault) {
-          return { ...item, isDefault: false };
-        }
+        if (item.id === updatedItem.id) return updatedItem;
+        if (updatedItem.isDefault) return { ...item, isDefault: false };
         return item;
       })
     );
@@ -209,12 +191,8 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           userId
         }
       });
-      setCompanyCommissionSchemes((prev) =>
-        prev.filter((entry) => entry.id !== item.id)
-      );
-
+      setCompanyCommissionSchemes((prev) => prev.filter((entry) => entry.id !== item.id) );
       setSelectedCompanyCommissionScheme(null);
-
     } catch (err) {
       console.error(err);
 
@@ -253,7 +231,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           </div>
         )}
 
-        <div className="bg-white shadow rounded">
+        <div className="w-3/4 bg-white shadow rounded">
           {loadingScheme ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
@@ -294,7 +272,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
                             </button>
                             <button 
                               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                              onClick={() => { handleCommissionSchemeDelete(item) }}
+                              onClick={() => { handleDeleteCommissionScheme(item) }}
                             >
                               Delete
                             </button>
@@ -318,7 +296,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           <CommissionSchemeEditModal
             selectedScheme={selectedScheme}
             onClose={() => setshowModalEditScheme(false)}
-            onUpdated={applyUpdatedScheme}
+            onUpdated={handleOnUpdatedScheme}
           />
         )}
         
@@ -349,7 +327,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
         </div>
 
 
-        <div className="bg-white shadow rounded">
+        <div className="w-3/4 bg-white shadow rounded">
           {loadingCommissionRate ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
@@ -381,7 +359,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
                                 </button>
                                 <button 
                                   className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                                  onClick={() => { handleCommissionRateDelete(item) }}
+                                  onClick={() => { handleDeleteCommissionRate(item) }}
                                 >
                                   Delete
                                 </button>
@@ -406,7 +384,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           <CommissionRateEditModal
             selectedCommissionRate={selectedCommissionRate}
             onClose={()=> { setShowModalEditCommissionRate(false) }}
-            onUpdated={ApplyUpdatedCommissionRate}
+            onUpdated={handleOnUpdatedCommissionRate}
           />
         )}
 
@@ -438,7 +416,7 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
         </div>
         
 
-        <div className="bg-white shadow rounded">
+        <div className="w-3/4 bg-white shadow rounded">
           {loadingCompanyCommissionScheme ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
@@ -499,11 +477,12 @@ const handleDeleteCompanyCommissionScheme = async (item) => {
           <CompanyCommissionSchemeEditModel
             selectedCompanyCommissionScheme={selectedCompanyCommissionScheme}
             onClose={()=> { setShowModalEditCompanyCommissionScheme(false) }}
-            onUpdated={ApplyUpdatedCompanyCommissionScheme}
+            onUpdated={handleOnUpdatedCompanyCommissionScheme}
           />
         )}
 
-
+      <hr className="border-t border-grey my-6" />
+      
       </main>
     </div>
   );
