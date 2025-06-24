@@ -1,30 +1,41 @@
 import React, {useEffect, useState } from "react";
 import api from "../api/axios";
+import {CURRENCY_LIST_CACHE_KEY, CURRENCY_LIST_CACHE_DURATION } from "../constants/cache"
+
 
 const Currency = () => {
   const [loadingCurrency, setLoadingCurrency] = useState(false);
-
-  const [currencies, setCurrencies] = useState([]);
   const [currencyError, setCurrencyError] = useState(null);
   const [selectedCurrency, setSelectedCurrency] = useState(null);
+  const [currencyList,setCurrencyList] = useState(() => {
+    const cached = localStorage.getItem(CURRENCY_LIST_CACHE_KEY);
+    if (!cached) return [];
+    const parsed = JSON.parse(cached);
+    const isExpired = Date.now() - parsed.savedAt > CURRENCY_LIST_CACHE_DURATION;
+    return isExpired ? [] : parsed.data;
+  });
 
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoadingCurrency(true);
+    if (currencyList.length === 0) {
 
-      try {
-        const response = await api.get("/api/v1/currencies");
-        setCurrencies(response.data);
-      } catch (err) {
-        setCurrencyError("Failed to load currency list. Please try again later.");
-        console.error("Currency Error:", err);
-      } finally {
-        setLoadingCurrency(false);
-      }
-    };
-    fetchData();
-  }, []);
+      const fetchData = async () => {
+        setLoadingCurrency(true);
+
+        try {
+          const response = await api.get("/api/v1/currencies");
+          setCurrencyList(response.data);
+          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
+        } catch (err) {
+          setCurrencyError("Failed to load currency list. Please try again later.");
+          console.error("Currency Error:", err);
+        } finally {
+          setLoadingCurrency(false);
+        }
+      };
+      fetchData();
+    }
+  }, [currencyList]);
 
 
   return (
@@ -57,7 +68,7 @@ const Currency = () => {
                 </tr>
               </thead>
               <tbody>
-                { currencies.map((item) => {
+                { currencyList.map((item) => {
                   const isSelected = selectedCurrency?.id === item.id;
 
                   return (                             

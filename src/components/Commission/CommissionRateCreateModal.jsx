@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import api from '../../api/axios';
 import PropTypes from "prop-types";
+import {CURRENCY_LIST_CACHE_KEY, CURRENCY_LIST_CACHE_DURATION } from "../../constants/cache"
+
 
 const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
   const [userId] = useState(1);
@@ -11,26 +13,31 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
     nameTag: selectedScheme?.nameTag, 
     rate: null,
   });
- 
-
   const [error, setError] = useState("");
-  const [currencyList,setCurrencyList] = useState([]);
+  const [currencyList,setCurrencyList] = useState(() => {
+    const cached = localStorage.getItem(CURRENCY_LIST_CACHE_KEY);
+    if (!cached) return [];
+    const parsed = JSON.parse(cached);
+    const isExpired = Date.now() - parsed.savedAt > CURRENCY_LIST_CACHE_DURATION;
+    return isExpired ? [] : parsed.data;
+  });
 
   useEffect(() => {
-    const fetchCurrencies = async () => {
-      setError("");
-
-      try {
-        const response = await api.get(`/api/v1/currencies`);
-        setCurrencyList(response.data);
-      } catch(err) {
-          console.error("Failed to fetch currencyList:", err);
-          setError("Failed to fetch currencyList.");
-      }
-    };
-
-    fetchCurrencies();
-  }, []);
+    if (currencyList.length === 0) {
+      const fetchCurrencies = async () => {
+        setError("");
+        try {
+          const response = await api.get(`/api/v1/currencies`);
+          setCurrencyList(response.data);
+          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
+        } catch(err) {
+            console.error("Failed to fetch currencyList:", err);
+            setError("Failed to fetch currencyList.");
+        }
+      };
+      fetchCurrencies();
+    }
+  }, [currencyList]);
 
 
   const handleSave = async () => {
