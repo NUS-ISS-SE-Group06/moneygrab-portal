@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import CommissionSchemeEditModal from "../CommissionSchemeEditModal";
 import axios from "../../../api/axios";
+import '@testing-library/jest-dom';
 
 jest.mock("../../../api/axios");
 
@@ -22,24 +23,39 @@ beforeEach(() => {
 describe("CommissionSchemeEditModal", () => {
   test("renders with prefilled data", () => {
     render(
-      <CommissionSchemeEditModal selectedScheme={mockScheme} onClose={onClose} onUpdated={onUpdated} />
+      <CommissionSchemeEditModal
+        selectedRecord={mockScheme} // ✅ ensure the prop matches actual usage
+        onClose={onClose}
+        onUpdated={onUpdated}
+      />
     );
 
     expect(screen.getByText("Edit Commission Scheme")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Scheme A")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Initial description")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Default Commission Scheme/i)).not.toBeChecked();
+
+    const tagInput = screen.getByPlaceholderText("Enter Commission Tag");
+    const descInput = screen.getByPlaceholderText("Enter Description");
+    const checkbox = screen.getByLabelText(/Default Commission Scheme/i);
+
+    expect(tagInput.value).toBe("Scheme A");
+    expect(descInput.value).toBe("Initial description");
+    expect(checkbox).not.toBeChecked();
   });
 
   test("shows error if no tag is present", async () => {
     const badScheme = { ...mockScheme, nameTag: "" };
     render(
-      <CommissionSchemeEditModal selectedScheme={badScheme} onClose={onClose} onUpdated={onUpdated} />
+      <CommissionSchemeEditModal
+        selectedRecord={badScheme}
+        onClose={onClose}
+        onUpdated={onUpdated}
+      />
     );
 
     fireEvent.click(screen.getByText("Save"));
 
-    expect(await screen.findByText(/Commission tag is required/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Commission tag is required/i)
+    ).toBeInTheDocument();
     expect(onUpdated).not.toHaveBeenCalled();
   });
 
@@ -54,14 +70,18 @@ describe("CommissionSchemeEditModal", () => {
     axios.put.mockResolvedValueOnce({ data: updatedResponse });
 
     render(
-      <CommissionSchemeEditModal selectedScheme={mockScheme} onClose={onClose} onUpdated={onUpdated} />
+      <CommissionSchemeEditModal
+        selectedRecord={mockScheme}
+        onClose={onClose}
+        onUpdated={onUpdated}
+      />
     );
 
     fireEvent.change(screen.getByPlaceholderText(/Enter Description/i), {
       target: { value: "Updated description" },
     });
-    fireEvent.click(screen.getByLabelText(/Default Commission Scheme/i));
 
+    fireEvent.click(screen.getByLabelText(/Default Commission Scheme/i));
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() => {
@@ -81,12 +101,21 @@ describe("CommissionSchemeEditModal", () => {
     });
 
     render(
-      <CommissionSchemeEditModal selectedScheme={mockScheme} onClose={onClose} onUpdated={onUpdated} />
+      <CommissionSchemeEditModal
+        selectedRecord={mockScheme}
+        onClose={onClose}
+        onUpdated={onUpdated}
+      />
     );
 
     fireEvent.click(screen.getByText("Save"));
 
-    expect(await screen.findByText(/Failed to update scheme/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText((text) =>
+        text.includes("Failed to update scheme")
+      )
+    ).toBeInTheDocument();
+
     expect(onUpdated).not.toHaveBeenCalled();
   });
 });
