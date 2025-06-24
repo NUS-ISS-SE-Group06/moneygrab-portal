@@ -1,72 +1,50 @@
 import React, { useState } from "react";
 import api from "../api/axios";
-import ManageCurrencyCodeCreateModal from "../components/Currency/ManageCurrencyCodeCreateModal";
-import ManageCurrencyCodeEditModal from "../components/Currency/ManageCurrencyCodeEditModal";
 import {useQuery, useQueryClient, useMutation} from "@tanstack/react-query";
 import {CACHE_DURATION} from "../constants/cache"
+import ManageCurrencyCodeCreateModal from "../components/Currency/ManageCurrencyCodeCreateModal";
+import ManageCurrencyCodeEditModal from "../components/Currency/ManageCurrencyCodeEditModal";
 
+const MONEYCHANGER_CURRENCY="moneyChangerCurrencies";
 
-const fetchMoneyChangerCurrencies = async (moneyChangerId) => {
-  const response = await api.get("/api/v1/money-changers-currencies", {
-          params: { moneyChangerId }
-  });
-  return response.data;
-
-};
-
-const deleteMoneyChangerCurrency = async ({id, userId}) => {
-  await api.delete(`/api/v1/money-changers-currencies/${id}`, {
-    params: { userId }
-  });
-};
-
+const fetchMoneyChangerCurrencies = async (moneyChangerId) => (await api.get(`/api/v1/money-changers-currencies`, { params: { moneyChangerId }})).data
+const deleteMoneyChangerCurrency = async ({ id, userId }) => await api.delete(`/api/v1/money-changers-currencies/${id}`, { params: { userId } });
 
 const ManageCurrency = () => {
   const [userId] = useState(1);
   const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
-  const [screenError, setScreenError] = useState(null);
+  const [error, setError] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const {
-    data: moneyChangerCurrencies =[],
-    isLoading,
-    error,
-  } = useQuery ( {
-    queryKey: ["moneyChangerCurrencies", moneyChanger?.id],
-    queryFn: () => fetchMoneyChangerCurrencies(moneyChanger?.id),
-    enabled: !!moneyChanger?.id,
-    staleTime: CACHE_DURATION,
-    refetchOnWindowFocus: true,
-  });
+  const { data: moneyChangerCurrencies =[], isLoading, error: queryError,} = useQuery ( { queryKey: [MONEYCHANGER_CURRENCY, moneyChanger?.id], queryFn: () => fetchMoneyChangerCurrencies(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
   const deleteMutation = useMutation({
     mutationFn: deleteMoneyChangerCurrency,
     onSuccess: async () => {
-      await queryClient.invalidateQueries(["moneyChangerCurrencies", moneyChanger?.id]);
+      await queryClient.invalidateQueries([MONEYCHANGER_CURRENCY, moneyChanger?.id]);
       setSelectedRecord(null);
     },
     onError: (err) => {
       const message = err?.response?.data || err?.message || "Failed to delete the form. Please try again.";
-      setScreenError(message);
+      setError(message);
     },
   });
 
-
   const handleOnCreated = async (newData) => {
-    await queryClient.invalidateQueries(["moneyChangerCurrencies", moneyChanger?.id]);
+    await queryClient.invalidateQueries([MONEYCHANGER_CURRENCY, moneyChanger?.id]);
     setIsCreateModalOpen(false);
   };
 
   const handleOnUpdated = async (updatedItem) => {
-    await queryClient.invalidateQueries(["moneyChangerCurrencies", moneyChanger?.id]);
+    await queryClient.invalidateQueries([MONEYCHANGER_CURRENCY, moneyChanger?.id]);
     setIsEditModalOpen(false);
   };
 
   const handleDelete = async (item) => {
-    setScreenError(null);
+    setError(null);
     deleteMutation.mutate({id: item.id, userId});
   };  
 
@@ -79,17 +57,17 @@ const ManageCurrency = () => {
           <h1 className="text-2xl font-extrabold">MANAGE CURRENCY CODES</h1>
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center font-medium"
-            onClick={ () => { setScreenError(null); setIsCreateModalOpen(true)}}
+            onClick={ () => { setError(null); setIsCreateModalOpen(true)}}
           >
             + Set New Currency Code
           </button>
         </div>
 
-        {(screenError || error) && (
+        {(error || queryError) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{screenError || error?.message } </p>
+              <p className="whitespace-pre-line">{error || queryError?.message } </p>
             </div>
           </div>
         )}
@@ -154,7 +132,7 @@ const ManageCurrency = () => {
 
         {isEditModalOpen && (
           <ManageCurrencyCodeEditModal
-            selected={selectedRecord}
+            selectedRecord={selectedRecord}
             onClose={() => setIsEditModalOpen(false)}
             onUpdated={handleOnUpdated}
           />

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import api from '../../api/axios';
 import PropTypes from "prop-types";
 
-const CompanyCommissionSchemeEditModal = ({ selectedCompanyCommissionScheme, onClose, onUpdated}) => {
+const CompanyCommissionSchemeEditModal = ({ selectedRecord, onClose, onUpdated}) => {
   const [userId] = useState(1);
-  const [companyCommissionScheme, setCompanyCommissionScheme] = useState(selectedCompanyCommissionScheme);
+  const [companyCommissionScheme, setCompanyCommissionScheme] = useState(selectedRecord);
   const [error, setError] = useState("");
   const [moneyChangerList,setMoneyChangerList] = useState([]);
 
@@ -125,7 +125,7 @@ useEffect(() => {
 }
 
 CompanyCommissionSchemeEditModal.propTypes = {
-  selectedCompanyCommissionScheme: PropTypes.object.isRequired, 
+  selectedRecord: PropTypes.object.isRequired, 
   onClose: PropTypes.func.isRequired,
   onUpdated: PropTypes.func.isRequired
 };

@@ -3,24 +3,15 @@ import api from "../api/axios";
 import {useQuery} from "@tanstack/react-query";
 import {CACHE_DURATION} from "../constants/cache"
 
-const fetchCurrencyList = async () => {
-  const response = await api.get("/api/v1/currencies");
-  return response.data;
-};
+const CURRENCY_LIST ="currencyList";
+
+const fetchCurrencyList = async () => (await api.get(`/api/v1/currencies`)).data;
+
 
 const Currency = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  const {
-    data: currencyList = [],
-    isLoading,
-    error,
-  } = useQuery ({
-    queryKey: ["currencyList"],
-    queryFn: fetchCurrencyList,
-    staleTime: CACHE_DURATION,
-    refetchOnWindowFocus: true,
-  });
+  const { data: currencyList = [], isLoading, error: queryError, } = useQuery ({ queryKey: [CURRENCY_LIST], queryFn: fetchCurrencyList, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -30,11 +21,11 @@ const Currency = () => {
           <h1 className="text-2xl font-extrabold">CURRENCY LIST</h1>
         </div>
 
-        {error && (
+        {queryError && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{error?.message}</p>
+              <p className="whitespace-pre-line">{queryError?.message}</p>
             </div>
           </div>
         )}
