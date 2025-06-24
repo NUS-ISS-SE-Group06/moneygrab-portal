@@ -26,10 +26,12 @@ const ManageCurrency = () => {
 
   useEffect(() => {
     if (!moneyChanger?.id ) return;
-    
+    if (moneyChangerCurrencies.length > 0) return;
+
     const fetchData = async () => {
       setLoadingMoneyChangerCurrencies(true);
       try {
+        console.error("API Called");
         const response = await api.get("/api/v1/money-changers-currencies", {
           params: {
             moneyChangerId: moneyChanger?.id
@@ -45,7 +47,7 @@ const ManageCurrency = () => {
       }
     };
     fetchData();
-  }, [moneyChanger?.id, cacheKey]);
+  }, [moneyChanger?.id, cacheKey, moneyChangerCurrencies.length]);
 
 
   const handleOnCreated = (newData) => {
