@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import api from '../api/axios';
+import api from '../../api/axios';
 import PropTypes from "prop-types";
+import {CURRENCY_LIST_CACHE_KEY, CURRENCY_LIST_CACHE_DURATION } from "../../constants/cache"
+
 
 const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
   const [userId] = useState(1);
@@ -11,40 +13,31 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
     nameTag: selectedScheme?.nameTag, 
     rate: null,
   });
-
-
   const [error, setError] = useState("");
-  const [currencyList,setCurrencyList] = useState([]);
+  const [currencyList,setCurrencyList] = useState(() => {
+    const cached = localStorage.getItem(CURRENCY_LIST_CACHE_KEY);
+    if (!cached) return [];
+    const parsed = JSON.parse(cached);
+    const isExpired = Date.now() - parsed.savedAt > CURRENCY_LIST_CACHE_DURATION;
+    return isExpired ? [] : parsed.data;
+  });
 
-useEffect(() => {
-  const fetchCurrencies = async () => {
-    setError("");
-
-    try {
-      //const response = await api.get(`/api/v1/currencies`);
-      //setCurrencyList(response.data);
-
-      // MOCK CURRENCY DATA
-      const mockedResponse = {
-        data: [
-          { id: "1", currency: "SGD" },
-          { id: "2", currency: "USD" },
-          { id: "3", currency: "EUR" },
-          { id: "4", currency: "MYR" },
-          { id: "5", currency: "IDR" }
-        ]
+  useEffect(() => {
+    if (currencyList.length === 0) {
+      const fetchCurrencies = async () => {
+        setError("");
+        try {
+          const response = await api.get(`/api/v1/currencies`);
+          setCurrencyList(response.data);
+          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
+        } catch(err) {
+            console.error("Failed to fetch currencyList:", err);
+            setError("Failed to fetch currencyList.");
+        }
       };
-
-      setCurrencyList(mockedResponse.data);
-
-    } catch(err) {
-        console.error("Failed to fetch currencyList:", err);
-        setError("Failed to fetch currencyList.");
+      fetchCurrencies();
     }
-  };
-
-  fetchCurrencies();
-}, []);
+  }, [currencyList]);
 
 
   const handleSave = async () => {
@@ -116,8 +109,9 @@ useEffect(() => {
         <div className="mb-8 border-b border-t pb-8 pt-3">
               <label className="block mb-2 font-semibold text-gray-800">Commission Tag <span className="text-red-500">*</span></label>
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">{commissionRate?.nameTag ?? '—'}</p>
-              <label className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
+              <label htmlFor="currency-select" className="block mb-2 font-semibold text-gray-800">Symbol <span className="text-red-500">*</span></label>
               <select
+                id="currency-select"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
                 value={commissionRate?.currencyId ?? "" }
                 onChange={(e) => {
@@ -131,8 +125,9 @@ useEffect(() => {
                   <option key={item.id} value={item.id}>{item.currency}</option>
                 ))}
               </select>
-              <label className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
+              <label htmlFor="commission-rate-input" className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
+                id="commision-rate-input"
                 type="number"
                 step="0.01"
                 placeholder="Enter commission rate (e.g. 0.5)"
