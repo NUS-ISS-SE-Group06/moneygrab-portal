@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import {createBrowserRouter, RouterProvider } from "react-router-dom";
 import LayoutWithResizableSidebar from "./components/sidebar";
 import ManageAccounts from "./ManageAccounts";
 import Commission from "./pages/Commission";
@@ -12,12 +9,12 @@ import MoneyChanger from "./pages/MoneyChanger";
 import ManageCurrency from "./pages/ManageCurrency";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import { Amplify } from "aws-amplify";
+import {Amplify } from "aws-amplify";
 import awsConfig from "./aws/aws-exports";
-import { fetchAuthSession } from "@aws-amplify/auth"; 
+import {fetchAuthSession } from "@aws-amplify/auth"; 
 import RequireAuth from "./components/Auth/RequireAuth";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
 
-// Error Boundary Component
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -169,10 +166,11 @@ try {
   console.error("Failed to create router:", error);
 }
 
+const queryClient = new QueryClient();
+
 export default function App() {
   const [appError, setAppError] = useState(null);
 
-  // Additional error handling for the main app
   useEffect(() => {
     const handleError = (error) => {
       console.error('App level error:', error);
@@ -202,9 +200,11 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
-      <AuthInit />
-      <RouterProvider router={router} />
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <AuthInit />
+        <RouterProvider router={router} />
+      </ErrorBoundary>
+    </QueryClientProvider>
   );
 }

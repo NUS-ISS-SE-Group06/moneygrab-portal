@@ -1,95 +1,74 @@
-import React, {useEffect, useState } from "react";
+import React, { useState } from "react";
 import api from "../api/axios";
 import ManageCurrencyCodeCreateModal from "../components/Currency/ManageCurrencyCodeCreateModal";
 import ManageCurrencyCodeEditModal from "../components/Currency/ManageCurrencyCodeEditModal";
-import {MONEY_CHANGER_CURRENCIES_CACHE_KEY, MONEY_CHANGER_CURRENCIES_CACHE_DURATION } from "../constants/cache"
+import {useQuery, useQueryClient, useMutation} from "@tanstack/react-query";
+import {CACHE_DURATION} from "../constants/cache"
+
+
+const fetchMoneyChangerCurrencies = async (moneyChangerId) => {
+  const response = await api.get("/api/v1/money-changers-currencies", {
+          params: { moneyChangerId }
+  });
+  return response.data;
+
+};
+
+const deleteMoneyChangerCurrency = async ({id, userId}) => {
+  await api.delete(`/api/v1/money-changers-currencies/${id}`, {
+    params: { userId }
+  });
+};
+
 
 const ManageCurrency = () => {
   const [userId] = useState(1);
   const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
-  const [loadingMoneyChangerCurrencies, setLoadingMoneyChangerCurrencies] = useState(false);
-  const [showModalCreateMoneyChangerCurrency, setShowModalCreateMoneyChangerCurrency] = useState(false);
-  const [showModalEditMoneyChangerCurrency, setShowModalEditMoneyChangerCurrency] = useState(false);
-  const [moneyChangerCurrencyError, setMoneyChangerCurrencyError] = useState(null);
-  const [selectedMoneyChangerCurrency, setSelectedMoneyChangerCurrency] = useState(null);
-  const cacheKey = moneyChanger?.id 
-    ? `${MONEY_CHANGER_CURRENCIES_CACHE_KEY}_${moneyChanger?.id}`
-    : null;
-  const [moneyChangerCurrencies, setMoneyChangerCurrencies] = useState(() => {
-    if (!cacheKey) return [];
-    const cached = localStorage.getItem(cacheKey);
-    if(!cached) return [];
-    const parsed = JSON.parse(cached);
-    const isExpired = Date.now() - parsed.savedAt > MONEY_CHANGER_CURRENCIES_CACHE_DURATION;
-    return isExpired ? [] : parsed.data;
+  const [error, setError] = useState(null);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const {
+    data: moneyChangerCurrencies =[],
+    isLoading,
+    queryError,
+  } = useQuery ( {
+    queryKey: ["moneyChangerCurrencies", moneyChanger?.id],
+    queryFn: () => fetchMoneyChangerCurrencies(moneyChanger?.id),
+    enabled: !!moneyChanger?.id,
+    staleTime: CACHE_DURATION,
+    refetchOnWindowFocus: true,
   });
 
-  useEffect(() => {
-    if (!moneyChanger?.id ) return;
-    if (moneyChangerCurrencies.length > 0) return;
-
-    const fetchData = async () => {
-      setLoadingMoneyChangerCurrencies(true);
-      try {
-        const response = await api.get("/api/v1/money-changers-currencies", {
-          params: {
-            moneyChangerId: moneyChanger?.id
-          }
-        });
-        setMoneyChangerCurrencies(response.data);
-        if(cacheKey) localStorage.setItem(cacheKey, JSON.stringify({ data: response.data, savedAt: Date.now() }));
-      } catch (err) {
-        setMoneyChangerCurrencyError("Failed to load money changer currency. Please try again later.");
-        console.error("Money Changer Currency Error:", err);
-      } finally {
-        setLoadingMoneyChangerCurrencies(false);
-      }
-    };
-    fetchData();
-  }, [moneyChanger?.id, cacheKey, moneyChangerCurrencies.length]);
+  const deleteMutation = useMutation({
+    mutationFn: deleteMoneyChangerCurrency,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(["moneyChangerCurrencies", moneyChanger?.id]);
+      setSelectedRecord(null);
+    },
+    onError: (err) => {
+      const message = err?.response?.data || err?.message || "Failed to delete the form. Please try again.";
+      setError(message);
+    },
+  });
 
 
-  const handleOnCreated = (newData) => {
-    setMoneyChangerCurrencies((prevData) => [...prevData, newData]);
-    if (cacheKey) localStorage.removeItem(cacheKey);
+  const handleOnCreated = async (newData) => {
+    await queryClient.invalidateQueries(["moneyChangerCurrencies", moneyChanger?.id]);
+    setIsCreateModalOpen(false);
   };
 
-
-  const handleOnUpdated = (updatedItem) => {
-    setMoneyChangerCurrencies((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === updatedItem.id) return updatedItem;
-        if (updatedItem.isDefault) return { ...item, isDefault: false };
-        return item;
-      })
-    );
-    if(cacheKey) localStorage.removeItem(cacheKey);
+  const handleOnUpdated = async (updatedItem) => {
+    await queryClient.invalidateQueries(["moneyChangerCurrencies", moneyChanger?.id]);
+    setIsEditModalOpen(false);
   };
 
   const handleDelete = async (item) => {
-    setMoneyChangerCurrencyError(null);
-
-    try {
-      await api.delete(`/api/v1/money-changers-currencies/${item.id}`, {
-        params: {
-          userId
-        }
-      });
-      setMoneyChangerCurrencies((prev) => prev.filter((entry) => entry.id !== item.id));
-      setSelectedMoneyChangerCurrency(null);
-      if(cacheKey) localStorage.removeItem(cacheKey);
-    } catch (err) {
-      console.error(err);
-
-      const message =
-        err?.response?.data ||
-        err?.message ||
-        "Failed to delete the form. Please try again.";
-
-      setMoneyChangerCurrencyError(message);
-    }
+    setError(null);
+    deleteMutation.mutate({id: item.id, userId});
   };  
-
 
 
   return (
@@ -100,17 +79,23 @@ const ManageCurrency = () => {
           <h1 className="text-2xl font-extrabold">MANAGE CURRENCY CODES</h1>
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center font-medium"
-            onClick={ () => { setMoneyChangerCurrencyError(null); setShowModalCreateMoneyChangerCurrency(true)}}
+            onClick={ () => { setError(null); setIsCreateModalOpen(true)}}
           >
             + Set New Currency Code
           </button>
         </div>
 
-        {moneyChangerCurrencyError && (
+        {(error || queryError) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{moneyChangerCurrencyError}</p>
+              <p className="whitespace-pre-line">
+                {error
+                  ? error
+                  : queryError.message
+                }
+
+              </p>
             </div>
           </div>
         )}
@@ -121,7 +106,7 @@ const ManageCurrency = () => {
         </div>
 
         <div className="w-3/4 bg-white shadow rounded">
-          {loadingMoneyChangerCurrencies ? (
+          {isLoading ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
             <table className="min-w-full table-fixed text-left border border-gray-300 border-collapse">
@@ -134,19 +119,19 @@ const ManageCurrency = () => {
               </thead>
               <tbody>
                 { moneyChangerCurrencies.map((item) => {
-                  const isSelected = selectedMoneyChangerCurrency?.id === item.id;
+                  const isSelected = selectedRecord?.id === item.id;
 
                   return (                             
                         <tr key={item.id} 
                             className={`border-b last:border-b-0 cursor-pointer divide-x divide-gray-300  ${isSelected ? "bg-indigo-100" : ""}`}
-                            onClick={() => { setSelectedMoneyChangerCurrency(item); console.log("Selected Scheme:", item);}}
+                            onClick={() => { setSelectedRecord(item); console.log("Selected Scheme:", item);}}
                         >
                           <td className="py-2 px-4">{item.currency}</td>
                           <td className="py-2 px-4">{item.currencyDescription}</td>
                           <td className="py-2 px-4 flex justify-end gap-2">
                             <button 
                               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
-                              onClick={() => { setShowModalEditMoneyChangerCurrency(true) }}
+                              onClick={() => { setIsEditModalOpen(true) }}
                             >
                               Edit
                             </button>
@@ -165,30 +150,25 @@ const ManageCurrency = () => {
           )}
         </div>
 
-        {showModalCreateMoneyChangerCurrency && (
+        {isCreateModalOpen && (
           <ManageCurrencyCodeCreateModal
             moneychanger={moneyChanger}
-            onClose={() => setShowModalCreateMoneyChangerCurrency(false)}
+            onClose={() => setIsCreateModalOpen(false)}
             onCreated={handleOnCreated}
           />
         )}
 
-        {showModalEditMoneyChangerCurrency && (
+        {isEditModalOpen && (
           <ManageCurrencyCodeEditModal
-            selected={selectedMoneyChangerCurrency}
-            onClose={() => setShowModalEditMoneyChangerCurrency(false)}
+            selected={selectedRecord}
+            onClose={() => setIsEditModalOpen(false)}
             onUpdated={handleOnUpdated}
           />
         )}
-        
         <hr className="border-t border-grey my-6" />
-       
-
-
       </main>
     </div>
   );
 }
-
 
 export default ManageCurrency;

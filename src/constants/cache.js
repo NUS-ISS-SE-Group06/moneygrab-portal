@@ -1,3 +1,5 @@
+export const CACHE_DURATION = 1000 * 60 * 5;
+
 export const CURRENCY_LIST_CACHE_KEY = "CURRENCY_LIST_CACHE_KEY";
 export const CURRENCY_LIST_CACHE_DURATION = 60 * 60 * 1000;
 
