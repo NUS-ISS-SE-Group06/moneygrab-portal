@@ -8,6 +8,7 @@ import LayoutWithResizableSidebar from "./components/sidebar";
 import ManageAccounts from "./ManageAccounts";
 import Commission from "./pages/Commission";
 import MoneyChanger from "./pages/MoneyChanger";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function ComingSoon({ label }) {
   return (
@@ -50,37 +51,43 @@ const getTestRouter = (initialPath = "/") =>
     }
   );
 
+
 describe("App Routing", () => {
+  let queryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient();
+  });
+
+  const renderWithQueryClient = (ui) => {
+    return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  };
+  
   test("renders the default redirect route to ManageAccounts", async () => {
     const router = getTestRouter("/");
-    render(<RouterProvider router={router} />);
+    renderWithQueryClient(<RouterProvider router={router} />);
     expect(await screen.findByText(/Manage Accounts/i)).toBeInTheDocument();
   });
 
   test("renders MoneyChanger page", async () => {
     const router = getTestRouter("/money-changer");
-    render(<RouterProvider router={router} />);
-    // Look for a more specific heading instead of generic link text
+    renderWithQueryClient(<RouterProvider router={router} />);
     expect(await screen.findByRole("heading", { name: /Manage Money Changers/i })).toBeInTheDocument();
   });
 
- test("renders ComingSoon for FX Rate Upload", async () => {
-  const router = getTestRouter("/fx-rate-upload");
-  render(<RouterProvider router={router} />);
-
-  // Grab the main content area
-  const main = screen.getByRole("main");
-
-  // Assert both heading and subtext are rendered
-  expect(within(main).getByText("FX Rate Upload")).toBeInTheDocument();
-  expect(within(main).getByText("Coming soon...")).toBeInTheDocument();
-});
+  test("renders ComingSoon for FX Rate Upload", async () => {
+    const router = getTestRouter("/fx-rate-upload");
+    renderWithQueryClient(<RouterProvider router={router} />);
+    const main = screen.getByRole("main");
+    expect(within(main).getByText("FX Rate Upload")).toBeInTheDocument();
+    expect(within(main).getByText("Coming soon...")).toBeInTheDocument();
+  });
 
   test("renders Commission label", async () => {
     const router = getTestRouter("/commission");
-    render(<RouterProvider router={router} />);
-    // If multiple headings, find all and check for expected one
+    renderWithQueryClient(<RouterProvider router={router} />);
     const headings = await screen.findAllByRole("heading", { name: /Commission Scheme/i });
     expect(headings.length).toBeGreaterThan(0);
   });
 });
+
