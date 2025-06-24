@@ -1,112 +1,73 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import MockAdapter from "axios-mock-adapter";
-import api from "../../../api/axios"; // ✅ Your custom instance
 import MoneyChangerList from "../MoneyChangerList";
+import axios from "../../../api/axios"; // Your custom axios instance
 
-// Use the same axios instance used in the component
-const mock = new MockAdapter(api, { delayResponse: 0 });
+jest.mock("../../../api/axios");
 
 describe("MoneyChangerList", () => {
-  beforeEach(() => {
-    mock.reset();
+  const mockData = [
+    {
+      id: 1,
+      companyName: "Company A",
+      email: "a@example.com",
+      uen: "UEN-A",
+      dateOfIncorporation: "2020-01-01",
+      schemeId: 1,
+      country: "Singapore",
+    },
+    {
+      id: 2,
+      companyName: "Company B",
+      email: "b@example.com",
+      uen: "UEN-B",
+      dateOfIncorporation: "2020-02-01",
+      schemeId: 2,
+      country: "Singapore",
+    },
+  ];
 
-    mock.onGet("/api/v1/money-changers").reply(200, [
-      {
-        id: 1,
-        companyName: "Company A",
-        email: "a@example.com",
-        uen: "UEN-A",
-        dateOfIncorporation: "2020-01-01",
-        schemeId: 1,
-        country: "Singapore",
-      },
-      {
-        id: 2,
-        companyName: "Company B",
-        email: "b@example.com",
-        uen: "UEN-B",
-        dateOfIncorporation: "2020-02-01",
-        schemeId: 2,
-        country: "Singapore",
-      },
-    ]);
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   test("renders list of money changers", async () => {
+    axios.get.mockResolvedValueOnce({ data: mockData });
+
     render(<MoneyChangerList />);
 
     expect(await screen.findByText("Company A")).toBeInTheDocument();
     expect(screen.getByText("Company B")).toBeInTheDocument();
   });
 
-test("deletes a money changer", async () => {
-  render(<MoneyChangerList />);
+  test("deletes a money changer", async () => {
+    // Initial GET with both companies
+    axios.get.mockResolvedValueOnce({ data: mockData });
 
-  // Ensure data is loaded
-  expect(await screen.findByText("Company A")).toBeInTheDocument();
+    render(<MoneyChangerList />);
 
-  // Confirm mock
-  jest.spyOn(window, "confirm").mockImplementation(() => true);
+    // Ensure data is loaded
+    expect(await screen.findByText("Company A")).toBeInTheDocument();
 
-  // Set DELETE mock
-  mock.onDelete("/api/v1/money-changers/1").reply(204);
+    // Confirm mock
+    jest.spyOn(window, "confirm").mockImplementation(() => true);
 
-  // ⬇️ Mock the refreshed GET after deletion (only Company B remains)
-  mock.onGet("/api/v1/money-changers").reply(200, [
-    {
-      id: 2,
-      companyName: "Company B",
-      email: "b@example.com",
-      uen: "UEN-B",
-      dateOfIncorporation: "2020-02-01",
-      schemeId: 2,
-      country: "Singapore",
-    },
-  ]);
+    // DELETE response
+    axios.delete.mockResolvedValueOnce({ status: 204 });
 
-  const deleteButtons = screen.getAllByText("Delete");
-  fireEvent.click(deleteButtons[0]); // Delete Company A
+    // New GET after deletion (only Company B remains)
+    axios.get.mockResolvedValueOnce({
+      data: [mockData[1]],
+    });
 
-  await waitFor(() => {
-    expect(screen.queryByText("Company A")).not.toBeInTheDocument();
+    // Click delete
+    const deleteButtons = screen.getAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.queryByText("Company A")).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Company B")).toBeInTheDocument();
   });
-
-  expect(screen.getByText("Company B")).toBeInTheDocument();
-});
-test("deletes a money changer", async () => {
-  render(<MoneyChangerList />);
-
-  // Ensure data is loaded
-  expect(await screen.findByText("Company A")).toBeInTheDocument();
-
-  // Confirm mock
-  jest.spyOn(window, "confirm").mockImplementation(() => true);
-
-  // Set DELETE mock
-  mock.onDelete("/api/v1/money-changers/1").reply(204);
-
-  // ⬇️ Mock the refreshed GET after deletion (only Company B remains)
-  mock.onGet("/api/v1/money-changers").reply(200, [
-    {
-      id: 2,
-      companyName: "Company B",
-      email: "b@example.com",
-      uen: "UEN-B",
-      dateOfIncorporation: "2020-02-01",
-      schemeId: 2,
-      country: "Singapore",
-    },
-  ]);
-
-  const deleteButtons = screen.getAllByText("Delete");
-  fireEvent.click(deleteButtons[0]); // Delete Company A
-
-  await waitFor(() => {
-    expect(screen.queryByText("Company A")).not.toBeInTheDocument();
-  });
-
-  expect(screen.getByText("Company B")).toBeInTheDocument();
-});
-
 });
