@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import api from '../../api/axios';
 import PropTypes from "prop-types";
 
-const CommissionSchemeEditModal = ({ selectedScheme, onClose, onUpdated }) => {
+const CommissionSchemeEditModal = ({ selectedRecord, onClose, onUpdated }) => {
   const [userId] = useState(1);
-  const [commissionScheme, setCommissionScheme]= useState(selectedScheme);
+  const [commissionScheme, setCommissionScheme]= useState(selectedRecord);
   const [error, setError] = useState(null);
 
   const handleSave = async () => {
@@ -115,7 +115,7 @@ const CommissionSchemeEditModal = ({ selectedScheme, onClose, onUpdated }) => {
 };
 
 CommissionSchemeEditModal.propTypes = {
-  selectedScheme: PropTypes.object.isRequired, 
+  selectedRecord: PropTypes.object.isRequired, 
   onClose: PropTypes.func.isRequired,
   onUpdated: PropTypes.func.isRequired
 }

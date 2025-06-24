@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import api from '../../api/axios';
 import PropTypes from "prop-types";
 
-const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
+const CommissionRateEditModal = ({ selectedRecord, onClose, onUpdated }) => {
   const [userId] = useState(1);
-  const [commissionRate, setCommissionRate] = useState(selectedCommissionRate);
+  const [commissionRate, setCommissionRate] = useState(selectedRecord);
   const [error, setError] = useState("");
 
 
@@ -116,7 +116,7 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
 }
 
 CommissionRateEditModal.propTypes = {
-  selectedCommissionRate: PropTypes.object.isRequired, 
+  selectedRecord: PropTypes.object.isRequired, 
   onClose: PropTypes.func.isRequired,
   onUpdated: PropTypes.func.isRequired
 }
