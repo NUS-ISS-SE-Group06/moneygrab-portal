@@ -24,7 +24,7 @@ const deleteMoneyChangerCurrency = async ({id, userId}) => {
 const ManageCurrency = () => {
   const [userId] = useState(1);
   const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
-  const [error, setError] = useState(null);
+  const [screenError, setScreenError] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -33,7 +33,7 @@ const ManageCurrency = () => {
   const {
     data: moneyChangerCurrencies =[],
     isLoading,
-    queryError,
+    error,
   } = useQuery ( {
     queryKey: ["moneyChangerCurrencies", moneyChanger?.id],
     queryFn: () => fetchMoneyChangerCurrencies(moneyChanger?.id),
@@ -50,7 +50,7 @@ const ManageCurrency = () => {
     },
     onError: (err) => {
       const message = err?.response?.data || err?.message || "Failed to delete the form. Please try again.";
-      setError(message);
+      setScreenError(message);
     },
   });
 
@@ -66,7 +66,7 @@ const ManageCurrency = () => {
   };
 
   const handleDelete = async (item) => {
-    setError(null);
+    setScreenError(null);
     deleteMutation.mutate({id: item.id, userId});
   };  
 
@@ -79,17 +79,17 @@ const ManageCurrency = () => {
           <h1 className="text-2xl font-extrabold">MANAGE CURRENCY CODES</h1>
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center font-medium"
-            onClick={ () => { setError(null); setIsCreateModalOpen(true)}}
+            onClick={ () => { setScreenError(null); setIsCreateModalOpen(true)}}
           >
             + Set New Currency Code
           </button>
         </div>
 
-        {(error || queryError) && (
+        {(screenError || error) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{error || queryError?.message } </p>
+              <p className="whitespace-pre-line">{screenError || error?.message } </p>
             </div>
           </div>
         )}
