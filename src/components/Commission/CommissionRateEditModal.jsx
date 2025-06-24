@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from '../api/axios';
+import api from '../../api/axios';
 import PropTypes from "prop-types";
 
 const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated }) => {
@@ -12,7 +12,7 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
     const errors = [];
     setError("");
 
-    if (!commissionRate?.id) {
+    if (!commissionRate?.id) { 
       errors.push("Commission rate is required.");
     } 
 
@@ -81,8 +81,9 @@ const CommissionRateEditModal = ({ selectedCommissionRate, onClose, onUpdated })
               <p className="w-full border rounded-lg p-3 text-base bg-gray-100 mb-6">
                 {commissionRate?.currency ?? '—'}
               </p>
-              <label className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
+              <label htmlFor="commission-rate-input" className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
+                id="commision-rate-input"
                 type="number"
                 placeholder="Enter commission rate (e.g. 0.50)"
                 className="w-full border rounded-lg p-3 text-base bg-gray-50 mb-6"
