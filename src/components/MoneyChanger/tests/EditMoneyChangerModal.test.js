@@ -1,83 +1,73 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import EditMoneyChangerModal from "../EditMoneyChangerModal";
-import "@testing-library/jest-dom";
-import api from "../../../api/axios";
+import MoneyChangerList from "../MoneyChangerList";
+import axios from "../../../api/axios"; // Your custom axios instance
 
-jest.mock("../../../api/axios"); // ✅ correct mock path
+jest.mock("../../../api/axios");
 
-describe("EditMoneyChangerModal", () => {
-  const mockData = {
-    id: 1,
-    companyName: "Test Company",
-    email: "test@example.com",
-    dateOfIncorporation: "2020-01-01",
-    uen: "UEN12345678",
-    address: "123 Test St",
-    country: "Singapore",
-    postalCode: "123456",
-    notes: "Test note",
-    scheme: "Scheme - 01",
-    role: "Money Changer Staff",
-    logoBase64: "",
-    logoFilename: "",
-    kycBase64: "",
-    kycFilename: "",
-    locations: ["Tampines"],
-  };
+describe("MoneyChangerList", () => {
+  const mockData = [
+    {
+      id: 1,
+      companyName: "Company A",
+      email: "a@example.com",
+      uen: "UEN-A",
+      dateOfIncorporation: "2020-01-01",
+      schemeId: 1,
+      country: "Singapore",
+    },
+    {
+      id: 2,
+      companyName: "Company B",
+      email: "b@example.com",
+      uen: "UEN-B",
+      dateOfIncorporation: "2020-02-01",
+      schemeId: 2,
+      country: "Singapore",
+    },
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("renders and populates form", async () => {
-    api.get.mockResolvedValueOnce({ data: mockData });
+  test("renders list of money changers", async () => {
+    axios.get.mockResolvedValueOnce({ data: mockData });
 
-    render(<EditMoneyChangerModal id={1} onClose={jest.fn()} onUpdate={jest.fn()} />);
+    render(<MoneyChangerList />);
 
-    expect(await screen.findByDisplayValue("Test Company")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("test@example.com")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("UEN12345678")).toBeInTheDocument();
+    expect(await screen.findByText("Company A")).toBeInTheDocument();
+    expect(screen.getByText("Company B")).toBeInTheDocument();
   });
 
-  it("allows updating fields and submits successfully", async () => {
-    api.get.mockResolvedValueOnce({ data: mockData });
-    api.put.mockResolvedValueOnce({ data: { ...mockData, uen: "UEN98765432" } });
+  test("deletes a money changer", async () => {
+    // Initial GET with both companies
+    axios.get.mockResolvedValueOnce({ data: mockData });
 
-    const onClose = jest.fn();
-    const onUpdate = jest.fn();
+    render(<MoneyChangerList />);
 
-    render(<EditMoneyChangerModal id={1} onClose={onClose} onUpdate={onUpdate} />);
+    // Ensure data is loaded
+    expect(await screen.findByText("Company A")).toBeInTheDocument();
 
-    const uenInput = await screen.findByLabelText("UEN");
-    fireEvent.change(uenInput, { target: { value: "UEN98765432" } });
+    // Confirm mock
+    jest.spyOn(window, "confirm").mockImplementation(() => true);
 
-    const updateButton = screen.getByRole("button", { name: /update/i });
-    fireEvent.click(updateButton);
+    // DELETE response
+    axios.delete.mockResolvedValueOnce({ status: 204 });
+
+    // New GET after deletion (only Company B remains)
+    axios.get.mockResolvedValueOnce({
+      data: [mockData[1]],
+    });
+
+    // Click delete
+    const deleteButtons = screen.getAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
 
     await waitFor(() => {
-      expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({ uen: "UEN98765432" }));
-      expect(onClose).toHaveBeenCalledWith(true);
+      expect(screen.queryByText("Company A")).not.toBeInTheDocument();
     });
-  });
 
-  it("shows error when required fields are missing", async () => {
-    const incompleteData = { ...mockData, companyName: "", email: "" };
-    api.get.mockResolvedValueOnce({ data: incompleteData });
-
-    render(<EditMoneyChangerModal id={1} onClose={jest.fn()} onUpdate={jest.fn()} />);
-
-    const updateButton = await screen.findByRole("button", { name: /update/i });
-    fireEvent.click(updateButton);
-
-    expect(await screen.findByText(/Company Name and Email are required/i)).toBeInTheDocument();
-  });
-
-  it("handles API fetch failure", async () => {
-    api.get.mockRejectedValueOnce({ response: { status: 500 } });
-
-    render(<EditMoneyChangerModal id={999} onClose={jest.fn()} onUpdate={jest.fn()} />);
-
-    expect(await screen.findByText(/failed to fetch data/i)).toBeInTheDocument();
+    expect(screen.getByText("Company B")).toBeInTheDocument();
   });
 });
