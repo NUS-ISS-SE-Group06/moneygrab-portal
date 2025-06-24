@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from '../../api/axios';
 import PropTypes from "prop-types";
-import {CURRENCY_LIST_CACHE_KEY, CURRENCY_LIST_CACHE_DURATION } from "../../constants/cache"
+import {useQuery} from "@tanstack/react-query"
+import {CACHE_DURATION } from "../../constants/cache"
 
+const CURRENCY_LIST="currencyList";
+
+const fetchCurrencyList = async () => (await api.get(`/api/v1/currencies`)).data;
 
 const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
   const [userId] = useState(1);
@@ -14,31 +18,8 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
     rate: null,
   });
   const [error, setError] = useState("");
-  const [currencyList,setCurrencyList] = useState(() => {
-    const cached = localStorage.getItem(CURRENCY_LIST_CACHE_KEY);
-    if (!cached) return [];
-    const parsed = JSON.parse(cached);
-    const isExpired = Date.now() - parsed.savedAt > CURRENCY_LIST_CACHE_DURATION;
-    return isExpired ? [] : parsed.data;
-  });
 
-  useEffect(() => {
-    if (currencyList.length === 0) {
-      const fetchCurrencies = async () => {
-        setError("");
-        try {
-          const response = await api.get(`/api/v1/currencies`);
-          setCurrencyList(response.data);
-          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
-        } catch(err) {
-            console.error("Failed to fetch currencyList:", err);
-            setError("Failed to fetch currencyList.");
-        }
-      };
-      fetchCurrencies();
-    }
-  }, [currencyList]);
-
+  const { data: currencyList = [], error: queryError, } = useQuery ({ queryKey: [CURRENCY_LIST], queryFn: fetchCurrencyList, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
   const handleSave = async () => {
     const errors = [];
@@ -60,7 +41,6 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
       setError(errors.join("\n"));
       return;
     }
-
 
     try {
       const response = await api.post(`/api/v1/commission-rates`, {
@@ -137,11 +117,11 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
               />
         </div>
 
-        {error && (
+        {(error || queryError) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{error}</p>
+              <p className="whitespace-pre-line">{error || queryError?.message}</p>
             </div>
           </div>     
         )}
