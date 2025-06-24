@@ -17,25 +17,25 @@ const Currency = () => {
 
 
   useEffect(() => {
-    if (currencyList.length === 0) {
+    if (currencyList.length > 0) return;
 
-      const fetchData = async () => {
-        setLoadingCurrency(true);
+    const fetchData = async () => {
+      setLoadingCurrency(true);
 
-        try {
-          const response = await api.get("/api/v1/currencies");
-          setCurrencyList(response.data);
-          localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
-        } catch (err) {
-          setCurrencyError("Failed to load currency list. Please try again later.");
-          console.error("Currency Error:", err);
-        } finally {
-          setLoadingCurrency(false);
-        }
-      };
-      fetchData();
-    }
-  }, [currencyList]);
+      try {
+        const response = await api.get("/api/v1/currencies");
+        setCurrencyList(response.data);
+        localStorage.setItem(CURRENCY_LIST_CACHE_KEY, JSON.stringify({ data: response.data, savedAt: Date.now() }));
+      } catch (err) {
+        setCurrencyError("Failed to load currency list. Please try again later.");
+        console.error("Currency Error:", err);
+      } finally {
+        setLoadingCurrency(false);
+      }
+    };
+    fetchData();
+
+  }, [currencyList.length]);
 
 
   return (
