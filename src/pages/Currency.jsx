@@ -21,7 +21,6 @@ const Currency = () => {
 
     const fetchData = async () => {
       setLoadingCurrency(true);
-
       try {
         const response = await api.get("/api/v1/currencies");
         setCurrencyList(response.data);
