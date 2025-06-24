@@ -41,9 +41,10 @@ console.error = (...args) => {
         firstArg.includes("Schemes Error:") ||
         firstArg.includes("Cannot read properties of undefined"))) ||
     (typeof firstArg === "object" &&
-      firstArg?.response?.status === 409 &&
+      
       typeof firstArg?.response?.data === "string" &&
-      firstArg.response.data.includes("Commission rate for the same currency"));
+      firstArg.response.data.includes("Commission rate for the same currency") || typeof firstArg?.response?.data === "string" &&
+      firstArg.response.data.includes("Rate update failed due to conflict"))
 
   if (shouldSuppress) return;
 
