@@ -1,9 +1,11 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import CommissionRateEditModal from "../CommissionRateEditModal";
-import axios from "../../../api/axios";
+import api from "../../../api/axios";
+import "@testing-library/jest-dom";
 
-jest.mock("axios");
+jest.mock("../../../api/axios");
+const mockedApi = api;
 
 const mockCommissionRate = {
   id: 1,
@@ -22,83 +24,102 @@ describe("CommissionRateEditModal", () => {
     jest.clearAllMocks();
   });
 
-  test("renders modal with fields", async () => {
+  test("renders modal with fields", () => {
     render(
       <CommissionRateEditModal
-        selectedCommissionRate={mockCommissionRate}
+        selectedRecord={mockCommissionRate}
         onClose={onClose}
         onUpdated={onUpdated}
       />
     );
 
     expect(screen.getByText("Edit Commission Rates")).toBeInTheDocument();
+    expect(screen.getByText("Commission Tag")).toBeInTheDocument();
+    expect(screen.getByText("Symbol")).toBeInTheDocument();
+
+    // These values should now be rendered
     expect(screen.getByText("Scheme A")).toBeInTheDocument();
     expect(screen.getByText("USD")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Enter commission rate/i)).toHaveValue(0.5);
+
+    const input = screen.getByPlaceholderText(/Enter commission rate/i);
+    expect(input).toBeInTheDocument();
+    expect(input.value).toBe("0.5");
   });
 
   test("shows validation error when rate is empty", async () => {
-    const rateZero = { ...mockCommissionRate, rate: "" };
+    const rateEmpty = { ...mockCommissionRate, rate: "" };
 
     render(
       <CommissionRateEditModal
-        selectedCommissionRate={rateZero}
+        selectedRecord={rateEmpty}
         onClose={onClose}
         onUpdated={onUpdated}
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText(/Enter commission rate/i), {
-      target: { value: "" },
-    });
+    const input = screen.getByPlaceholderText(/Enter commission rate/i);
+    fireEvent.change(input, { target: { value: "" } });
     fireEvent.click(screen.getByText("Save"));
 
-    expect(await screen.findByText(/A valid commission rate greater than 0 is required/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/A valid commission rate greater than 0 is required/i)
+    ).toBeInTheDocument();
   });
 
   test("submits valid data successfully", async () => {
     const updated = { ...mockCommissionRate, rate: 0.8 };
-    axios.put.mockResolvedValueOnce({ data: updated });
+    mockedApi.put.mockResolvedValueOnce({ data: updated });
 
     render(
       <CommissionRateEditModal
-        selectedCommissionRate={mockCommissionRate}
+        selectedRecord={mockCommissionRate}
         onClose={onClose}
         onUpdated={onUpdated}
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText(/Enter commission rate/i), {
-      target: { value: "0.8" },
-    });
+    const input = screen.getByPlaceholderText(/Enter commission rate/i);
+    fireEvent.change(input, { target: { value: "0.8" } });
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() => {
+      expect(mockedApi.put).toHaveBeenCalledWith(
+        `/api/v1/commission-rates/${mockCommissionRate.id}`,
+        {
+          id: mockCommissionRate.id,
+          currencyId: mockCommissionRate.currencyId,
+          schemeId: mockCommissionRate.schemeId,
+          rate: "0.8",
+          updatedBy: 1,
+        }
+      );
       expect(onUpdated).toHaveBeenCalledWith(updated);
       expect(onClose).toHaveBeenCalled();
     });
   });
 
   test("displays error on API failure", async () => {
-    axios.put.mockRejectedValueOnce({
+    const errorMessage = "Rate update failed due to conflict.";
+    mockedApi.put.mockRejectedValueOnce({
       response: {
-        data: "Rate update failed due to conflict.",
+        data: errorMessage,
       },
     });
 
     render(
       <CommissionRateEditModal
-        selectedCommissionRate={mockCommissionRate}
+        selectedRecord={mockCommissionRate}
         onClose={onClose}
         onUpdated={onUpdated}
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText(/Enter commission rate/i), {
-      target: { value: "1.2" },
-    });
+    const input = screen.getByPlaceholderText(/Enter commission rate/i);
+    fireEvent.change(input, { target: { value: "1.2" } });
     fireEvent.click(screen.getByText("Save"));
 
-    expect(await screen.findByText(/Rate update failed/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText((text) => text.includes("Rate update failed"))
+    ).toBeInTheDocument();
   });
 });
