@@ -2,7 +2,14 @@ import "@testing-library/jest-dom";
 
 // Create a mock axios instance
 const mockAxios = {
-  get: jest.fn(() => Promise.resolve({ data: [] })),
+  get: jest.fn(() =>
+    Promise.resolve({
+      data: [
+        { id: 1, code: "USD", name: "US Dollar" },
+        { id: 2, code: "EUR", name: "Euro" },
+      ],
+    })
+  ),
   post: jest.fn(() => Promise.resolve({ data: {} })),
   put: jest.fn(() => Promise.resolve({ data: {} })),
   delete: jest.fn(() => Promise.resolve({ data: {} })),
@@ -26,13 +33,24 @@ console.warn = (...args) => {
 // Suppress console.error for API fetch errors
 const originalError = console.error;
 console.error = (...args) => {
-  if (
-    typeof args[0] === "string" &&
-    (args[0].includes("Fetch error:") || 
-     args[0].includes("Schemes Error:") ||
-     args[0].includes("Cannot read properties of undefined"))
-  ) {
-    return;
-  }
+  const firstArg = args[0];
+
+  const shouldSuppress =
+    (typeof firstArg === "string" &&
+      (firstArg.includes("Fetch error:") ||
+        firstArg.includes("Schemes Error:") ||
+        firstArg.includes("Cannot read properties of undefined"))) ||
+    (typeof firstArg === "object" &&
+      
+      typeof firstArg?.response?.data === "string" &&
+      firstArg.response.data.includes("Commission rate for the same currency") || typeof firstArg?.response?.data === "string" &&
+      firstArg.response.data.includes("Rate update failed due to conflict")|| typeof firstArg?.response?.data === "string" )
+      //&&
+      //firstArg.response.data.includes("Failed to update scheme"))
+
+  if (shouldSuppress) return;
+
   originalError(...args);
 };
+
+
