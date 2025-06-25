@@ -2,6 +2,29 @@ import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
 
+// Helper for validating columns
+const hasRequiredColumns = (columns) => {
+  const required = ["symbol", "bid", "ask"];
+  return required.every(col => columns.includes(col));
+};
+
+// Helper for row validation
+const parseRow = (line, symbols, setError) => {
+  if (!line.trim()) return null;
+  const [symbol, bid, ask] = line.split(",").map(x => x?.trim());
+  if (!symbol || !bid || !ask) return null;
+  if (symbols.has(symbol)) {
+    setError("Duplicate currency symbols found in the file.");
+    return null;
+  }
+  symbols.add(symbol);
+  return {
+    symbol,
+    bid: isNaN(bid) ? "" : parseFloat(bid),
+    ask: isNaN(ask) ? "" : parseFloat(ask),
+  };
+};
+
 const FxRateUpload = ({ onClose }) => {
   const [fxFile, setFxFile] = useState(null);
   const [fxRates, setFxRates] = useState([]);
@@ -9,7 +32,6 @@ const FxRateUpload = ({ onClose }) => {
   const [selectedFileName, setSelectedFileName] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Helper: CSV parse (Symbol,Bid,Ask columns)
   const parseFile = (text) => {
     const lines = text.split("\n").filter(line => line.trim());
     if (!lines.length) {
@@ -19,30 +41,19 @@ const FxRateUpload = ({ onClose }) => {
 
     const [header, ...rows] = lines;
     const columns = header.split(",").map(col => col.trim().toLowerCase());
-
-    if (!(columns.includes("symbol") && columns.includes("bid") && columns.includes("ask"))) {
+    if (!hasRequiredColumns(columns)) {
       setError("Invalid file format. File must contain Symbol, Bid, and Ask columns.");
       return [];
     }
 
     const rates = [];
     const symbols = new Set();
-    for (const line of rows) {
-      if (!line.trim()) continue;
-      const [symbol, bid, ask] = line.split(",").map(x => x?.trim());
-      if (!symbol || !bid || !ask) continue;
 
-      if (symbols.has(symbol)) {
-        setError("Duplicate currency symbols found in the file.");
-        continue;
-      }
-      symbols.add(symbol);
-      rates.push({
-        symbol,
-        bid: isNaN(bid) ? "" : parseFloat(bid),
-        ask: isNaN(ask) ? "" : parseFloat(ask),
-      });
-    }
+    rows.forEach(line => {
+      const rate = parseRow(line, symbols, setError);
+      if (rate) rates.push(rate);
+    });
+
     if (!rates.length && !error) setError("No valid FX rates found.");
     return rates;
   };
@@ -123,8 +134,7 @@ const FxRateUpload = ({ onClose }) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    // Do NOT call onClose() if you want the modal to remain open and just reset
-    // If you want to close, uncomment the next line
+    // Uncomment if you want to close the modal/page
     // onClose();
   };
 
@@ -135,7 +145,7 @@ const FxRateUpload = ({ onClose }) => {
         <div className="bg-white shadow rounded-xl p-8">
           {/* File Upload Box */}
           <div className="mb-8">
-            <label className="block font-semibold text-gray-800 mb-2 text-lg">
+            <label htmlFor="fx-upload-file" className="block font-semibold text-gray-800 mb-2 text-lg">
               Upload files<span className="text-red-500 ml-1">*</span>
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center bg-gray-50 mb-3">
@@ -146,16 +156,22 @@ const FxRateUpload = ({ onClose }) => {
               <span className="text-gray-700 text-base font-medium">Drop files here</span>
               <span className="text-xs text-gray-500 mt-1 mb-1">Supported format: CSV</span>
               <span className="text-sm">
-                <label className="text-indigo-700 hover:underline cursor-pointer font-semibold">
+                <div>
+                  <label
+                    htmlFor="fx-upload-file"
+                    className="text-indigo-700 hover:underline cursor-pointer font-semibold"
+                  >
+                    Browse files
+                  </label>
                   <input
+                    id="fx-upload-file"
                     ref={fileInputRef}
                     type="file"
                     accept=".csv"
                     className="hidden"
                     onChange={handleFxFileChange}
                   />
-                  Browse files
-                </label>
+                </div>
               </span>
               {selectedFileName && (
                 <span className="mt-2 text-sm text-gray-800 font-semibold">
