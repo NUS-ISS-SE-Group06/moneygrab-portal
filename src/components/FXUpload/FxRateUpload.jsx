@@ -99,7 +99,7 @@ const FxRateUpload = ({ onClose }) => {
     formData.append("file", fxFile);
     formData.append("rates", JSON.stringify(fxRates));
     try {
-      const response = await api.post("/api/v1/fx-rates", formData, {
+      const response = await api.post("/api/v1/fxFileUpload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (!response.data) throw new Error("No data received!");
