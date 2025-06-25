@@ -15,7 +15,7 @@ import {fetchAuthSession } from "@aws-amplify/auth";
 import RequireAuth from "./components/Auth/RequireAuth";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
 import FxRateUpload from "./components/FXUpload/FxRateUpload";
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
+
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
