@@ -105,9 +105,9 @@ const CommissionRateCreateModal = ({ selectedScheme, onClose, onCreated}) => {
                   <option key={item.id} value={item.id}>{item.currency}</option>
                 ))}
               </select>
-              <label htmlFor="commission-rate-input" className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
+              <label  htmlFor="commission-rate-input" className="block mb-2 font-semibold text-gray-800">Commission Rate <span className="text-red-500">*</span></label>
               <input
-                id="commision-rate-input"
+                id="commission-rate-input"
                 type="number"
                 step="0.01"
                 placeholder="Enter commission rate (e.g. 0.5)"
