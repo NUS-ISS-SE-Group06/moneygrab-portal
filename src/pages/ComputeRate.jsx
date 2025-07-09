@@ -129,7 +129,7 @@ const ComputeRate = () => {
           rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
           
         if (hasError) {
-          errors.push(`Row ${index} has error`);
+          errors.push(` --> Row ${index+1} (${rate.currencyCode}) has error`);
         }
 
       });
@@ -359,7 +359,7 @@ const ComputeRate = () => {
                 { code: (<span>TradeType<span className="text-red-500 font-bold ml-1">*</span></span>), description: "BUY_SELL / BUY_ONLY / SELL_ONLY" },
                 { code: (<span>Deno<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade Denomination (ALL, 50, 100, 1000, 10000, 100000)" },
                 { code: (<span>Rounding<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade rounding rule (0–5)" },
-                { code: (<span>RawBid / RawAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Raw uploaded FX bid/ask rate" },
+                { code: (<span>RawBid / RawAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Raw uploaded FX bid/ask rate. (cannot be zero)" },
                 { code: (<span>Spread<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Margin between bid and ask" },
                 { code: (<span>Skew<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Adjustable rate skew" },
                 { code: "WsBid / WsAsk", description: "Wholesale bid/ask rate after computation" },
