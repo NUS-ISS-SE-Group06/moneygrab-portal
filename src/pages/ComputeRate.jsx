@@ -27,14 +27,14 @@ const fieldTooltips = {
   cfAsk: "Enter custom fee ask as decimal",
 };
 
-const validateField = (field, value) => {
-  if (["spread","skew","marBid", "cfBid", "marAsk", "cfAsk"].includes(field) && isNaN(parseFloat(value))) {
-    return "Invalid decimal value";
-  }
-  return "";
-};
+// const validateField = (field, value) => {
+//   if (["spread","skew","marBid", "cfBid", "marAsk", "cfAsk"].includes(field) && isNaN(parseFloat(value))) {
+//     return "Invalid decimal value";
+//   }
+//   return "";
+// };
 
-const initialRow = [
+const headerRow = [
   {
     Currency: "",
     moneyChangerId: 1,
@@ -42,24 +42,24 @@ const initialRow = [
     TradeType: "",
     Deno: "",
     Rounding: 1,
-    rawBid: 0,
-    rawAsk: 0,
+    RawBid: 0,
+    RawAsk: 0,
     Spread: 0,
     Skew: 0,
-    wsBid: 0,
-    wsAsk: 0,
-    refBid: 0,
-    dpBid: 0,
-    marBid: 0,
-    cfBid: 0,
-    rtBid: 0,
-    refAsk: 0,
-    dpAsk: 0,
-    marAsk: 0,
-    cfAsk: 0,
-    rtAsk: 0,
-    processedAt: {},
-    processedBy: 0
+    WsBid: 0,
+    WsAsk: 0,
+    RefBid: 0,
+    DpBid: 0,
+    MarBid: 0,
+    CfBid: 0,
+    RtBid: 0,
+    RefAsk: 0,
+    DpAsk: 0,
+    MarAsk: 0,
+    CfAsk: 0,
+    RtAsk: 0,
+    ProcessedAt: {},
+    ProcessedBy: 0
   },
 ];
 
@@ -68,21 +68,117 @@ const MONEYCHANGER_COMPUTE_RATES="computeRates";
 const fetchComputeRates = async (moneyChangerId) => (await api.get(`/api/v1/compute-rates`, {params: { moneyChangerId }})).data;
 
 const ComputeRate = () => {
-  //const [userId] = useState(1);
+  const [userId] = useState(1);
   const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
   const [rates, setRates] = useState([]);
   const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]);
   const [editingCell, setEditingCell] = useState({ row: null, field: null });
-  const [cellErrors, setCellErrors] = useState({});
-  //const [errorComputeRate, setErrorComputeRate] = useState(null);
-  const [errorComputeRate] = useState(null);
+  //const [cellErrors, setCellErrors] = useState({});
+  const [errorSubmit, setErrorSubmit] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
-  useEffect(() => {
-    if (computeRates && computeRates.length > 0) {
-      setRates(computeRates);
+
+  const fetchRawFxRates = async () => {
+    return Promise.resolve([
+    
+      { currencyCode: "USD", rawBid: 1.3450, rawAsk: 1.3550 },
+      { currencyCode: "EUR", rawBid: 1.4780, rawAsk: 1.4875 },
+      { currencyCode: "JPY", rawBid: 0.0093, rawAsk: 0.0095 },
+    
+  
+    ]);
+  };
+
+  const postToComputeLambda = async (payload) => {
+    return Promise.resolve(payload);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrorSubmit("");
+      const errors = [];
+
+      // Step 1: Merge raw FX rates into local rates
+      const fxRates = await fetchRawFxRates();
+      const enhancedRates = rates.map(rate => {
+        const fx = fxRates.find(fx => fx.currencyCode === rate.currencyCode);
+        return {
+          ...rate,
+          rawBid: fx?.rawBid ?? rate.rawBid,
+          rawAsk: fx?.rawAsk ?? rate.rawAsk,
+          processedBy: userId
+        };
+      });
+      
+      // Step 2: Validate all records
+      enhancedRates.forEach((rate, index) => {
+        const hasError =
+          !rate.currencyCode || rate.currencyCode.trim() === "" ||
+          rate.moneyChangerId === null || rate.moneyChangerId === undefined ||
+          !rate.unit || rate.unit.trim() === "" ||
+          !rate.tradeType || rate.tradeType.trim() === "" ||
+          !rate.tradeDeno || rate.tradeDeno.trim() === "" ||
+          rate.tradeRound === null || rate.tradeRound === undefined ||
+          rate.rawBid === null || rate.rawBid === undefined || isNaN(rate.rawBid) || rate.rawBid <= 0 ||
+          rate.rawAsk === null || rate.rawAsk === undefined || isNaN(rate.rawAsk) || rate.rawAsk <= 0 ||
+          rate.spread === null || rate.spread === undefined || isNaN(rate.spread) ||
+          rate.skew === null || rate.skew === undefined || isNaN(rate.skew) ||
+          rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || ( rate.refBid !== 0 && rate.refBid !== 1) ||
+          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 5 ||
+          rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid) ||
+          rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid) ||
+          rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || ( rate.refAsk !== 0 && rate.refAsk !== 1) ||
+          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
+          rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
+          rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
+          
+        if (hasError) {
+          errors.push(`Row ${index} has error`);
+        }
+
+      });
+            
+      if (errors.length > 0) {
+        setErrorSubmit("Please fill in all requird field correctly: \n" + errors.join("\n"));
+        return;
+      } 
+
+     
+      // Step 3: Post to Compute Lambda
+      setErrorSubmit("");
+      const computedRates = await postToComputeLambda(enhancedRates);
+
+      // Step 4: Save final data
+      const response = await api.post(`/api/v1/compute-rates/batch`, computedRates);
+      setRates(response.data);
+
+      setSubmitSuccess("Rates computed and saved successfully.");
+
+    } catch (err) {
+      const message = err?.response?.data || err?.message || "Submit failed.";
+      setErrorSubmit(message);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+
+  useEffect(() => {
+    if (computeRates && computeRates.length > 0) { setRates(computeRates); }
   }, [computeRates]);
+
+  useEffect(() => {
+    if (submitSuccess) {
+      const timer = setTimeout(() => { setSubmitSuccess(""); }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitSuccess]);
+
+
 
 
   const handleCellChange = (rowIndex, field, value) => {
@@ -90,9 +186,9 @@ const ComputeRate = () => {
     updatedRates[rowIndex][field] = value;
     setRates(updatedRates);
 
-    const error = validateField(field, value);
-    const key = `${rowIndex}-${field}`;
-    setCellErrors((prev) => ({ ...prev, [key]: error }));
+    //const error = validateField(field, value);
+    //const key = `${rowIndex}-${field}`;
+    //setCellErrors((prev) => ({ ...prev, [key]: error }));
   };
 
   const isEditableField = (field) => ["unit", "tradeType", "tradeDeno", "tradeRound", "spread", "skew","refBid", "dpBid", "marBid", "cfBid", "refAsk", "dpAsk", "marAsk", "cfAsk"].includes(field);
@@ -121,15 +217,22 @@ const ComputeRate = () => {
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
         </div>
 
-        {(errorComputeRate || queryErrorComputeRate ) && (
+        {(errorSubmit || queryErrorComputeRate ) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{errorComputeRate || queryErrorComputeRate?.message}</p>
+              <p className="whitespace-pre-line">{errorSubmit || queryErrorComputeRate?.message}</p>
             </div>
           </div>
         )}
 
+        {submitSuccess  && (
+          <div className="mb-4">
+            <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
+              <div className="text-green-600 font-medium mt-2">{submitSuccess}</div>
+            </div>
+          </div>
+        )}
             
         <div className="min-h-screen bg-gray-50">
            {isLoadingComputeRate ? (
@@ -159,9 +262,10 @@ const ComputeRate = () => {
 
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded flex items-center gap-1"
-              onClick={() => console.log("Compute Rate clicked")}
+              onClick={handleSubmit}
+              disabled={isSubmitting}
             >
-              + Submit
+              {isSubmitting ? "Submitting..." : "+ Submit"}
             </button>
           </div>
           )}
@@ -170,7 +274,7 @@ const ComputeRate = () => {
             <table className="min-w-full table-auto text-sm text-left border border-gray-300">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  {Object.keys(initialRow[0])
+                  {Object.keys(headerRow[0])
                     .filter((header) => header !== "moneyChangerId")
                     .map((header) => (
                     <th key={header} className="px-4 py-2 whitespace-nowrap">
@@ -199,7 +303,7 @@ const ComputeRate = () => {
                               return (
                                 <div>
                                   <select
-                                    value={value}
+                                    value={value?.toString() || ""}
                                     onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
                                     onBlur={() => setEditingCell({ row: null, field: null })}
                                     autoFocus
@@ -217,17 +321,17 @@ const ComputeRate = () => {
                                   <input
                                     type="number"
                                     step={isDecimalInput(field) ? "0.01" : "1"}
-                                    value={value}
+                                    value={value ?? ""}
                                     onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
                                     onBlur={() => setEditingCell({ row: null, field: null })}
                                     autoFocus
                                     className={editClass}
                                   />
-                                  {cellErrors[`${rowIndex}-${field}`] && (
+                                  {/* {cellErrors[`${rowIndex}-${field}`] && (
                                     <div className="text-red-500 text-xs absolute top-full left-0 mt-1">
                                       {cellErrors[`${rowIndex}-${field}`]}
                                     </div>
-                                  )}
+                                  )} */}
                                 </div>
                               );
                             }
