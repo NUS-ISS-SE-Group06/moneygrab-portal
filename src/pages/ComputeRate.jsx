@@ -27,13 +27,6 @@ const fieldTooltips = {
   cfAsk: "Enter custom fee ask as decimal",
 };
 
-// const validateField = (field, value) => {
-//   if (["spread","skew","marBid", "cfBid", "marAsk", "cfAsk"].includes(field) && isNaN(parseFloat(value))) {
-//     return "Invalid decimal value";
-//   }
-//   return "";
-// };
-
 const headerRow = [
   {
     Currency: "",
@@ -73,7 +66,6 @@ const ComputeRate = () => {
   const [rates, setRates] = useState([]);
   const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]);
   const [editingCell, setEditingCell] = useState({ row: null, field: null });
-  //const [cellErrors, setCellErrors] = useState({});
   const [errorSubmit, setErrorSubmit] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -179,16 +171,10 @@ const ComputeRate = () => {
   }, [submitSuccess]);
 
 
-
-
   const handleCellChange = (rowIndex, field, value) => {
     const updatedRates = [...rates];
     updatedRates[rowIndex][field] = value;
     setRates(updatedRates);
-
-    //const error = validateField(field, value);
-    //const key = `${rowIndex}-${field}`;
-    //setCellErrors((prev) => ({ ...prev, [key]: error }));
   };
 
   const isEditableField = (field) => ["unit", "tradeType", "tradeDeno", "tradeRound", "spread", "skew","refBid", "dpBid", "marBid", "cfBid", "refAsk", "dpAsk", "marAsk", "cfAsk"].includes(field);
@@ -234,7 +220,7 @@ const ComputeRate = () => {
           </div>
         )}
             
-        <div className="min-h-screen bg-gray-50">
+        <div className="bg-gray-50">
            {isLoadingComputeRate ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
@@ -270,8 +256,8 @@ const ComputeRate = () => {
           </div>
           )}
 
-          <div className="bg-white shadow rounded overflow-auto">
-            <table className="min-w-full table-auto text-sm text-left border border-gray-300">
+          <div className="max-w-[1900px] bg-white shadow rounded overflow-auto">
+            <table className="w-full table-auto text-sm text-left border border-gray-300">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
                   {Object.keys(headerRow[0])
@@ -307,7 +293,7 @@ const ComputeRate = () => {
                                     onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
                                     onBlur={() => setEditingCell({ row: null, field: null })}
                                     autoFocus
-                                    className={editClass}
+                                    className={`${editClass} min-w-[100px]`}
                                   >
                                     {getDropdownOptions(field).map((opt) => (
                                       <option key={opt} value={opt}>{opt}</option>
@@ -325,13 +311,8 @@ const ComputeRate = () => {
                                     onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
                                     onBlur={() => setEditingCell({ row: null, field: null })}
                                     autoFocus
-                                    className={editClass}
+                                    className={`${editClass} min-w-[100px]`}
                                   />
-                                  {/* {cellErrors[`${rowIndex}-${field}`] && (
-                                    <div className="text-red-500 text-xs absolute top-full left-0 mt-1">
-                                      {cellErrors[`${rowIndex}-${field}`]}
-                                    </div>
-                                  )} */}
                                 </div>
                               );
                             }
@@ -358,9 +339,48 @@ const ComputeRate = () => {
 
         </div>
 
+                
+        <hr className="border-t border-grey my-6" /> 
+
+
+        <div className="mt-10">
+          <h2 className="text-lg font-bold mb-2">Field Descriptions</h2>
+          <table className="table-auto text-sm text-left border border-gray-300 bg-white shadow rounded">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="px-4 py-2">Code</th>
+                <th className="px-4 py-2">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { code: (<span>Currency<span className="text-red-500 font-bold ml-1">*</span></span>), description: "The currency code, e.g., USD, EUR, SGD" },
+                { code: (<span>Unit<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Base unit used for the exchange rate (e.g., 1, 100, 1000)" },
+                { code: (<span>TradeType<span className="text-red-500 font-bold ml-1">*</span></span>), description: "BUY_SELL / BUY_ONLY / SELL_ONLY" },
+                { code: (<span>Deno<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade Denomination (ALL, 50, 100, 1000, 10000, 100000)" },
+                { code: (<span>Rounding<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade rounding rule (0–5)" },
+                { code: (<span>RawBid / RawAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Raw uploaded FX bid/ask rate" },
+                { code: (<span>Spread<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Margin between bid and ask" },
+                { code: (<span>Skew<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Adjustable rate skew" },
+                { code: "WsBid / WsAsk", description: "Wholesale bid/ask rate after computation" },
+                { code: (<span>RefBid / RefAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "0 = Direct, 1 = Inverse" },
+                { code: (<span>DpBid / DpAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Decimal Precision (0–5)" },
+                { code: (<span>MarBid / MarAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Market bid/ask adjustment" },
+                { code: (<span>CfBid / CfAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Custom fee bid/ask adjustment" },
+                { code: (<span>RtBid / RtAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Final bid/ask rate after adjustments" },
+      
+              ].map(({ code, description }) => (
+                <tr key={code} className="even:bg-gray-50">
+                  <td className="px-4 py-2 font-medium">{code}</td>
+                  <td className="px-4 py-2">{description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <hr className="border-t border-grey my-6" /> 
-      
+           
       </main>
     </div>
   );
