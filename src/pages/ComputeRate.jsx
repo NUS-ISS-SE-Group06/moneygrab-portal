@@ -68,13 +68,14 @@ const MONEYCHANGER_COMPUTE_RATES="computeRates";
 const fetchComputeRates = async (moneyChangerId) => (await api.get(`/api/v1/compute-rates`, {params: { moneyChangerId }})).data;
 
 const ComputeRate = () => {
-  const [userId] = useState(1);
+  //const [userId] = useState(1);
   const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
   const [rates, setRates] = useState([]);
   const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]);
   const [editingCell, setEditingCell] = useState({ row: null, field: null });
   const [cellErrors, setCellErrors] = useState({});
-  const [errorComputeRate, setErrorComputeRate] = useState(null);
+  //const [errorComputeRate, setErrorComputeRate] = useState(null);
+  const [errorComputeRate] = useState(null);
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
   useEffect(() => {
@@ -180,7 +181,7 @@ const ComputeRate = () => {
               </thead>
               <tbody>
                 {rates.map((item, rowIndex) => (
-                  <tr key={rowIndex} className="even:bg-gray-50">
+                  <tr key={`${item.currencyCode}-${item.moneyChangerId}`} className="even:bg-gray-50">
                     {Object.entries(item)
                       .filter(([field]) => field !== "moneyChangerId")
                       .map(([field, value]) => (
@@ -189,46 +190,59 @@ const ComputeRate = () => {
                         className="px-4 py-2 cursor-pointer relative"
                         onClick={() => isEditableField(field) && setEditingCell({ row: rowIndex, field })}
                       >
-                        {editingCell.row === rowIndex && editingCell.field === field ? (
-                          getDropdownOptions(field) ? (
-                            <div>
-                              <select
-                                value={value}
-                                onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
-                                onBlur={() => setEditingCell({ row: null, field: null })}
-                                autoFocus
-                                className="border px-2 py-1 rounded w-full"
-                              >
-                                {getDropdownOptions(field).map((opt) => (
-                                  <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                              </select>
-                            </div>                        
-                          ) : (
-                            <div>
-                              <input
-                                type="number"
-                                step={isDecimalInput(field) ? "0.01" : "1"}
-                                value={value}
-                                onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
-                                onBlur={() => setEditingCell({ row: null, field: null })}
-                                autoFocus
-                                className="border px-2 py-1 rounded w-full"
-                              />
-                            {cellErrors[`${rowIndex}-${field}`] && (
-                              <div className="text-red-500 text-xs absolute top-full left-0 mt-1">
-                                {cellErrors[`${rowIndex}-${field}`]}
-                              </div>
-                            )}
-                            </div>
-                          )
-                        ) : (
-                          <span title={fieldTooltips[field] || ""}>
-                            {field === "processedAt" && value 
-                             ? format(new Date(value), "dd/MM/yyyy HH:mm:ss")
-                             : value}
-                          </span>
-                        )}
+                        {(() => {
+                          const isEditing = editingCell.row === rowIndex && editingCell.field === field;
+
+                          if (isEditing) {
+                            if (getDropdownOptions(field)) {
+                              return (
+                                <div>
+                                  <select
+                                    value={value}
+                                    onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
+                                    onBlur={() => setEditingCell({ row: null, field: null })}
+                                    autoFocus
+                                    className="border px-2 py-1 rounded w-full"
+                                  >
+                                    {getDropdownOptions(field).map((opt) => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                </div>  
+                              );
+                            } else {
+                              return (
+                                <div>
+                                  <input
+                                    type="number"
+                                    step={isDecimalInput(field) ? "0.01" : "1"}
+                                    value={value}
+                                    onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
+                                    onBlur={() => setEditingCell({ row: null, field: null })}
+                                    autoFocus
+                                    className="border px-2 py-1 rounded w-full"
+                                  />
+                                  {cellErrors[`${rowIndex}-${field}`] && (
+                                    <div className="text-red-500 text-xs absolute top-full left-0 mt-1">
+                                      {cellErrors[`${rowIndex}-${field}`]}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            }
+
+                          } else {
+                            return (
+                              <span title={fieldTooltips[field] || ""}>
+                                {field === "processedAt" && value 
+                                  ? format(new Date(value), "dd/MM/yyyy HH:mm:ss")
+                                  : value}
+                              </span>
+                            );
+                          }
+
+                        })()}
+ 
                       </td>
                     ))}
                   </tr>
