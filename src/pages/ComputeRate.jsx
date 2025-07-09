@@ -1,4 +1,5 @@
 import React, {useState,useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
@@ -69,6 +70,7 @@ const ComputeRate = () => {
   const [errorSubmit, setErrorSubmit] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
@@ -241,7 +243,7 @@ const ComputeRate = () => {
 
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded"
-              onClick={() => console.log("Preview clicked")}
+              onClick={() => navigate(`/view-rates?style=${encodeURIComponent(selectedStyle)}`)}
             >
               Preview
             </button>
