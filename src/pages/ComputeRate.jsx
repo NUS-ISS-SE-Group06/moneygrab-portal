@@ -187,11 +187,12 @@ const ComputeRate = () => {
                       .map(([field, value]) => (
                       <td
                         key={field}
-                        className="px-4 py-2 cursor-pointer relative"
+                        className={`px-4 py-2 cursor-pointer relative ${ isEditableField(field) ? "bg-yellow-100 hover:bg-yellow-200" : ""}`}
                         onClick={() => isEditableField(field) && setEditingCell({ row: rowIndex, field })}
                       >
                         {(() => {
                           const isEditing = editingCell.row === rowIndex && editingCell.field === field;
+                          const editClass = "border px-2 py-1 rounded w-full bg-blue-100 focus:bg-blue-200";
 
                           if (isEditing) {
                             if (getDropdownOptions(field)) {
@@ -202,7 +203,7 @@ const ComputeRate = () => {
                                     onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
                                     onBlur={() => setEditingCell({ row: null, field: null })}
                                     autoFocus
-                                    className="border px-2 py-1 rounded w-full"
+                                    className={editClass}
                                   >
                                     {getDropdownOptions(field).map((opt) => (
                                       <option key={opt} value={opt}>{opt}</option>
@@ -220,7 +221,7 @@ const ComputeRate = () => {
                                     onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
                                     onBlur={() => setEditingCell({ row: null, field: null })}
                                     autoFocus
-                                    className="border px-2 py-1 rounded w-full"
+                                    className={editClass}
                                   />
                                   {cellErrors[`${rowIndex}-${field}`] && (
                                     <div className="text-red-500 text-xs absolute top-full left-0 mt-1">
