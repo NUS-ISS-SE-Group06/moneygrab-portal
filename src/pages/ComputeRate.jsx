@@ -1,7 +1,8 @@
-import React, {useState } from "react";
+import React, {useState,useEffect } from "react";
 import api from "../api/axios";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
+import { format } from "date-fns";
 
 const styleOptions = [
   "Normal Monitor Style",
@@ -33,114 +34,55 @@ const validateField = (field, value) => {
   return "";
 };
 
-const initialRates = [
+const initialRow = [
   {
-    currency: "USD",
-    unit: 1,
-    tradeType: "BUY_SELL",
-    tradeDeno: "ALL",
-    tradeRound: 0,
-    rawBid: 90,
-    rawAsk: 23,
-    spread: 11,
-    skew: 11,
-    wsBid: 11,
-    wsAsk: 11,
-    refBid: 11,
-    dpBid: 11,
-    marBid: 11,
-    cfBid: 11,
-    rtBid: 11,
-    refAsk: 11,
-    dpAsk: 11,
-    marAsk: 11,
-    cfAsk: 11,
-    rtAsk: 11,
-  },
-  {
-    currency: "CAD",
-    unit: 1,
-    tradeType: "BUY_SELL",
-    tradeDeno: "ALL",
-    tradeRound: 0,
-    rawBid: 83,
-    rawAsk: 43,
-    spread: 85,
-    skew: 85,
-    wsBid: 85,
-    wsAsk: 85,
-    refBid: 85,
-    dpBid: 85,
-    marBid: 85,
-    cfBid: 85,
-    rtBid: 85,
-    refAsk: 85,
-    dpAsk: 85,
-    marAsk: 85,
-    cfAsk: 85,
-    rtAsk: 85,
-  },
-  {
-    currency: "EUR",
-    unit: 1,
-    tradeType: "BUY_SELL",
-    tradeDeno: "ALL",
-    tradeRound: 0,
-    rawBid: 65,
-    rawAsk: 10,
-    spread: 85,
-    skew: 85,
-    wsBid: 85,
-    wsAsk: 85,
-    refBid: 85,
-    dpBid: 85,
-    marBid: 85,
-    cfBid: 85,
-    rtBid: 85,
-    refAsk: 85,
-    dpAsk: 85,
-    marAsk: 85,
-    cfAsk: 85,
-    rtAsk: 85,
-  },
-  {
-    currency: "GBP",
-    unit: 1,
-    tradeType: "BUY_SELL",
-    tradeDeno: "ALL",
-    tradeRound: 0,
-    rawBid: 49,
-    rawAsk: 47,
-    spread: 80,
-    skew: 80,
-    wsBid: 80,
-    wsAsk: 80,
-    refBid: 80,
-    dpBid: 80,
-    marBid: 80,
-    cfBid: 80,
-    rtBid: 80,
-    refAsk: 80,
-    dpAsk: 80,
-    marAsk: 80,
-    cfAsk: 80,
-    rtAsk: 80,
+    Currency: "",
+    moneyChangerId: 1,
+    Unit: "1",
+    TradeType: "",
+    Deno: "",
+    Rounding: 1,
+    rawBid: 0,
+    rawAsk: 0,
+    Spread: 0,
+    Skew: 0,
+    wsBid: 0,
+    wsAsk: 0,
+    refBid: 0,
+    dpBid: 0,
+    marBid: 0,
+    cfBid: 0,
+    rtBid: 0,
+    refAsk: 0,
+    dpAsk: 0,
+    marAsk: 0,
+    cfAsk: 0,
+    rtAsk: 0,
+    processedAt: {},
+    processedBy: 0
   },
 ];
 
 
-const COMMISSION_SCHEME="commissionSchemes";
-
-const fetchSchemes = async () => (await api.get(`/api/v1/schemes`)).data;
-
-const deleteScheme = async ({ id, userId }) => await api.delete(`/api/v1/schemes/${id}`, { params: { userId } });
+const MONEYCHANGER_COMPUTE_RATES="computeRates";
+const fetchComputeRates = async (moneyChangerId) => (await api.get(`/api/v1/compute-rates`, {params: { moneyChangerId }})).data;
 
 const ComputeRate = () => {
   const [userId] = useState(1);
+  const [moneyChanger]= useState({id: 1, companyName: "Company 1"});
+  const [rates, setRates] = useState([]);
   const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]);
-  const [rates, setRates] = useState(initialRates);
   const [editingCell, setEditingCell] = useState({ row: null, field: null });
   const [cellErrors, setCellErrors] = useState({});
+  const [errorComputeRate, setErrorComputeRate] = useState(null);
+  const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
+
+  useEffect(() => {
+    if (computeRates && computeRates.length > 0) {
+      setRates(computeRates);
+    }
+  }, [computeRates]);
+
 
   const handleCellChange = (rowIndex, field, value) => {
     const updatedRates = [...rates];
@@ -152,10 +94,8 @@ const ComputeRate = () => {
     setCellErrors((prev) => ({ ...prev, [key]: error }));
   };
 
-  const isEditableField = (field) => [
-    "unit", "tradeType", "tradeDeno", "tradeRound", "spread", "skew",
-    "refBid", "dpBid", "marBid", "cfBid", "refAsk", "dpAsk", "marAsk", "cfAsk"
-  ].includes(field);
+  const isEditableField = (field) => ["unit", "tradeType", "tradeDeno", "tradeRound", "spread", "skew","refBid", "dpBid", "marBid", "cfBid", "refAsk", "dpAsk", "marAsk", "cfAsk"].includes(field);
+  const isDecimalInput = (field) => ["marBid", "cfBid", "marAsk", "cfAsk"].includes(field);
 
   const getDropdownOptions = (field) => {
     switch (field) {
@@ -171,50 +111,6 @@ const ComputeRate = () => {
     }
   };
 
-  const isDecimalInput = (field) => ["marBid", "cfBid", "marAsk", "cfAsk"].includes(field);
-  
-  const [selectedRecordScheme, setSelectedRecordScheme] = useState(null);
-
-  const [errorScheme, setErrorScheme] = useState(null);
-
-  const [isCreateModalOpenScheme, setIsCreateModalOpenScheme] = useState(false);
-  const [isEditModalOpenScheme, setIsEditModalOpenScheme] = useState(false);
-
-  const queryClient = useQueryClient();
-
-  const { data: commissionSchemes =[], isLoading: isLoadingScheme, error: queryErrorScheme, } = useQuery ( { queryKey: ["commissionSchemes"], queryFn: () => fetchSchemes(), staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
-
-
-  //Scheme
-  const deleteMutationScheme = useMutation({
-    mutationFn: deleteScheme,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries([COMMISSION_SCHEME]);
-      setSelectedRecordScheme(null);
-    },
-    onError: (err) => {
-      const message = err?.response?.data || err?.message || "Failed to delete the form. Please try again.";
-      setErrorScheme(message);
-    },
-  });
-
-  const handleOnCreatedScheme = async (newData) => {
-    await queryClient.invalidateQueries([COMMISSION_SCHEME]);
-    setIsCreateModalOpenScheme(false);
-  };
-
-  const handleOnUpdatedScheme = async (updatedItem) => {
-    await queryClient.invalidateQueries([COMMISSION_SCHEME]);
-    setIsEditModalOpenScheme(false);
-  };
-
-  const handleDeleteScheme = async (item) => {
-    setErrorScheme(null);
-    deleteMutationScheme.mutate({id: item.id, userId});
-  };  
-
-
-  
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -224,18 +120,18 @@ const ComputeRate = () => {
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
         </div>
 
-        {(errorScheme || queryErrorScheme ) && (
+        {(errorComputeRate || queryErrorComputeRate ) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{errorScheme || queryErrorScheme?.message}</p>
+              <p className="whitespace-pre-line">{errorComputeRate || queryErrorComputeRate?.message}</p>
             </div>
           </div>
         )}
 
             
         <div className="min-h-screen bg-gray-50">
-           {isLoadingScheme ? (
+           {isLoadingComputeRate ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
           <div className="flex items-center gap-4 mb-6">
@@ -273,7 +169,9 @@ const ComputeRate = () => {
             <table className="min-w-full table-auto text-sm text-left border border-gray-300">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  {Object.keys(rates[0]).map((header) => (
+                  {Object.keys(initialRow[0])
+                    .filter((header) => header !== "moneyChangerId")
+                    .map((header) => (
                     <th key={header} className="px-4 py-2 whitespace-nowrap">
                       {header}
                     </th>
@@ -283,7 +181,9 @@ const ComputeRate = () => {
               <tbody>
                 {rates.map((item, rowIndex) => (
                   <tr key={rowIndex} className="even:bg-gray-50">
-                    {Object.entries(item).map(([field, value]) => (
+                    {Object.entries(item)
+                      .filter(([field]) => field !== "moneyChangerId")
+                      .map(([field, value]) => (
                       <td
                         key={field}
                         className="px-4 py-2 cursor-pointer relative"
@@ -323,7 +223,11 @@ const ComputeRate = () => {
                             </div>
                           )
                         ) : (
-                          <span title={fieldTooltips[field] || ""}>{value}</span>
+                          <span title={fieldTooltips[field] || ""}>
+                            {field === "processedAt" && value 
+                             ? format(new Date(value), "dd/MM/yyyy HH:mm:ss")
+                             : value}
+                          </span>
                         )}
                       </td>
                     ))}
