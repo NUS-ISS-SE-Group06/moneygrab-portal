@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 
 const companies = [
   "ABC Money Ltd",
@@ -94,3 +95,10 @@ export default function CreateAccountModal({ show, onClose, onSave, error }) {
     </div>
   );
 }
+
+CreateAccountModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  error: PropTypes.string
+};
