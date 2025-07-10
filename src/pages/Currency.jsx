@@ -15,7 +15,7 @@ const Currency = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-1">
         
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold">CURRENCY LIST</h1>

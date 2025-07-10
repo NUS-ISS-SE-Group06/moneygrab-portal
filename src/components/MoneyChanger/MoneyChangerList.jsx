@@ -83,7 +83,7 @@ const MoneyChangerList = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-1">
       {error && (
         <div className="bg-yellow-100 text-red-700 p-4 mb-4 flex justify-between items-center rounded">
           <span>{error}</span>
@@ -95,7 +95,7 @@ const MoneyChangerList = () => {
           </button>
         </div>
       )}
-      <h2 className="text-2xl font-bold mb-4">Manage Money Changers</h2>
+      <h2 className="text-2xl font-extrabold">MANAGE MONEY CHANGERS</h2>
       <div className="flex justify-end mb-4">
         <button
           className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
