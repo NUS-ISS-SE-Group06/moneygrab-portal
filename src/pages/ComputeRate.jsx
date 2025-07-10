@@ -258,8 +258,8 @@ const ComputeRate = () => {
           </div>
           )}
 
-          <div className="max-w-[1900px] bg-white shadow rounded overflow-auto">
-            <table className="w-full table-auto text-sm text-left border border-gray-300">
+          <div className="w-full bg-white shadow rounded overflow-auto">
+            <table className="table-auto text-sm text-left border border-gray-300">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
                   {Object.keys(headerRow[0])
