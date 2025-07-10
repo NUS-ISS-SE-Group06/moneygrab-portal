@@ -15,6 +15,7 @@ import {fetchAuthSession } from "@aws-amplify/auth";
 import RequireAuth from "./components/Auth/RequireAuth";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
 import FxRateUpload from "./components/FXUpload/FxRateUpload";
+import ComputeRate from "./pages/ComputeRate";
 
 
 class ErrorBoundary extends React.Component {
@@ -149,7 +150,7 @@ try {
           { path: "fx-rate-upload", element: <FxRateUpload /> },
           { path: "commission", element: <Commission label="Commission Scheme" /> },
           { path: "currency", element: <Currency label="Currency" /> },
-          { path: "compute-rates", element: <ComingSoon label="Compute Rates" /> },
+          { path: "compute-rates", element: <ComputeRate label="Compute Rates" /> },
           { path: "view-rates", element: <ComingSoon label="ComingSoon" /> },
           { path: "currency-codes", element: <ManageCurrency label="Manage Currency Codes" /> },
           { path: "transactions", element: <ComingSoon label="Transactions" /> },
