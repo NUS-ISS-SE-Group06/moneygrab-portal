@@ -199,7 +199,7 @@ const ComputeRate = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-1">
         
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
@@ -265,7 +265,7 @@ const ComputeRate = () => {
                   {Object.keys(headerRow[0])
                     .filter((header) => header !== "moneyChangerId")
                     .map((header) => (
-                    <th key={header} className="px-4 py-2 whitespace-nowrap">
+                    <th key={header} className="border border-grey-300 px-4 py-2 whitespace-nowrap">
                       {header}
                     </th>
                   ))}
@@ -273,13 +273,13 @@ const ComputeRate = () => {
               </thead>
               <tbody>
                 {rates.map((item, rowIndex) => (
-                  <tr key={`${item.currencyCode}-${item.moneyChangerId}`} className="even:bg-gray-50">
+                  <tr key={`${item.currencyCode}-${item.moneyChangerId}`} className="border border-grey-300 even:bg-gray-50">
                     {Object.entries(item)
                       .filter(([field]) => field !== "moneyChangerId")
                       .map(([field, value]) => (
                       <td
                         key={field}
-                        className={`px-4 py-2 cursor-pointer relative ${ isEditableField(field) ? "bg-yellow-100 hover:bg-yellow-200" : ""}`}
+                        className={`border border-grey-300 px-4 py-2 cursor-pointer relative ${ isEditableField(field) ? "bg-yellow-100 hover:bg-yellow-200" : ""}`}
                         onClick={() => isEditableField(field) && setEditingCell({ row: rowIndex, field })}
                       >
                         {(() => {
@@ -346,12 +346,12 @@ const ComputeRate = () => {
 
 
         <div className="mt-10">
-          <h2 className="text-lg font-bold mb-2">Field Descriptions</h2>
-          <table className="table-auto text-sm text-left border border-gray-300 bg-white shadow rounded">
+          <h2 className="text-sm font-bold mb-2">Field Descriptions</h2>
+          <table className="table-auto text-xs text-left border border-grey-300 bg-white shadow rounded">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <th className="px-4 py-2">Code</th>
-                <th className="px-4 py-2">Description</th>
+                <th className="border border-grey-300 px-4 py-2">Code</th>
+                <th className="border border-grey-300 px-4 py-2">Description</th>
               </tr>
             </thead>
             <tbody>
@@ -372,9 +372,10 @@ const ComputeRate = () => {
                 { code: (<span>RtBid / RtAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Final bid/ask rate after adjustments" },
       
               ].map(({ code, description }) => (
-                <tr key={code} className="even:bg-gray-50">
-                  <td className="px-4 py-2 font-medium">{code}</td>
-                  <td className="px-4 py-2">{description}</td>
+                <tr key={code} 
+                    className="even:bg-gray-50">
+                  <td className="border border-gray-300 px-4 py-2 font-medium">{code}</td>
+                  <td className="border border-gray-300 px-4 py-2">{description}</td>
                 </tr>
               ))}
             </tbody>
