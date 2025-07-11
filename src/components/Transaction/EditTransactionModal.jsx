@@ -31,7 +31,9 @@ const EditTransactionModal = ({ transaction, onClose, onSave, userId }) => {
       await onSave({ id: transaction.id, status, comments,userId });
       onClose();
     } catch (err) {
-      setError("Unable to update status");
+       console.error("Failed to update transaction:", err); // <-- Log it
+       setError("Unable to update status");
+     
     }
   };
 
