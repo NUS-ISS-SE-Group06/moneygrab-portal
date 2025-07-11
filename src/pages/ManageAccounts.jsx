@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import EditAccountModal from "./components/EditAccountModal";
-import CreateAccountModal from "./components/CreateAccountModal";
+import EditAccountModal from "../components/Account/EditAccountModal";
+import CreateAccountModal from "../components/Account/CreateAccountModal";
 
 const accountsInit = [
   {
