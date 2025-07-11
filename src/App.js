@@ -5,7 +5,7 @@ import LayoutWithResizableSidebar from "./components/sidebar";
 import ManageAccounts from "./pages/ManageAccounts";
 import Commission from "./pages/Commission";
 import Currency from "./pages/Currency";
-import TransactionList from "./components/Transaction/Transaction";
+import TransactionList from "./pages/Transaction";
 import MoneyChanger from "./pages/MoneyChanger";
 import ManageCurrency from "./pages/ManageCurrency";
 import Home from "./pages/Home";
@@ -132,6 +132,8 @@ function AuthInit() {
 
   return null; // this component only performs side effects
 }
+const storedUser = JSON.parse(localStorage.getItem("user"));
+const moneyChangerId = storedUser?.moneyChangerId || null;
 
 // Create router with error handling
 let router;
@@ -156,7 +158,7 @@ try {
           { path: "compute-rates", element: <ComputeRate label="Compute Rates" /> },
           { path: "view-rates", element: <ViewRates />  },
           { path: "currency-codes", element: <ManageCurrency label="Manage Currency Codes" /> },
-          { path: "transaction", element: <TransactionList /> },
+          { path: "transaction", element: <TransactionList moneyChangerId={moneyChangerId}/> },
         ],
       },
     ],
