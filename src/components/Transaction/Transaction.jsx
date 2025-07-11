@@ -1,8 +1,10 @@
+// TransactionList.jsx
 import React, { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import api from "../../api/axios";
-import EditTransactionModal from "./EditTransactionModal"; // make sure this path is correct
+import EditTransactionModal from "./EditTransactionModal";
 
-const TransactionList = () => {
+const TransactionList = ({ moneyChangerId = null }) => {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -11,28 +13,30 @@ const TransactionList = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [userId, setUserId] = useState(null);
 
-useEffect(() => {
-  try {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser?.id) {
-      setUserId(storedUser.id);
-    } else {
-      setUserId(1); // fallback if storedUser or id is not present
+  useEffect(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (storedUser?.id) {
+        setUserId(storedUser.id);
+      } else {
+        setUserId(1);
+      }
+    } catch (err) {
+      console.warn("Failed to parse user from localStorage", err);
+      setUserId(1);
     }
-  } catch (err) {
-    console.warn("Failed to parse user from localStorage", err);
-    setUserId(1); // fallback if JSON parse fails
-  }
-}, []);
-
+  }, []);
 
   const fetchTransactions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/api/v1/transactions");
-      if (!response.data) {
-        throw new Error("No data received from API");
-      }
+      const endpoint = moneyChangerId
+        ? `/api/v1/moneychanger/${moneyChangerId}/transactions`
+        : `/api/v1/transactions`;
+
+      const response = await api.get(endpoint);
+      if (!response.data) throw new Error("No data received from API");
+
       setTransactions(response.data);
       setError(null);
     } catch (err) {
@@ -41,7 +45,7 @@ useEffect(() => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [moneyChangerId]);
 
   useEffect(() => {
     fetchTransactions();
@@ -52,29 +56,26 @@ useEffect(() => {
     setShowModal(true);
   };
 
-  const handleUpdateTransaction = async ({ id, status, comments,userId }) => {
+  const handleUpdateTransaction = async ({ id, status, comments, userId }) => {
     try {
-     await api.patch(`/api/v1/transactions/${id}/status`, 
-  JSON.stringify({ status, comments, userId }),
-  {
-    headers: { "Content-Type": "application/json" }
-  }
-);
+      await api.patch(
+        `/api/v1/transactions/${id}/status`,
+        JSON.stringify({ status, comments, userId }),
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       setShowModal(false);
       setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
       console.error("Failed to update status", err);
-      throw err; // Let the modal show the error
+      throw err;
     }
   };
 
-  const dismissBanner = () => {
-    setError(null);
-  };
+  const dismissBanner = () => setError(null);
 
-  if (isLoading) {
-    return <div className="text-center p-4">Loading transactions...</div>;
-  }
+  if (isLoading) return <div className="text-center p-4">Loading transactions...</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -133,7 +134,6 @@ useEffect(() => {
         </tbody>
       </table>
 
-      {/* Modal */}
       {showModal && selectedTransaction && (
         <EditTransactionModal
           transaction={selectedTransaction}
@@ -144,6 +144,10 @@ useEffect(() => {
       )}
     </div>
   );
+};
+
+TransactionList.propTypes = {
+  moneyChangerId: PropTypes.number,
 };
 
 export default TransactionList;
