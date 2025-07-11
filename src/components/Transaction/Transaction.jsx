@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import api from "../../api/axios";
 import EditTransactionModal from "./EditTransactionModal";
 
-const TransactionList = ({ moneyChangerId = null }) => {
+const TransactionList = ({ moneyChangerId = null}) => {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
