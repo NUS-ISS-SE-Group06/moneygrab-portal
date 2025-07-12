@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {createBrowserRouter, RouterProvider } from "react-router-dom";
 import LayoutWithResizableSidebar from "./components/sidebar";
-import ManageAccounts from "./ManageAccounts";
+import ManageAccounts from "./pages/ManageAccounts";
 import Commission from "./pages/Commission";
 import Currency from "./pages/Currency";
 import TransactionList from "./pages/Transaction";
