@@ -12,7 +12,7 @@ const navItems = [
   { label: "Compute Rates", path: "/compute-rates" },
   { label: "View Rates", path: "/view-rates" },
   { label: "Currency Codes", path: "/currency-codes" },
-  { label: "Transactions", path: "/transactions" }
+  { label: "Transactions", path: "/transaction" }
 ];
 
 function Sidebar({ width }) {
