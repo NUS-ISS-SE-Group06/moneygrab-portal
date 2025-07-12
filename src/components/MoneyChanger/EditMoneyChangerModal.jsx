@@ -54,35 +54,13 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
         const data = moneyChangerRes.data;
         updateFormAndState(data);
         // Ensure locations is never null, use fallback if response is invalid
-        setLocations((locationsRes.data && Array.isArray(locationsRes.data) && locationsRes.data.filter(loc => !loc.isDeleted)) || [
-          { id: 1, locationName: "Tampines", countryCode: "SG" },
-          { id: 2, locationName: "Simei", countryCode: "SG" },
-          { id: 3, locationName: "Bedok", countryCode: "SG" },
-          { id: 4, locationName: "Punggol", countryCode: "SG" },
-          { id: 5, locationName: "Pasir Ris", countryCode: "SG" },
-          { id: 6, locationName: "Changi", countryCode: "SG" },
-          { id: 7, locationName: "Serangoon", countryCode: "SG" },
-          { id: 8, locationName: "Hougang", countryCode: "SG" },
-          { id: 9, locationName: "Kallang", countryCode: "SG" },
-          { id: 10, locationName: "Geylang", countryCode: "SG" },
-        ]);
+        setLocations((locationsRes.data && Array.isArray(locationsRes.data) && locationsRes.data.filter(loc => !loc.isDeleted)) );
         setSchemes((schemesRes.data && Array.isArray(schemesRes.data) && schemesRes.data.filter(scheme => !scheme.isDeleted)) || []);
       } catch (err) {
         if (isActive) {
           setError(`Failed to fetch data: ${err.response?.status || err.message}`);
           // Fallback to hardcoded locations if API call fails
-          setLocations([
-            { id: 1, locationName: "Tampines", countryCode: "SG" },
-            { id: 2, locationName: "Simei", countryCode: "SG" },
-            { id: 3, locationName: "Bedok", countryCode: "SG" },
-            { id: 4, locationName: "Punggol", countryCode: "SG" },
-            { id: 5, locationName: "Pasir Ris", countryCode: "SG" },
-            { id: 6, locationName: "Changi", countryCode: "SG" },
-            { id: 7, locationName: "Serangoon", countryCode: "SG" },
-            { id: 8, locationName: "Hougang", countryCode: "SG" },
-            { id: 9, locationName: "Kallang", countryCode: "SG" },
-            { id: 10, locationName: "Geylang", countryCode: "SG" },
-          ]);
+        
         }
       }
     };

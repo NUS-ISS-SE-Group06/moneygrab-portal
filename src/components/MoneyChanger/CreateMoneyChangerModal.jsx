@@ -48,18 +48,7 @@ const CreateMoneyChangerModal = ({ onClose, onSave }) => {
         if (isActive) {
           setError(`Failed to fetch data: ${err.response?.status || err.message}`);
           // Fallback to hardcoded locations matching LocationDTO
-          setLocations([
-            { id: 1, locationName: "Tampines", countryCode: "SG" },
-            { id: 2, locationName: "Simei", countryCode: "SG" },
-            { id: 3, locationName: "Bedok", countryCode: "SG" },
-            { id: 4, locationName: "Punggol", countryCode: "SG" },
-            { id: 5, locationName: "Pasir Ris", countryCode: "SG" },
-            { id: 6, locationName: "Changi", countryCode: "SG" },
-            { id: 7, locationName: "Serangoon", countryCode: "SG" },
-            { id: 8, locationName: "Hougang", countryCode: "SG" },
-            { id: 9, locationName: "Kallang", countryCode: "SG" },
-            { id: 10, locationName: "Geylang", countryCode: "SG" },
-          ]);
+         
         }
       }
     };
