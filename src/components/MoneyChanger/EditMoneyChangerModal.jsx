@@ -3,12 +3,6 @@ import PropTypes from "prop-types";
 import api from "../../api/axios";
 
 /**
- * List of available locations for the money changer.
- * @type {string[]}
- */
-const locationsList = ["Tampines", "Simei"];
-
-/**
  * Modal component for editing money changer details.
  * @param {Object} props
  * @param {number} props.id - The ID of the money changer to edit.
@@ -27,7 +21,7 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
     country: "",
     postalCode: "",
     notes: "",
-    scheme: "",
+    schemeId: "",
     role: "Money Changer Staff",
     logo: null,
     kyc: null,
@@ -38,24 +32,35 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [schemes, setSchemes] = useState([]);
   const [logoPreview, setLogoPreview] = useState(null);
   const [kycDownloadUrl, setKycDownloadUrl] = useState(null);
 
   /**
-   * Fetches money changer data when the ID changes.
+   * Fetches money changer data, locations, and schemes when the ID changes.
    */
   useEffect(() => {
     let isActive = true;
     const fetchData = async () => {
       if (!id) return;
       try {
-        const response = await api.get(`/api/v1/money-changers/${id}`);
+        const [moneyChangerRes, locationsRes, schemesRes] = await Promise.all([
+          api.get(`/api/v1/money-changers/${id}`),
+          api.get("/api/v1/locations"),
+          api.get("/api/v1/schemes"),
+        ]);
         if (!isActive) return;
-        const data = response.data;
+        const data = moneyChangerRes.data;
         updateFormAndState(data);
+        // Ensure locations is never null, use fallback if response is invalid
+        setLocations((locationsRes.data && Array.isArray(locationsRes.data) && locationsRes.data.filter(loc => !loc.isDeleted)) );
+        setSchemes((schemesRes.data && Array.isArray(schemesRes.data) && schemesRes.data.filter(scheme => !scheme.isDeleted)) || []);
       } catch (err) {
         if (isActive) {
           setError(`Failed to fetch data: ${err.response?.status || err.message}`);
+          // Fallback to hardcoded locations if API call fails
+        
         }
       }
     };
@@ -81,14 +86,15 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
       country: data.country || prev.country,
       postalCode: data.postalCode || prev.postalCode,
       notes: data.notes || prev.notes,
-      scheme: data.scheme || prev.scheme,
+      schemeId: data.schemeId || prev.schemeId,
       role: data.role || prev.role,
       logoBase64: data.logoBase64 || prev.logoBase64,
       logoFilename: data.logoFilename || prev.logoFilename,
       kycBase64: data.kycBase64 || prev.kycBase64,
       kycFilename: data.kycFilename || prev.kycFilename,
     }));
-    setSelectedLocations(data.locations || []);
+    // Handle locations as an array of IDs and filter out invalid values
+    setSelectedLocations((data.locations || []).filter(id => id != null && Number.isInteger(id)) || []);
     if (data.logoBase64) {
       const mimeType = data.logoFilename
         ?.split(".")
@@ -151,14 +157,14 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
     }
   };
 
-  const handleLocationSelect = useCallback((loc) => {
-    if (!selectedLocations.includes(loc)) {
-      setSelectedLocations((prev) => [...prev, loc]);
-    }
+  const handleLocationSelect = useCallback((e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value, 10));
+    const newSelections = selectedOptions.filter(id => !selectedLocations.includes(id));
+    setSelectedLocations((prev) => [...prev, ...newSelections]);
   }, [selectedLocations]);
 
-  const handleLocationDeselect = useCallback((loc) => {
-    setSelectedLocations((prev) => prev.filter((l) => l !== loc));
+  const handleLocationDeselect = useCallback((locId) => {
+    setSelectedLocations((prev) => prev.filter((l) => l !== parseInt(locId, 10)));
   }, []);
 
   /**
@@ -173,13 +179,11 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
     }
 
     try {
-      const schemeIdMap = { "Scheme - 01": 1, "Scheme - 02": 2, "Scheme - 03": 3 };
       const updateData = {
         ...form,
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
-        schemeId: schemeIdMap[form.scheme] || 1,
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
@@ -319,55 +323,62 @@ const EditMoneyChangerModal = ({ id, onClose, onUpdate }) => {
           <div className="space-y-4">
             <div>
               <label htmlFor="locations" className="block font-semibold text-gray-700">Locations</label>
-              <div id="locations" className="flex gap-2">
-                <div className="flex-1 bg-gray-50 p-2 rounded">
-                  {locationsList
-                    .filter((l) => !selectedLocations.includes(l))
-                    .map((loc) => (
-                      <div key={loc} className="flex justify-between p-1">
-                        <span>{loc}</span>
-                        <button
-                          type="button"
-                          className="text-blue-600 underline text-sm"
-                          onClick={() => handleLocationSelect(loc)}
-                        >
-                          Select
-                        </button>
-                      </div>
-                    ))}
+              <fieldset id="locations" className="flex gap-2">
+                <div className="flex-1">
+                  <select
+                    multiple
+                    className="w-full p-2 border rounded h-32 overflow-y-auto"
+                    onChange={handleLocationSelect}
+                  >
+                    {locations
+                      .filter((loc) => !loc.isDeleted && !selectedLocations.includes(loc.id))
+                      .map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.locationName} ({loc.countryCode})
+                        </option>
+                      ))}
+                  </select>
                 </div>
                 <div className="flex-1 bg-gray-100 p-2 rounded">
                   <div className="text-sm font-semibold mb-1">Selected</div>
-                  {selectedLocations.map((loc) => (
-                    <div key={loc} className="flex justify-between p-1">
-                      <span>{loc}</span>
-                      <button
-                        type="button"
-                        className="text-red-500 underline text-sm"
-                        onClick={() => handleLocationDeselect(loc)}
-                      >
-                        Deselect
-                      </button>
-                    </div>
-                  ))}
+                  {selectedLocations.map((locId) => {
+                    const loc = locations.find((l) => l.id === locId);
+                    return loc ? (
+                      <div key={loc.id} className="flex justify-between p-1">
+                        <span>{loc.locationName}</span>
+                        <button
+                          type="button"
+                          className="text-red-500 underline text-sm"
+                          onClick={() => handleLocationDeselect(loc.id)}
+                        >
+                          Deselect
+                        </button>
+                      </div>
+                    ) : null;
+                  })}
                   {selectedLocations.length === 0 && (
                     <div className="text-gray-400 text-sm">None selected</div>
                   )}
                 </div>
-              </div>
+              </fieldset>
             </div>
             <div>
-              <label htmlFor="scheme" className="block font-semibold text-gray-700">Scheme</label>
+              <label htmlFor="schemeId" className="block font-semibold text-gray-700">Scheme</label>
               <select
-                id="scheme"
+                id="schemeId"
                 className="w-full p-2 border rounded"
-                name="scheme"
-                value={form.scheme || ""}
+                name="schemeId"
+                value={form.schemeId || ""}
                 onChange={handleChange}
               >
-                <option value="Scheme - 01">Scheme - 01</option>
-                <option value="Scheme - 02">Scheme - 02</option>
-                <option value="Scheme - 03">Scheme - 03</option>
+                <option value="">Select a scheme</option>
+                {schemes
+                  .filter((scheme) => !scheme.isDeleted)
+                  .map((scheme) => (
+                    <option key={scheme.id} value={scheme.id}>
+                      {scheme.nameTag}
+                    </option>
+                  ))}
               </select>
             </div>
             <div>
