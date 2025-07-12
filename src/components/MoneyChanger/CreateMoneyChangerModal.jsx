@@ -6,10 +6,10 @@ import api from "../../api/axios";
  * Modal component for creating a new money changer.
  * @param {Object} props
  * @param {function} props.onClose - Callback to close the modal.
- * @param {function} [props.onCreate] - Callback to handle creation success.
+ * @param {function} [props.onSave] - Callback to handle creation success.
  * @returns {JSX.Element} The create money changer modal.
  */
-const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
+const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState({
     companyName: "",
     email: "",
@@ -47,18 +47,18 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
       } catch (err) {
         if (isActive) {
           setError(`Failed to fetch data: ${err.response?.status || err.message}`);
-          // Fallback to hardcoded locations with integer IDs
+          // Fallback to hardcoded locations matching LocationDTO
           setLocations([
-            { id: 1, locationName: "Tampines", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 2, locationName: "Simei", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 3, locationName: "Bedok", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 4, locationName: "Punggol", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 5, locationName: "Pasir Ris", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 6, locationName: "Changi", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 7, locationName: "Serangoon", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 8, locationName: "Hougang", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 9, locationName: "Kallang", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
-            { id: 10, locationName: "Geylang", createdAt: new Date(), updatedAt: new Date(), createdBy: 1, updatedBy: 1, isDeleted: false },
+            { id: 1, locationName: "Tampines", countryCode: "SG" },
+            { id: 2, locationName: "Simei", countryCode: "SG" },
+            { id: 3, locationName: "Bedok", countryCode: "SG" },
+            { id: 4, locationName: "Punggol", countryCode: "SG" },
+            { id: 5, locationName: "Pasir Ris", countryCode: "SG" },
+            { id: 6, locationName: "Changi", countryCode: "SG" },
+            { id: 7, locationName: "Serangoon", countryCode: "SG" },
+            { id: 8, locationName: "Hougang", countryCode: "SG" },
+            { id: 9, locationName: "Kallang", countryCode: "SG" },
+            { id: 10, locationName: "Geylang", countryCode: "SG" },
           ]);
         }
       }
@@ -145,7 +145,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
-      if (onCreate) onCreate(response.data);
+      if (onSave) onSave(response.data);
       setError(null);
       onClose(true);
     } catch (err) {
@@ -286,7 +286,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                       .filter((loc) => !loc.isDeleted && !selectedLocations.includes(loc.id))
                       .map((loc) => (
                         <option key={loc.id} value={loc.id}>
-                          {loc.locationName}
+                          {loc.locationName} ({loc.countryCode})
                         </option>
                       ))}
                   </select>
@@ -297,7 +297,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                     const loc = locations.find((l) => l.id === locId);
                     return loc ? (
                       <div key={loc.id} className="flex justify-between p-1">
-                        <span>{loc.locationName}</span>
+                        <span>{loc.locationName} ({loc.countryCode})</span>
                         <button
                           type="button"
                           className="text-red-500 underline text-sm"
@@ -378,11 +378,11 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
 
 CreateMoneyChangerModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-  onCreate: PropTypes.func,
+  onSave: PropTypes.func,
 };
 
 CreateMoneyChangerModal.defaultProps = {
-  onCreate: null,
+  onSave: null,
 };
 
 export default CreateMoneyChangerModal;
