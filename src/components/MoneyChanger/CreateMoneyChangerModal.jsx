@@ -1,21 +1,15 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
-
-/**
- * List of available locations for the money changer.
- * @type {string[]}
- */
-const locationsList = ["Tampines", "Simei"];
 
 /**
  * Modal component for creating a new money changer.
  * @param {Object} props
  * @param {function} props.onClose - Callback to close the modal.
- * @param {function} [props.onCreate] - Callback to handle creation success.
+ * @param {function} [props.onSave] - Callback to handle creation success.
  * @returns {JSX.Element} The create money changer modal.
  */
-const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
+const CreateMoneyChangerModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState({
     companyName: "",
     email: "",
@@ -25,7 +19,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
     country: "",
     postalCode: "",
     notes: "",
-    scheme: "",
+    schemeId: "",
     role: "Money Changer Staff",
     logo: null,
     kyc: null,
@@ -36,6 +30,34 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
   });
   const [error, setError] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [schemes, setSchemes] = useState([]);
+
+  useEffect(() => {
+    let isActive = true;
+    const fetchData = async () => {
+      try {
+        const [locationsRes, schemesRes] = await Promise.all([
+          api.get("/api/v1/locations"),
+          api.get("/api/v1/schemes"),
+        ]);
+        if (!isActive) return;
+        setLocations(locationsRes.data.filter(loc => !loc.isDeleted) || []);
+        setSchemes(schemesRes.data.filter(scheme => !scheme.isDeleted) || []);
+      } catch (err) {
+        if (isActive) {
+          setError(`Failed to fetch data: ${err.response?.status || err.message}`);
+          // Fallback to hardcoded locations matching LocationDTO
+         
+        }
+      }
+    };
+
+    fetchData();
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   /**
    * Handles changes to form input fields.
@@ -75,14 +97,14 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
     }
   };
 
-  const handleLocationSelect = useCallback((loc) => {
-    if (!selectedLocations.includes(loc)) {
-      setSelectedLocations((prev) => [...prev, loc]);
-    }
+  const handleLocationSelect = useCallback((e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value, 10));
+    const newSelections = selectedOptions.filter(id => !selectedLocations.includes(id));
+    setSelectedLocations((prev) => [...prev, ...newSelections]);
   }, [selectedLocations]);
 
-  const handleLocationDeselect = useCallback((loc) => {
-    setSelectedLocations((prev) => prev.filter((l) => l !== loc));
+  const handleLocationDeselect = useCallback((locId) => {
+    setSelectedLocations((prev) => prev.filter((l) => l !== parseInt(locId, 10)));
   }, []);
 
   /**
@@ -97,13 +119,11 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
     }
 
     try {
-      const schemeIdMap = { "Scheme - 01": 1, "Scheme - 02": 2, "Scheme - 03": 3 };
       const createData = {
         ...form,
         locations: selectedLocations,
         logo: undefined,
         kyc: undefined,
-        schemeId: schemeIdMap[form.scheme] || 1,
         logoBase64: form.logoBase64,
         logoFilename: form.logoFilename,
         kycBase64: form.kycBase64,
@@ -114,7 +134,7 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
       if (!response.data) {
         throw new Error(`No data received! Status: ${response.status}`);
       }
-      if (onCreate) onCreate(response.data);
+      if (onSave) onSave(response.data);
       setError(null);
       onClose(true);
     } catch (err) {
@@ -124,10 +144,9 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-
-      <form data-testid="moneychanger-form"
+      <form
+        data-testid="moneychanger-form"
         className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 relative"
-
         onSubmit={handleSubmit}
       >
         <button
@@ -141,7 +160,6 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-
               <label htmlFor="email" className="block font-semibold text-gray-700">Email</label>
               <input
                 id="email"
@@ -159,12 +177,11 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
                 className="w-full p-2 border rounded"
                 name="companyName"
                 value={form.companyName}
-                 placeholder="Company name"
+                placeholder="Company name"
                 onChange={handleChange}
               />
             </div>
             <div>
-
               <label htmlFor="role" className="block font-semibold text-gray-700">Role</label>
               <input
                 id="role"
@@ -178,7 +195,6 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               <label htmlFor="dateOfIncorporation" className="block font-semibold text-gray-700">Date of Incorporation</label>
               <input
                 id="dateOfIncorporation"
-
                 className="w-full p-2 border rounded"
                 type="date"
                 name="dateOfIncorporation"
@@ -249,36 +265,38 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
             <div>
               <label htmlFor="locations" className="block font-semibold text-gray-700">Locations</label>
               <fieldset id="locations" className="flex gap-2">
-                <div className="flex-1 bg-gray-50 p-2 rounded">
-                  {locationsList
-                    .filter((l) => !selectedLocations.includes(l))
-                    .map((loc) => (
-                      <div key={loc} className="flex justify-between p-1">
-                        <span>{loc}</span>
-                        <button
-                          type="button"
-                          className="text-blue-600 underline text-sm"
-                          onClick={() => handleLocationSelect(loc)}
-                        >
-                          Select
-                        </button>
-                      </div>
-                    ))}
+                <div className="flex-1">
+                  <select
+                    multiple
+                    className="w-full p-2 border rounded h-32 overflow-y-auto"
+                    onChange={handleLocationSelect}
+                  >
+                    {locations
+                      .filter((loc) => !loc.isDeleted && !selectedLocations.includes(loc.id))
+                      .map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.locationName} ({loc.countryCode})
+                        </option>
+                      ))}
+                  </select>
                 </div>
                 <div className="flex-1 bg-gray-100 p-2 rounded">
                   <div className="text-sm font-semibold mb-1">Selected</div>
-                  {selectedLocations.map((loc) => (
-                    <div key={loc} className="flex justify-between p-1">
-                      <span>{loc}</span>
-                      <button
-                        type="button"
-                        className="text-red-500 underline text-sm"
-                        onChange={() => handleLocationDeselect(loc)}
-                      >
-                        Deselect
-                      </button>
-                    </div>
-                  ))}
+                  {selectedLocations.map((locId) => {
+                    const loc = locations.find((l) => l.id === locId);
+                    return loc ? (
+                      <div key={loc.id} className="flex justify-between p-1">
+                        <span>{loc.locationName} ({loc.countryCode})</span>
+                        <button
+                          type="button"
+                          className="text-red-500 underline text-sm"
+                          onClick={() => handleLocationDeselect(loc.id)}
+                        >
+                          Deselect
+                        </button>
+                      </div>
+                    ) : null;
+                  })}
                   {selectedLocations.length === 0 && (
                     <div className="text-gray-400 text-sm">None selected</div>
                   )}
@@ -286,17 +304,22 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
               </fieldset>
             </div>
             <div>
-              <label htmlFor="scheme" className="block font-semibold text-gray-700">Scheme</label>
+              <label htmlFor="schemeId" className="block font-semibold text-gray-700">Scheme</label>
               <select
-                id="scheme"
+                id="schemeId"
                 className="w-full p-2 border rounded"
-                name="scheme"
-                value={form.scheme}
+                name="schemeId"
+                value={form.schemeId}
                 onChange={handleChange}
               >
-                <option value="Scheme - 01">Scheme - 01</option>
-                <option value="Scheme - 02">Scheme - 02</option>
-                <option value="Scheme - 03">Scheme - 03</option>
+                <option value="">Select a scheme</option>
+                {schemes
+                  .filter((scheme) => !scheme.isDeleted)
+                  .map((scheme) => (
+                    <option key={scheme.id} value={scheme.id}>
+                      {scheme.nameTag}
+                    </option>
+                  ))}
               </select>
             </div>
             <div>
@@ -344,11 +367,11 @@ const CreateMoneyChangerModal = ({ onClose, onCreate }) => {
 
 CreateMoneyChangerModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-  onCreate: PropTypes.func,
+  onSave: PropTypes.func,
 };
 
 CreateMoneyChangerModal.defaultProps = {
-  onCreate: null,
+  onSave: null,
 };
 
 export default CreateMoneyChangerModal;
