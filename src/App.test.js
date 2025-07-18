@@ -1,11 +1,9 @@
 import React from "react";
-
- // Adjust path as needed
 import PropTypes from "prop-types";
 import { render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import LayoutWithResizableSidebar from "./components/sidebar";
-import ManageAccounts from "./ManageAccounts";
+import ManageAccounts from "./pages/ManageAccounts";
 import Commission from "./pages/Commission";
 import MoneyChanger from "./pages/MoneyChanger";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -90,4 +88,3 @@ describe("App Routing", () => {
     expect(headings.length).toBeGreaterThan(0);
   });
 });
-
