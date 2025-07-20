@@ -1,114 +1,86 @@
-import React, { useRef, useState } from "react";
-import RateBoard from "./RateBoard"; // correct relative path
-import moolaLogo from "../../assets/moola-logo.png"; // correct relative path
+import React, { useEffect, useRef, useState } from "react";
+import RateBoard from "./RateBoard";
+import moolaLogo from "../../assets/moola-logo.png";
 
-const PreviewModal = ({ style, computedRates = [], onClose }) => {
+const PreviewModal = ({ style = "Normal Monitor Style", computedRates = [], onClose }) => {
   const modalRef = useRef(null);
-  const [drag, setDrag] = useState({ x: 0, y: 0, startX: 0, startY: 0, dragging: false });
+  const [dragging, setDragging] = useState(false);
+  const [relX, setRelX] = useState(0);
+  const [relY, setRelY] = useState(0);
+  const [modalPosition, setModalPosition] = useState({ x: 100, y: 100 });
 
-  const startDrag = (e) => {
-    e.preventDefault();
-    setDrag((d) => ({ ...d, startX: e.clientX - d.x, startY: e.clientY - d.y, dragging: true }));
-    window.addEventListener("mousemove", onDrag);
-    window.addEventListener("mouseup", stopDrag);
-  };
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!dragging) return;
+      setModalPosition({
+        x: e.clientX - relX,
+        y: e.clientY - relY,
+      });
+    };
 
-  const onDrag = (e) => {
-    setDrag((d) => ({ ...d, x: e.clientX - d.startX, y: e.clientY - d.startY }));
-  };
+    const handleMouseUp = () => setDragging(false);
 
-  const stopDrag = () => {
-    setDrag((d) => ({ ...d, dragging: false }));
-    window.removeEventListener("mousemove", onDrag);
-    window.removeEventListener("mouseup", stopDrag);
-  };
-
-  const onKeyDownDrag = (e) => {
-    if (e.key === " " || e.key === "Enter") {
-      e.preventDefault();
-      // Use the mouse coordinates for the keyboard start drag (optional)
-      // Here just start drag with 0 offsets or implement custom keyboard drag logic if needed
-      setDrag((d) => ({ ...d, startX: 0, startY: 0, dragging: true }));
-      window.addEventListener("mousemove", onDrag);
-      window.addEventListener("mouseup", stopDrag);
+    if (dragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging, relX, relY]);
+
+  const handleMouseDown = (e) => {
+    const rect = modalRef.current?.getBoundingClientRect();
+    if (rect) {
+      setRelX(e.clientX - rect.left);
+      setRelY(e.clientY - rect.top);
+      setDragging(true);
+    }
+  };
+
+  const handleClose = () => {
+    if (onClose) onClose();
   };
 
   return (
     <div
       style={{
         position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        zIndex: 9999,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        left: `${modalPosition.x}px`,
+        top: `${modalPosition.y}px`,
+        width: "85%",
+        height: "auto",
+        maxHeight: "90%",
+        zIndex: 1000,
       }}
     >
       <div
         ref={modalRef}
-        style={{
-          position: "absolute",
-          top: `calc(10% + ${drag.y}px)`,
-          left: `calc(5% + ${drag.x}px)`,
-          width: "90vw",
-          maxHeight: "80vh",
-          backgroundColor: "#fff",
-          borderRadius: 8,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
+        className="bg-white shadow-xl rounded-xl border border-gray-400 w-full flex flex-col overflow-hidden"
       >
-        {/* Header */}
+        {/* Header with logo and close button */}
         <div
-          role="button"
-          tabIndex={0}
-          onMouseDown={startDrag}
-          onKeyDown={onKeyDownDrag}
-          aria-pressed={drag.dragging}
-          aria-label="Drag modal"
-          style={{
-            cursor: drag.dragging ? "grabbing" : "grab",
-            padding: "10px 16px",
-            borderBottom: "1px solid #ccc",
-            userSelect: "none",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          className="cursor-move bg-gray-100 px-4 py-2 flex justify-between items-center"
+          onMouseDown={handleMouseDown}
         >
-          <div>
+          <div className="flex items-center space-x-3">
             <img src={moolaLogo} alt="Company Logo" style={{ height: 28 }} />
+            <h2 className="text-xl font-bold">Preview Rates - {style}</h2>
           </div>
-          <div style={{ flexGrow: 1, textAlign: "center", fontSize: "18px", fontWeight: "bold" }}>
-            Preview Rates - {style}
-          </div>
-          <div>
-            <button
-              onClick={onClose}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 20,
-                fontWeight: "bold",
-                cursor: "pointer",
-              }}
-              aria-label="Close preview modal"
-            >
-              &times;
-            </button>
-          </div>
+          <button
+            onClick={handleClose}
+            className="text-gray-700 hover:text-red-500 font-bold text-lg"
+            aria-label="Close Preview Modal"
+          >
+            ✕
+          </button>
         </div>
 
-        {/* Table from RateBoard */}
-        <div style={{ overflow: "auto", flex: 1 }}>
-          <RateBoard
-            style={style === "Multi Currency Style" ? "Normal Monitor - Multi Currency Style" : style}
-            rates={computedRates}
-          />
+        {/* Rate table */}
+        <div className="overflow-auto p-2 bg-white max-h-[75vh]">
+          <RateBoard style={style} rates={computedRates} />
         </div>
       </div>
     </div>
