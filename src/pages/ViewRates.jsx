@@ -6,21 +6,16 @@ import moolaLogo from "../assets/moola-logo.png";
 const ViewRates = () => {
   const [style, setStyle] = useState("Normal Monitor Style");
   const [rates, setRates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     axios
       .get("/api/v1/view-rates")
       .then((res) => {
-        setStyle(res.data.style);
-        setRates(res.data.rates || []);
-        setLoading(false);
+        setStyle(res.data?.style || "Normal Monitor Style");
+        setRates(res.data?.rates || []);
       })
       .catch((err) => {
         console.error("Failed to fetch rates:", err);
-        setError("Failed to fetch rates.");
-        setLoading(false);
       });
   }, []);
 
