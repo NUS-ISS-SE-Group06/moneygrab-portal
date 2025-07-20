@@ -1,90 +1,76 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
+import PropTypes from "prop-types";
 import RateBoard from "./RateBoard";
-import moolaLogo from "../../assets/moola-logo.png";
 
-const PreviewModal = ({ style = "Normal Monitor Style", computedRates = [], onClose }) => {
+const PreviewModal = ({ style, computedRates = [], onClose }) => {
   const modalRef = useRef(null);
+  const offset = useRef({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
-  const [relX, setRelX] = useState(0);
-  const [relY, setRelY] = useState(0);
-  const [modalPosition, setModalPosition] = useState({ x: 100, y: 100 });
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!dragging) return;
-      setModalPosition({
-        x: e.clientX - relX,
-        y: e.clientY - relY,
-      });
-    };
-
-    const handleMouseUp = () => setDragging(false);
-
-    if (dragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [dragging, relX, relY]);
+  const [position, setPosition] = useState({ x: 100, y: 100 });
 
   const handleMouseDown = (e) => {
-    const rect = modalRef.current?.getBoundingClientRect();
-    if (rect) {
-      setRelX(e.clientX - rect.left);
-      setRelY(e.clientY - rect.top);
-      setDragging(true);
+    setDragging(true);
+    offset.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e) => {
+    if (dragging) {
+      const newX = e.clientX - offset.current.x;
+      const newY = e.clientY - offset.current.y;
+      setPosition({ x: newX, y: newY });
     }
   };
 
-  const handleClose = () => {
-    if (onClose) onClose();
-  };
+  const handleMouseUp = () => setDragging(false);
 
   return (
     <div
-      style={{
-        position: "fixed",
-        left: `${modalPosition.x}px`,
-        top: `${modalPosition.y}px`,
-        width: "85%",
-        height: "auto",
-        maxHeight: "90%",
-        zIndex: 1000,
-      }}
+      role="dialog"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-start justify-start"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
     >
       <div
         ref={modalRef}
-        className="bg-white shadow-xl rounded-xl border border-gray-400 w-full flex flex-col overflow-hidden"
+        className="bg-white border rounded shadow-lg w-[95%] max-w-[90vw] max-h-[90vh] overflow-auto"
+        style={{
+          position: "absolute",
+          left: position.x,
+          top: position.y,
+          cursor: dragging ? "grabbing" : "default",
+        }}
       >
-        {/* Header with logo and close button */}
         <div
-          className="cursor-move bg-gray-100 px-4 py-2 flex justify-between items-center"
           onMouseDown={handleMouseDown}
+          className="bg-gray-100 p-2 border-b cursor-move flex justify-between items-center"
         >
-          <div className="flex items-center space-x-3">
-            <img src={moolaLogo} alt="Company Logo" style={{ height: 28 }} />
-            <h2 className="text-xl font-bold">Preview Rates - {style}</h2>
-          </div>
+          <h2 className="text-lg font-semibold">Preview Rates - {style}</h2>
           <button
-            onClick={handleClose}
-            className="text-gray-700 hover:text-red-500 font-bold text-lg"
-            aria-label="Close Preview Modal"
+            onClick={onClose}
+            aria-label="Close modal"
+            className="text-gray-700 text-lg font-bold px-2 hover:text-red-500"
           >
             ✕
           </button>
         </div>
-
-        {/* Rate table */}
-        <div className="overflow-auto p-2 bg-white max-h-[75vh]">
-          <RateBoard style={style} rates={computedRates} />
+        <div className="p-2">
+          <RateBoard rates={computedRates} style={style} />
         </div>
       </div>
     </div>
   );
 };
 
+PreviewModal.propTypes = {
+  style: PropTypes.string.isRequired,
+  computedRates: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
 export default PreviewModal;
+
