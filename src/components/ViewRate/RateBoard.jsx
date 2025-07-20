@@ -2,14 +2,12 @@ import React from "react";
 import PropTypes from "prop-types";
 import Flags from "react-world-flags";
 
-// Helper: convert first 2 letters of currency to country code
 const getCountryCode = (currencyCode) => {
   if (!currencyCode || currencyCode.length < 3) return "UN";
   const code = currencyCode.substring(0, 2).toUpperCase();
   return /^[A-Z]{2}$/.test(code) ? code : "UN";
 };
 
-// Utility to get rate value from nested object or fallback
 const getNestedValue = (rate, key) => rate?.rateValues?.[key] ?? rate?.[key] ?? "-";
 
 const RateBoard = ({ rates, style }) => {
@@ -118,14 +116,12 @@ const RateBoard = ({ rates, style }) => {
     const right = rates.filter((_, i) => i % 2 === 1);
     const maxLength = Math.max(left.length, right.length);
 
-    const renderCell = (rate, idSuffix) => {
+    const renderCell = (rate, idx) => {
       if (!rate) {
-        return Array.from({ length: 5 }, (_, idx) => (
-          <td key={`empty-${idSuffix}-${idx}`} className="p-2" />
-        ));
+        return Array.from({ length: 5 }, (_, i) => <td key={`empty-${idx}-${i}`} className="p-2" />);
       }
       return (
-        <React.Fragment key={`${rate.currencyCode}-${rate.unit}-${idSuffix}`}>
+        <React.Fragment key={`${rate.currencyCode}-${rate.unit}`}>
           <td className="p-2">
             <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 30, height: 20 }} />
           </td>
@@ -142,32 +138,25 @@ const RateBoard = ({ rates, style }) => {
         <table className="min-w-full bg-white border text-sm">
           <thead className="bg-gray-200">
             <tr>
-              <th className="p-2 text-left">Flag</th>
-              <th className="p-2 text-left">Currency</th>
-              <th className="p-2 text-left">Unit</th>
-              <th className="p-2 text-left">Buy</th>
-              <th className="p-2 text-left">Sell</th>
-              <th className="p-2 text-left">Flag</th>
-              <th className="p-2 text-left">Currency</th>
-              <th className="p-2 text-left">Unit</th>
-              <th className="p-2 text-left">Buy</th>
-              <th className="p-2 text-left">Sell</th>
+              <th className="p-2">Flag</th>
+              <th className="p-2">Currency</th>
+              <th className="p-2">Unit</th>
+              <th className="p-2">Buy</th>
+              <th className="p-2">Sell</th>
+              <th className="p-2">Flag</th>
+              <th className="p-2">Currency</th>
+              <th className="p-2">Unit</th>
+              <th className="p-2">Buy</th>
+              <th className="p-2">Sell</th>
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: maxLength }).map((_, i) => {
-              const leftRate = left[i];
-              const rightRate = right[i];
-              const leftKey = leftRate ? `${leftRate.currencyCode}-${leftRate.unit}` : `empty-L-${i}`;
-              const rightKey = rightRate ? `${rightRate.currencyCode}-${rightRate.unit}` : `empty-R-${i}`;
-              const rowKey = `row-${leftKey}-${rightKey}`;
-              return (
-                <tr key={rowKey} className="even:bg-gray-50 odd:bg-white">
-                  {renderCell(leftRate, leftKey)}
-                  {renderCell(rightRate, rightKey)}
-                </tr>
-              );
-            })}
+            {Array.from({ length: maxLength }).map((_, i) => (
+              <tr key={`row-${left[i]?.currencyCode || "empty"}-${right[i]?.currencyCode || "empty"}`} className="even:bg-gray-50 odd:bg-white">
+                {renderCell(left[i], `L-${i}`)}
+                {renderCell(right[i], `R-${i}`)}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
