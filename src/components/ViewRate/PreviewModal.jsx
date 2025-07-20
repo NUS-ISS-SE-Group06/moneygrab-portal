@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
-import RateBoard from "../components/RateBoard";
-import moolaLogo from "../assets/moola-logo.png";
+import RateBoard from "./RateBoard"; // correct relative path
+import moolaLogo from "../../assets/moola-logo.png"; // correct relative path
 
 const PreviewModal = ({ style, computedRates = [], onClose }) => {
   const modalRef = useRef(null);
@@ -21,6 +21,17 @@ const PreviewModal = ({ style, computedRates = [], onClose }) => {
     setDrag((d) => ({ ...d, dragging: false }));
     window.removeEventListener("mousemove", onDrag);
     window.removeEventListener("mouseup", stopDrag);
+  };
+
+  const onKeyDownDrag = (e) => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      // Use the mouse coordinates for the keyboard start drag (optional)
+      // Here just start drag with 0 offsets or implement custom keyboard drag logic if needed
+      setDrag((d) => ({ ...d, startX: 0, startY: 0, dragging: true }));
+      window.addEventListener("mousemove", onDrag);
+      window.addEventListener("mouseup", stopDrag);
+    }
   };
 
   return (
@@ -53,7 +64,12 @@ const PreviewModal = ({ style, computedRates = [], onClose }) => {
       >
         {/* Header */}
         <div
+          role="button"
+          tabIndex={0}
           onMouseDown={startDrag}
+          onKeyDown={onKeyDownDrag}
+          aria-pressed={drag.dragging}
+          aria-label="Drag modal"
           style={{
             cursor: drag.dragging ? "grabbing" : "grab",
             padding: "10px 16px",
@@ -80,6 +96,7 @@ const PreviewModal = ({ style, computedRates = [], onClose }) => {
                 fontWeight: "bold",
                 cursor: "pointer",
               }}
+              aria-label="Close preview modal"
             >
               &times;
             </button>
