@@ -1,18 +1,16 @@
 import React from "react";
+import PropTypes from "prop-types";
 import Flags from "react-world-flags";
 
 // Helper: convert first 2 letters of currency to country code
 const getCountryCode = (currencyCode) => {
   if (!currencyCode || currencyCode.length < 3) return "UN";
   const code = currencyCode.substring(0, 2).toUpperCase();
-  if (/^[A-Z]{2}$/.test(code)) return code;
-  return "UN";
+  return /^[A-Z]{2}$/.test(code) ? code : "UN";
 };
 
 // Utility to get rate value from nested object or fallback
-const getNestedValue = (rate, key) => {
-  return rate?.rateValues?.[key] ?? rate?.[key] ?? "-";
-};
+const getNestedValue = (rate, key) => rate?.rateValues?.[key] ?? rate?.[key] ?? "-";
 
 const RateBoard = ({ rates, style }) => {
   const renderNormal = () => (
@@ -30,11 +28,8 @@ const RateBoard = ({ rates, style }) => {
         <tbody>
           {rates.map((rate) => {
             const key = `${rate.currencyCode}-${rate.unit}`;
-            const buy = getNestedValue(rate, "buyRate");
-            const sell = getNestedValue(rate, "sellRate");
-            const fallbackBuy = getNestedValue(rate, "rtBid");
-            const fallbackSell = getNestedValue(rate, "rtAsk");
-
+            const buy = getNestedValue(rate, "buyRate") !== "-" ? getNestedValue(rate, "buyRate") : getNestedValue(rate, "rtBid");
+            const sell = getNestedValue(rate, "sellRate") !== "-" ? getNestedValue(rate, "sellRate") : getNestedValue(rate, "rtAsk");
             return (
               <tr key={key} className="even:bg-gray-50 odd:bg-white">
                 <td className="p-2">
@@ -42,8 +37,8 @@ const RateBoard = ({ rates, style }) => {
                 </td>
                 <td className="p-2">{rate.currencyCode}</td>
                 <td className="p-2">{rate.unit}</td>
-                <td className="p-2">{buy !== "-" ? buy : fallbackBuy}</td>
-                <td className="p-2">{sell !== "-" ? sell : fallbackSell}</td>
+                <td className="p-2">{buy}</td>
+                <td className="p-2">{sell}</td>
               </tr>
             );
           })}
@@ -62,6 +57,7 @@ const RateBoard = ({ rates, style }) => {
             <th className="p-1">Unit</th>
             <th className="p-1">Trade Type</th>
             <th className="p-1">Deno</th>
+            <th className="p-1">Rounding</th>
             <th className="p-1">RawBid</th>
             <th className="p-1">RawAsk</th>
             <th className="p-1">Spread</th>
@@ -91,7 +87,8 @@ const RateBoard = ({ rates, style }) => {
                 <td className="p-1">{rate.currencyCode}</td>
                 <td className="p-1">{rate.unit}</td>
                 <td className="p-1">{rate.tradeType ?? "-"}</td>
-                <td className="p-1">{rate.deno ?? "1"}</td>
+                <td className="p-1">{rate.deno ?? "-"}</td>
+                <td className="p-1">{rate.rounding ?? "-"}</td>
                 <td className="p-1">{getNestedValue(rate, "rawBid")}</td>
                 <td className="p-1">{getNestedValue(rate, "rawAsk")}</td>
                 <td className="p-1">{getNestedValue(rate, "spread")}</td>
@@ -121,13 +118,12 @@ const RateBoard = ({ rates, style }) => {
     const right = rates.filter((_, i) => i % 2 === 1);
     const maxLength = Math.max(left.length, right.length);
 
-    const renderCell = (rate) => {
+    const renderCell = (rate, idx) => {
       if (!rate) {
-        return Array(5).fill(null).map((_, i) => <td key={i} className="p-2" />);
+        return Array.from({ length: 5 }, (_, i) => <td key={`empty-${idx}-${i}`} className="p-2" />);
       }
-      const key = `${rate.currencyCode}-${rate.unit}`;
       return (
-        <>
+        <React.Fragment key={`${rate.currencyCode}-${rate.unit}`}>
           <td className="p-2">
             <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 30, height: 20 }} />
           </td>
@@ -135,7 +131,7 @@ const RateBoard = ({ rates, style }) => {
           <td className="p-2">{rate.unit}</td>
           <td className="p-2">{getNestedValue(rate, "wsBid")}</td>
           <td className="p-2">{getNestedValue(rate, "wsAsk")}</td>
-        </>
+        </React.Fragment>
       );
     };
 
@@ -144,23 +140,23 @@ const RateBoard = ({ rates, style }) => {
         <table className="min-w-full bg-white border text-sm">
           <thead className="bg-gray-200">
             <tr>
-              <th className="p-2 w-[120px] pl-4 text-left">Flag</th>
-              <th className="p-2 w-[120px] text-left">Currency</th>
-              <th className="p-2 w-[80px] text-left">Unit</th>
-              <th className="p-2 w-[100px] text-left">Buy</th>
-              <th className="p-2 w-[100px] text-left">Sell</th>
-              <th className="p-2 w-[120px] pl-4 text-left">Flag</th>
-              <th className="p-2 w-[120px] text-left">Currency</th>
-              <th className="p-2 w-[80px] text-left">Unit</th>
-              <th className="p-2 w-[100px] text-left">Buy</th>
-              <th className="p-2 w-[100px] text-left">Sell</th>
+              <th className="p-2 text-left">Flag</th>
+              <th className="p-2 text-left">Currency</th>
+              <th className="p-2 text-left">Unit</th>
+              <th className="p-2 text-left">Buy</th>
+              <th className="p-2 text-left">Sell</th>
+              <th className="p-2 text-left">Flag</th>
+              <th className="p-2 text-left">Currency</th>
+              <th className="p-2 text-left">Unit</th>
+              <th className="p-2 text-left">Buy</th>
+              <th className="p-2 text-left">Sell</th>
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: maxLength }).map((_, i) => (
-              <tr key={i} className="even:bg-gray-50 odd:bg-white">
-                {renderCell(left[i])}
-                {renderCell(right[i])}
+              <tr key={`row-${i}`} className="even:bg-gray-50 odd:bg-white">
+                {renderCell(left[i], `L-${i}`)}
+                {renderCell(right[i], `R-${i}`)}
               </tr>
             ))}
           </tbody>
@@ -172,6 +168,11 @@ const RateBoard = ({ rates, style }) => {
   if (style.includes("Extended")) return renderExtended();
   if (style.includes("Multi")) return renderMultiCurrency();
   return renderNormal();
+};
+
+RateBoard.propTypes = {
+  rates: PropTypes.arrayOf(PropTypes.object).isRequired,
+  style: PropTypes.string.isRequired,
 };
 
 export default RateBoard;
