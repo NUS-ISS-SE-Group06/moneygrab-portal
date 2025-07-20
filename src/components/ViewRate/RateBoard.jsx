@@ -118,12 +118,14 @@ const RateBoard = ({ rates, style }) => {
     const right = rates.filter((_, i) => i % 2 === 1);
     const maxLength = Math.max(left.length, right.length);
 
-    const renderCell = (rate, idx) => {
+    const renderCell = (rate, idSuffix) => {
       if (!rate) {
-        return Array.from({ length: 5 }, (_, i) => <td key={`empty-${idx}-${i}`} className="p-2" />);
+        return Array.from({ length: 5 }, (_, idx) => (
+          <td key={`empty-${idSuffix}-${idx}`} className="p-2" />
+        ));
       }
       return (
-        <React.Fragment key={`${rate.currencyCode}-${rate.unit}`}>
+        <React.Fragment key={`${rate.currencyCode}-${rate.unit}-${idSuffix}`}>
           <td className="p-2">
             <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 30, height: 20 }} />
           </td>
@@ -153,12 +155,19 @@ const RateBoard = ({ rates, style }) => {
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: maxLength }).map((_, i) => (
-              <tr key={`row-${i}`} className="even:bg-gray-50 odd:bg-white">
-                {renderCell(left[i], `L-${i}`)}
-                {renderCell(right[i], `R-${i}`)}
-              </tr>
-            ))}
+            {Array.from({ length: maxLength }).map((_, i) => {
+              const leftRate = left[i];
+              const rightRate = right[i];
+              const leftKey = leftRate ? `${leftRate.currencyCode}-${leftRate.unit}` : `empty-L-${i}`;
+              const rightKey = rightRate ? `${rightRate.currencyCode}-${rightRate.unit}` : `empty-R-${i}`;
+              const rowKey = `row-${leftKey}-${rightKey}`;
+              return (
+                <tr key={rowKey} className="even:bg-gray-50 odd:bg-white">
+                  {renderCell(leftRate, leftKey)}
+                  {renderCell(rightRate, rightKey)}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
