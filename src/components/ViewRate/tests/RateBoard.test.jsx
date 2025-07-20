@@ -1,7 +1,7 @@
 // RateBoard.test.jsx
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
-import RateBoard from './RateBoard';
+import RateBoard from '../RateBoard';
 
 const sampleRates = [
   {
