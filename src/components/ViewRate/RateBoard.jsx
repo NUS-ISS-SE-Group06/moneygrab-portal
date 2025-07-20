@@ -1,22 +1,17 @@
 import React from "react";
 import Flags from "react-world-flags";
 
-// Helper: derive country code by stripping last char of currency code
-// If currencyCode is less than 3 chars or undefined, fallback to "UN"
+// Helper: convert first 2 letters of currency to country code
 const getCountryCode = (currencyCode) => {
   if (!currencyCode || currencyCode.length < 3) return "UN";
-  // Strip last char: "AED" -> "AE"
   const code = currencyCode.substring(0, 2).toUpperCase();
-  // Only return if code is exactly 2 uppercase letters, else fallback
   if (/^[A-Z]{2}$/.test(code)) return code;
   return "UN";
 };
 
-// Utility to safely get nested rateValues property or fallback
+// Utility to get rate value from nested object or fallback
 const getNestedValue = (rate, key) => {
-  if (rate.rateValues && rate.rateValues[key] !== undefined && rate.rateValues[key] !== null)
-    return rate.rateValues[key];
-  return rate[key];
+  return rate?.rateValues?.[key] ?? rate?.[key] ?? "-";
 };
 
 const RateBoard = ({ rates, style }) => {
@@ -33,24 +28,25 @@ const RateBoard = ({ rates, style }) => {
           </tr>
         </thead>
         <tbody>
-          {rates.map((rate, index) => (
-            <tr key={index} className="even:bg-gray-50 odd:bg-white">
-              <td className="p-2">
-                <Flags
-                  code={getCountryCode(rate.currencyCode)}
-                  style={{ width: 30, height: 20 }}
-                />
-              </td>
-              <td className="p-2">{rate.currencyCode}</td>
-              <td className="p-2">{rate.unit}</td>
-              <td className="p-2">
-                {getNestedValue(rate, "buyRate") ?? getNestedValue(rate, "rtBid") ?? "-"}
-              </td>
-              <td className="p-2">
-                {getNestedValue(rate, "sellRate") ?? getNestedValue(rate, "rtAsk") ?? "-"}
-              </td>
-            </tr>
-          ))}
+          {rates.map((rate) => {
+            const key = `${rate.currencyCode}-${rate.unit}`;
+            const buy = getNestedValue(rate, "buyRate");
+            const sell = getNestedValue(rate, "sellRate");
+            const fallbackBuy = getNestedValue(rate, "rtBid");
+            const fallbackSell = getNestedValue(rate, "rtAsk");
+
+            return (
+              <tr key={key} className="even:bg-gray-50 odd:bg-white">
+                <td className="p-2">
+                  <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 30, height: 20 }} />
+                </td>
+                <td className="p-2">{rate.currencyCode}</td>
+                <td className="p-2">{rate.unit}</td>
+                <td className="p-2">{buy !== "-" ? buy : fallbackBuy}</td>
+                <td className="p-2">{sell !== "-" ? sell : fallbackSell}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -85,36 +81,36 @@ const RateBoard = ({ rates, style }) => {
           </tr>
         </thead>
         <tbody>
-          {rates.map((rate, index) => (
-            <tr key={index} className="even:bg-gray-50 odd:bg-white">
-              <td className="p-1">
-                <Flags
-                  code={getCountryCode(rate.currencyCode)}
-                  style={{ width: 24, height: 16 }}
-                />
-              </td>
-              <td className="p-1">{rate.currencyCode}</td>
-              <td className="p-1">{rate.unit}</td>
-              <td className="p-1">{rate.tradeType ?? "-"}</td>
-              <td className="p-1">{rate.deno ?? "1"}</td>
-              <td className="p-1">{getNestedValue(rate, "rawBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "rawAsk") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "spread") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "skew") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "wsBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "wsAsk") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "refBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "dpBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "marBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "cfBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "rtBid") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "refAsk") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "dpAsk") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "marAsk") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "cfAsk") ?? "-"}</td>
-              <td className="p-1">{getNestedValue(rate, "rtAsk") ?? "-"}</td>
-            </tr>
-          ))}
+          {rates.map((rate) => {
+            const key = `${rate.currencyCode}-${rate.unit}`;
+            return (
+              <tr key={key} className="even:bg-gray-50 odd:bg-white">
+                <td className="p-1">
+                  <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 24, height: 16 }} />
+                </td>
+                <td className="p-1">{rate.currencyCode}</td>
+                <td className="p-1">{rate.unit}</td>
+                <td className="p-1">{rate.tradeType ?? "-"}</td>
+                <td className="p-1">{rate.deno ?? "1"}</td>
+                <td className="p-1">{getNestedValue(rate, "rawBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "rawAsk")}</td>
+                <td className="p-1">{getNestedValue(rate, "spread")}</td>
+                <td className="p-1">{getNestedValue(rate, "skew")}</td>
+                <td className="p-1">{getNestedValue(rate, "wsBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "wsAsk")}</td>
+                <td className="p-1">{getNestedValue(rate, "refBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "dpBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "marBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "cfBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "rtBid")}</td>
+                <td className="p-1">{getNestedValue(rate, "refAsk")}</td>
+                <td className="p-1">{getNestedValue(rate, "dpAsk")}</td>
+                <td className="p-1">{getNestedValue(rate, "marAsk")}</td>
+                <td className="p-1">{getNestedValue(rate, "cfAsk")}</td>
+                <td className="p-1">{getNestedValue(rate, "rtAsk")}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -129,6 +125,7 @@ const RateBoard = ({ rates, style }) => {
       if (!rate) {
         return Array(5).fill(null).map((_, i) => <td key={i} className="p-2" />);
       }
+      const key = `${rate.currencyCode}-${rate.unit}`;
       return (
         <>
           <td className="p-2">
@@ -136,8 +133,8 @@ const RateBoard = ({ rates, style }) => {
           </td>
           <td className="p-2">{rate.currencyCode}</td>
           <td className="p-2">{rate.unit}</td>
-          <td className="p-2">{getNestedValue(rate, "wsBid") ?? "-"}</td>
-          <td className="p-2">{getNestedValue(rate, "wsAsk") ?? "-"}</td>
+          <td className="p-2">{getNestedValue(rate, "wsBid")}</td>
+          <td className="p-2">{getNestedValue(rate, "wsAsk")}</td>
         </>
       );
     };
