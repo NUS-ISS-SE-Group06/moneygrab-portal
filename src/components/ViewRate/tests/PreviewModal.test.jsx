@@ -1,7 +1,7 @@
 // PreviewModal.test.jsx
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import PreviewModal from '../../modals/PreviewModal';
+import PreviewModal from '../PreviewModal';
 
 const mockOnClose = jest.fn();
 
@@ -41,6 +41,10 @@ const sampleRates = [
 ];
 
 describe('PreviewModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('renders Normal Monitor Style correctly', () => {
     render(<PreviewModal style="Normal Monitor Style" computedRates={sampleRates} onClose={mockOnClose} />);
     expect(screen.getByText('Preview Rates - Normal Monitor Style')).toBeInTheDocument();
@@ -75,7 +79,7 @@ describe('PreviewModal', () => {
 
   test('calls onClose when close button is clicked', () => {
     render(<PreviewModal style="Normal Monitor Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    const closeButton = screen.getByRole('button', { name: '×' });
+    const closeButton = screen.getByRole('button', { name: 'Close preview modal' }); // updated here
     fireEvent.click(closeButton);
     expect(mockOnClose).toHaveBeenCalled();
   });
@@ -91,7 +95,7 @@ describe('PreviewModal', () => {
   test('fallback gracefully with unknown style', () => {
     render(<PreviewModal style="Unknown Style" computedRates={sampleRates} onClose={mockOnClose} />);
     expect(screen.getByText('Preview Rates - Unknown Style')).toBeInTheDocument();
-    expect(screen.getByText('USD')).toBeInTheDocument(); // fallback to Normal
-    expect(screen.getByText('2.0001')).toBeInTheDocument();
+    expect(screen.getByText('USD')).toBeInTheDocument(); // fallback renders USD
+    expect(screen.getByText('2.0001')).toBeInTheDocument(); // USD rtAsk
   });
 });

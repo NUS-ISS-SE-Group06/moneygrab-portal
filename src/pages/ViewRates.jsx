@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axios.js";
-import RateBoard from "../components/RateBoard.jsx";
+import RateBoard from "../components/ViewRate/RateBoard.jsx";
 import moolaLogo from "../assets/moola-logo.png";
 
 const ViewRates = () => {

@@ -4,7 +4,7 @@ import api from "../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
 import { format } from "date-fns";
-import PreviewModal from '../modals/PreviewModal'; // adjust path if needed
+import PreviewModal from '../components/ViewRate/PreviewModal'// adjust path if needed
 const styleOptions = [
   "Normal Monitor Style",
   "Extended Monitor Style",
