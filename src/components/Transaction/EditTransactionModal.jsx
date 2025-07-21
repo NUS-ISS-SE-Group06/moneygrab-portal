@@ -51,9 +51,9 @@ const EditTransactionModal = ({ transaction, onClose, onSave, userId }) => {
         {/* Form */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600">Date</label>
+            <label className="block text-sm font-medium text-gray-600" htmlFor="date">Date</label>
             <input
-              className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+              id="date" className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
               value={new Date(transaction.transactionDate).toLocaleDateString("en-GB", {
                 day: "2-digit", month: "short", year: "numeric"
               })}
@@ -61,25 +61,25 @@ const EditTransactionModal = ({ transaction, onClose, onSave, userId }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600">Current Status</label>
+            <label className="block text-sm font-medium text-gray-600" htmlFor="status">Current Status</label>
             <input
-              className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+              id="status" className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
               value={transaction.currentStatus}
               disabled
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600">Customer Name</label>
+            <label className="block text-sm font-medium text-gray-600" htmlFor="customername">Customer Name</label>
             <input
-              className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+              id="customername" className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
               value={transaction.customerName || "-"}
               disabled
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600">Currency</label>
+            <label className="block text-sm font-medium text-gray-600" htmlFor="currency">Currency</label>
             <input
-              className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+              id="currency" className="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
               value={`${transaction.foreignAmount} SGD to ${transaction.sgdAmount} MYR`}
               disabled
             />
