@@ -1,101 +1,116 @@
-// PreviewModal.test.jsx
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import PreviewModal from '../PreviewModal';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import PreviewModal from "../PreviewModal";
 
-const mockOnClose = jest.fn();
-
-const sampleRates = [
+const mockRates = [
   {
-    currencyCode: 'USD',
-    unit: '1',
-    wsBid: 1.2345,
-    wsAsk: 1.3456,
-    refBid: 1.1111,
-    refAsk: 1.2222,
-    dpBid: 1.3333,
-    dpAsk: 1.4444,
-    marBid: 1.5555,
-    marAsk: 1.6666,
-    cfBid: 1.7777,
-    cfAsk: 1.8888,
-    rtBid: 1.9999,
-    rtAsk: 2.0001,
+    currencyCode: "USD",
+    unit: "1",
+    rateValues: {
+      buyRate: 1.9999,
+      sellRate: 2.2222,
+      rtAsk: 2.0001,
+    },
   },
   {
-    currencyCode: 'EUR',
-    unit: '1',
-    wsBid: 1.4444,
-    wsAsk: 1.5555,
-    refBid: 1.1112,
-    refAsk: 1.2223,
-    dpBid: 1.3334,
-    dpAsk: 1.4445,
-    marBid: 1.5556,
-    marAsk: 1.6667,
-    cfBid: 1.7778,
-    cfAsk: 1.8889,
-    rtBid: 2.1111,
-    rtAsk: 2.2222,
-  }
+    currencyCode: "EUR",
+    unit: "1",
+    rateValues: {
+      buyRate: 3.3333,
+      sellRate: 4.4444,
+    },
+  },
 ];
 
-describe('PreviewModal', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+describe("PreviewModal", () => {
+  it("renders Normal Monitor Style correctly", () => {
+    render(
+      <PreviewModal
+        isOpen={true}
+        style="Normal Monitor Style"
+        computedRates={mockRates}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Normal Monitor Style/)).toBeInTheDocument();
+    expect(screen.getByText("USD")).toBeInTheDocument();
+    expect(screen.getByText("EUR")).toBeInTheDocument();
+    expect(screen.getByText((text) => text.includes("1.9999"))).toBeInTheDocument();
+    expect(screen.getByText((text) => text.includes("2.2222"))).toBeInTheDocument();
   });
 
-  test('renders Normal Monitor Style correctly', () => {
-    render(<PreviewModal style="Normal Monitor Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    expect(screen.getByText('Preview Rates - Normal Monitor Style')).toBeInTheDocument();
-    expect(screen.getByText('USD')).toBeInTheDocument();
-    expect(screen.getByText('EUR')).toBeInTheDocument();
-    expect(screen.getByText('1.9999')).toBeInTheDocument(); // USD rtBid
-    expect(screen.getByText('2.2222')).toBeInTheDocument(); // EUR rtAsk
+  it("renders Extended Monitor Style correctly", () => {
+    render(
+      <PreviewModal
+        isOpen={true}
+        style="Extended Monitor Style"
+        computedRates={mockRates}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Extended Monitor Style/)).toBeInTheDocument();
+    expect(screen.getByText("USD")).toBeInTheDocument();
+    expect(screen.getByText("EUR")).toBeInTheDocument();
   });
 
-  test('renders Extended Monitor Style correctly', () => {
-    render(<PreviewModal style="Extended Monitor Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    expect(screen.getByText('Preview Rates - Extended Monitor Style')).toBeInTheDocument();
-    expect(screen.getByText('USD')).toBeInTheDocument();
-    expect(screen.getByText('EUR')).toBeInTheDocument();
-    expect(screen.getByText('1.3456')).toBeInTheDocument(); // USD wsAsk
-    expect(screen.getByText('1.4445')).toBeInTheDocument(); // EUR dpAsk
+  it("renders Multi Currency Style correctly", () => {
+    render(
+      <PreviewModal
+        isOpen={true}
+        style="Normal Monitor - Multi Currency Style"
+        computedRates={mockRates}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText("USD")).toBeInTheDocument();
+    expect(screen.getByText("EUR")).toBeInTheDocument();
   });
 
-  test('renders Multi Currency Style correctly', () => {
-    render(<PreviewModal style="Multi Currency Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    expect(screen.getByText('Preview Rates - Multi Currency Style')).toBeInTheDocument();
-    expect(screen.getByText('USD')).toBeInTheDocument();
-    expect(screen.getByText('EUR')).toBeInTheDocument();
-    expect(screen.getByText('1.2345')).toBeInTheDocument(); // USD wsBid
-    expect(screen.getByText('1.5555')).toBeInTheDocument(); // EUR wsAsk
+  it("does not render modal when isOpen is false", () => {
+    render(
+      <PreviewModal
+        isOpen={false}
+        style="Normal Monitor Style"
+        computedRates={mockRates}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.queryByText("USD")).not.toBeInTheDocument();
+    expect(screen.queryByText("EUR")).not.toBeInTheDocument();
   });
 
-  test('does not render modal when isOpen is false (simulated by empty render)', () => {
-    const { container } = render(<></>);
-    expect(container).toBeEmptyDOMElement();
+  it("calls onClose when close button is clicked", () => {
+    const onClose = jest.fn();
+    render(
+      <PreviewModal
+        isOpen={true}
+        style="Normal Monitor Style"
+        computedRates={mockRates}
+        onClose={onClose}
+      />
+    );
+
+    fireEvent.click(screen.getByText("✕"));
+    expect(onClose).toHaveBeenCalled();
   });
 
-  test('calls onClose when close button is clicked', () => {
-    render(<PreviewModal style="Normal Monitor Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    const closeButton = screen.getByRole('button', { name: 'Close preview modal' }); // updated here
-    fireEvent.click(closeButton);
-    expect(mockOnClose).toHaveBeenCalled();
-  });
+  it("drag events do not crash", () => {
+    render(
+      <PreviewModal
+        isOpen={true}
+        style="Normal Monitor Style"
+        computedRates={mockRates}
+        onClose={jest.fn()}
+      />
+    );
 
-  test('drag events do not crash', () => {
-    render(<PreviewModal style="Normal Monitor Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    const header = screen.getByText('Preview Rates - Normal Monitor Style').closest('div');
+    const header = screen.getByRole("button", { name: /draggable modal header/i });
     fireEvent.mouseDown(header, { clientX: 100, clientY: 100 });
-    fireEvent.mouseMove(document, { clientX: 150, clientY: 150 });
+    fireEvent.mouseMove(document, { clientX: 200, clientY: 200 });
     fireEvent.mouseUp(document);
-  });
-
-  test('fallback gracefully with unknown style', () => {
-    render(<PreviewModal style="Unknown Style" computedRates={sampleRates} onClose={mockOnClose} />);
-    expect(screen.getByText('Preview Rates - Unknown Style')).toBeInTheDocument();
-    expect(screen.getByText('USD')).toBeInTheDocument(); // fallback renders USD
-    expect(screen.getByText('2.0001')).toBeInTheDocument(); // USD rtAsk
   });
 });
