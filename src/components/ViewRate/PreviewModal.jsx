@@ -58,7 +58,6 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         cursor: dragging ? "grabbing" : "default",
       }}
       className="shadow-lg rounded bg-white overflow-auto"
-      role="dialog"
       aria-modal="true"
       aria-labelledby="previewModalTitle"
     >
@@ -67,7 +66,6 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         className="bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
         onMouseDown={handleDragStart}
         aria-label="Draggable modal header"
-        tabIndex={0}
       >
         <div className="flex items-center space-x-2">
           <img src={moolaLogo} alt="Moola Logo" className="w-8 h-8" />
