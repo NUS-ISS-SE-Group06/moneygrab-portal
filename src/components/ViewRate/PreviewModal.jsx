@@ -23,6 +23,7 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
@@ -57,16 +58,22 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         cursor: dragging ? "grabbing" : "default",
       }}
       className="shadow-lg rounded bg-white overflow-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="previewModalTitle"
     >
-      <div
+      <header
         ref={headerRef}
         className="bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
         onMouseDown={handleDragStart}
         aria-label="Draggable modal header"
+        tabIndex={0}
       >
         <div className="flex items-center space-x-2">
           <img src={moolaLogo} alt="Moola Logo" className="w-8 h-8" />
-          <h2 className="text-lg font-semibold">Preview Rates - {style}</h2>
+          <h2 id="previewModalTitle" className="text-lg font-semibold">
+            Preview Rates - {style}
+          </h2>
         </div>
         <button
           onClick={onClose}
@@ -75,7 +82,8 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         >
           ✕
         </button>
-      </div>
+      </header>
+
       <div className="p-2">
         <RateBoard rates={computedRates} style={style} />
       </div>
