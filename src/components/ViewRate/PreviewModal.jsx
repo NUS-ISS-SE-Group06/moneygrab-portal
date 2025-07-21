@@ -38,7 +38,6 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
     e.preventDefault();
   };
 
-  // ❗ Conditional rendering: don't show if not open
   if (!isOpen) return null;
 
   return (
@@ -63,7 +62,6 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         ref={headerRef}
         className="bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
         onMouseDown={handleDragStart}
-        role="presentation"
         aria-label="Draggable modal header"
       >
         <div className="flex items-center space-x-2">
