@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types"; 
 
 const roleOptions = [
   "Money Supplier Staff",
@@ -79,3 +80,15 @@ export default function EditAccountModal({
     </div>
   );
 }
+
+EditAccountModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  account: PropTypes.shape({
+    email: PropTypes.string,
+    company: PropTypes.string,
+    role: PropTypes.string,
+  }),
+  onSave: PropTypes.func.isRequired,
+  error: PropTypes.string,
+};

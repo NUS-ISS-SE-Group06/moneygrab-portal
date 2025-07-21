@@ -68,9 +68,12 @@ const ComputeRate = () => {
   const [rates, setRates] = useState([]);
   const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]);
   const [editingCell, setEditingCell] = useState({ row: null, field: null });
-  const [errorSubmit, setErrorSubmit] = useState(null);
-  const [submitSuccess, setSubmitSuccess] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorSave, setErrorSave] = useState(null);
+  const [errorRecompute, setErrorRecompute] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(null);
+  const [recomputeSuccess, setRecomputeSuccess] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isRecomputing, setIsRecomputing] = useState(false);
   const navigate = useNavigate();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); //added for preview rate
   const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);//added for preview rate
@@ -95,10 +98,10 @@ const ComputeRate = () => {
     return Promise.resolve(payload);
   };
 
-  const handleSubmit = async () => {
+  const handleRecompute = async () => {
     try {
-      setIsSubmitting(true);
-      setErrorSubmit("");
+      setIsRecomputing(true);
+      setErrorRecompute("");
       const errors = [];
 
       // Step 1: Merge raw FX rates into local rates
@@ -112,6 +115,7 @@ const ComputeRate = () => {
           processedBy: userId
         };
       });
+      
       
       // Step 2: Validate all records
       enhancedRates.forEach((rate, index) => {
@@ -142,28 +146,83 @@ const ComputeRate = () => {
       });
             
       if (errors.length > 0) {
-        setErrorSubmit("Please fill in all requird field correctly: \n" + errors.join("\n"));
+        setErrorRecompute("Please fill in all requird field correctly: \n" + errors.join("\n"));
         return;
       } 
 
      
       // Step 3: Post to Compute Lambda
-      setErrorSubmit("");
+      setErrorRecompute("");
       const computedRates = await postToComputeLambda(enhancedRates);
 
       // Step 4: Save final data
       const response = await api.post(`/api/v1/compute-rates/batch`, computedRates);
       setRates(response.data);
 
-      setSubmitSuccess("Rates computed and saved successfully.");
+      setRecomputeSuccess("Rates computed successfully.");
+
+    } catch (err) {
+      const message = err?.response?.data || err?.message || "Recompute failed.";
+      setErrorRecompute(message);
+    } finally {
+      setIsRecomputing(false);
+    }
+  };
+
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setErrorSave("");
+      const errors = [];
+      
+      // Step 1: Validate all records
+      rates.forEach((rate, index) => {
+        const hasError =
+          !rate.currencyCode || rate.currencyCode.trim() === "" ||
+          rate.moneyChangerId === null || rate.moneyChangerId === undefined ||
+          !rate.unit || rate.unit.trim() === "" ||
+          !rate.tradeType || rate.tradeType.trim() === "" ||
+          !rate.tradeDeno || rate.tradeDeno.trim() === "" ||
+          rate.tradeRound === null || rate.tradeRound === undefined ||
+          rate.rawBid === null || rate.rawBid === undefined || isNaN(rate.rawBid) || rate.rawBid <= 0 ||
+          rate.rawAsk === null || rate.rawAsk === undefined || isNaN(rate.rawAsk) || rate.rawAsk <= 0 ||
+          rate.spread === null || rate.spread === undefined || isNaN(rate.spread) ||
+          rate.skew === null || rate.skew === undefined || isNaN(rate.skew) ||
+          rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || ( rate.refBid !== 0 && rate.refBid !== 1) ||
+          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 5 ||
+          rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid) ||
+          rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid) ||
+          rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || ( rate.refAsk !== 0 && rate.refAsk !== 1) ||
+          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
+          rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
+          rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
+          
+        if (hasError) {
+          errors.push(` --> Row ${index+1} (${rate.currencyCode}) has error`);
+        }
+
+      });
+            
+      if (errors.length > 0) {
+        setErrorSave("Please fill in all requird field correctly: \n" + errors.join("\n"));
+        return;
+      } 
+
+      // Step 2: Save final data
+      const response = await api.post(`/api/v1/compute-rates/batch`, rates);
+      setRates(response.data);
+
+      setSaveSuccess("Rates saved successfully.");
 
     } catch (err) {
       const message = err?.response?.data || err?.message || "Submit failed.";
-      setErrorSubmit(message);
+      setErrorSave(message);
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
+
 
 
   useEffect(() => {
@@ -171,11 +230,18 @@ const ComputeRate = () => {
   }, [computeRates]);
 
   useEffect(() => {
-    if (submitSuccess) {
-      const timer = setTimeout(() => { setSubmitSuccess(""); }, 5000);
+    if (saveSuccess) {
+      const timer = setTimeout(() => { setSaveSuccess(""); }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [submitSuccess]);
+  }, [saveSuccess]);
+
+  useEffect(() => {
+  if (recomputeSuccess) {
+    const timer = setTimeout(() => setRecomputeSuccess(""), 5000);
+    return () => clearTimeout(timer);
+  }
+}, [recomputeSuccess]);
 
 
   const handleCellChange = (rowIndex, field, value) => {
@@ -204,25 +270,25 @@ const ComputeRate = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-1">
         
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
         </div>
 
-        {(errorSubmit || queryErrorComputeRate ) && (
+        {( errorRecompute || errorSave || queryErrorComputeRate?.message ) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{errorSubmit || queryErrorComputeRate?.message}</p>
+              <p className="whitespace-pre-line">{(errorRecompute || errorSave || queryErrorComputeRate?.message)}</p>
             </div>
           </div>
         )}
 
-        {submitSuccess  && (
+        {(saveSuccess || recomputeSuccess)  && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
-              <div className="text-green-600 font-medium mt-2">{submitSuccess}</div>
+              <div className="text-green-600 font-medium mt-2">{(saveSuccess || recomputeSuccess)}</div>
             </div>
           </div>
         )}
@@ -258,31 +324,30 @@ const ComputeRate = () => {
 
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded flex items-center gap-1"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
+              onClick={handleRecompute}
+              disabled={isRecomputing}
             >
-              {isSubmitting ? "Submitting..." : "+ Submit"}
+              {isRecomputing ? "Recomputing..." : "Recompute"}
+            </button>
+
+            <button
+              className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded flex items-center gap-1"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? "Submitting..." : "+ Submit"}
             </button>
           </div>
           )}
 
-          {/* *** PREVIEW MODAL INSERTED HERE *** */}
-                    {isPreviewOpen && (
-                      <PreviewModal
-                        style={previewStyle}
-                        computedRates={rates}
-                        onClose={() => setIsPreviewOpen(false)}
-                      />
-          )}
-
-          <div className="max-w-[1900px] bg-white shadow rounded overflow-auto">
-            <table className="w-full table-auto text-sm text-left border border-gray-300">
+          <div className="w-full bg-white shadow rounded overflow-auto">
+            <table className="table-auto text-sm text-left border border-gray-300">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
                   {Object.keys(headerRow[0])
                     .filter((header) => header !== "moneyChangerId")
                     .map((header) => (
-                    <th key={header} className="px-4 py-2 whitespace-nowrap">
+                    <th key={header} className="border border-grey-300 px-4 py-2 whitespace-nowrap">
                       {header}
                     </th>
                   ))}
@@ -290,13 +355,13 @@ const ComputeRate = () => {
               </thead>
               <tbody>
                 {rates.map((item, rowIndex) => (
-                  <tr key={`${item.currencyCode}-${item.moneyChangerId}`} className="even:bg-gray-50">
+                  <tr key={`${item.currencyCode}-${item.moneyChangerId}`} className="border border-grey-300 even:bg-gray-50">
                     {Object.entries(item)
                       .filter(([field]) => field !== "moneyChangerId")
                       .map(([field, value]) => (
                       <td
                         key={field}
-                        className={`px-4 py-2 cursor-pointer relative ${ isEditableField(field) ? "bg-yellow-100 hover:bg-yellow-200" : ""}`}
+                        className={`border border-grey-300 px-4 py-2 cursor-pointer relative ${ isEditableField(field) ? "bg-yellow-100 hover:bg-yellow-200" : ""}`}
                         onClick={() => isEditableField(field) && setEditingCell({ row: rowIndex, field })}
                       >
                         {(() => {
@@ -363,12 +428,12 @@ const ComputeRate = () => {
 
 
         <div className="mt-10">
-          <h2 className="text-lg font-bold mb-2">Field Descriptions</h2>
-          <table className="table-auto text-sm text-left border border-gray-300 bg-white shadow rounded">
+          <h2 className="text-sm font-bold mb-2">Field Descriptions</h2>
+          <table className="table-auto text-xs text-left border border-grey-300 bg-white shadow rounded">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <th className="px-4 py-2">Code</th>
-                <th className="px-4 py-2">Description</th>
+                <th className="border border-grey-300 px-4 py-2">Code</th>
+                <th className="border border-grey-300 px-4 py-2">Description</th>
               </tr>
             </thead>
             <tbody>
@@ -389,9 +454,10 @@ const ComputeRate = () => {
                 { code: (<span>RtBid / RtAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Final bid/ask rate after adjustments" },
       
               ].map(({ code, description }) => (
-                <tr key={code} className="even:bg-gray-50">
-                  <td className="px-4 py-2 font-medium">{code}</td>
-                  <td className="px-4 py-2">{description}</td>
+                <tr key={code} 
+                    className="even:bg-gray-50">
+                  <td className="border border-gray-300 px-4 py-2 font-medium">{code}</td>
+                  <td className="border border-gray-300 px-4 py-2">{description}</td>
                 </tr>
               ))}
             </tbody>

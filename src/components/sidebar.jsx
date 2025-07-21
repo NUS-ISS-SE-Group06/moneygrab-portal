@@ -12,7 +12,7 @@ const navItems = [
   { label: "Compute Rates", path: "/compute-rates" },
   { label: "View Rates", path: "/view-rates" },
   { label: "Currency Codes", path: "/currency-codes" },
-  { label: "Transactions", path: "/transactions" }
+  { label: "Transactions", path: "/transaction" }
 ];
 
 function Sidebar({ width }) {
@@ -95,7 +95,7 @@ export default function LayoutWithResizableSidebar() {
         onMouseDown={onMouseDown}
         style={{ zIndex: 10, userSelect: "none" }}
       />
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-10 overflow-x-auto">
         <Outlet />
       </main>
     </div>
