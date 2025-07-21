@@ -95,7 +95,7 @@ export default function LayoutWithResizableSidebar() {
         onMouseDown={onMouseDown}
         style={{ zIndex: 10, userSelect: "none" }}
       />
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-10 overflow-x-auto">
         <Outlet />
       </main>
     </div>
