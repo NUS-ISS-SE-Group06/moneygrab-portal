@@ -13,10 +13,9 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (dragging) {
-        setPosition({
-          x: e.clientX - offset.current.x,
-          y: e.clientY - offset.current.y,
-        });
+        const newX = e.clientX - offset.current.x;
+        const newY = e.clientY - offset.current.y;
+        setPosition({ x: newX, y: newY });
       }
     };
 
@@ -39,13 +38,6 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
     e.preventDefault();
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      headerRef.current?.focus();
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -65,26 +57,19 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         cursor: dragging ? "grabbing" : "default",
       }}
       className="shadow-lg rounded bg-white overflow-auto"
-      aria-labelledby="previewModalTitle"
     >
       <div
         ref={headerRef}
-        className="bg-gray-100 border-b flex justify-between items-center p-2 cursor-move"
+        className="bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
         onMouseDown={handleDragStart}
-        onKeyDown={handleKeyDown}
-        role="button"
-        tabIndex={0}
         aria-label="Draggable modal header"
       >
         <div className="flex items-center space-x-2">
           <img src={moolaLogo} alt="Moola Logo" className="w-8 h-8" />
-          <h2 id="previewModalTitle" className="text-lg font-semibold">
-            Preview Rates - {style}
-          </h2>
+          <h2 className="text-lg font-semibold">Preview Rates - {style}</h2>
         </div>
         <button
           onClick={onClose}
-          type="button"
           aria-label="Close modal"
           className="text-gray-700 text-lg font-bold px-2 hover:text-red-500"
         >
