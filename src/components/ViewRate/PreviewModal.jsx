@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import RateBoard from "./RateBoard";
 import moolaLogo from "../../assets/moola-logo.png";
 
-const PreviewModal = ({ style, computedRates = [], onClose }) => {
+const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
   const dialogRef = useRef(null);
   const headerRef = useRef(null);
   const offset = useRef({ x: 0, y: 0 });
@@ -37,6 +37,9 @@ const PreviewModal = ({ style, computedRates = [], onClose }) => {
     };
     e.preventDefault();
   };
+
+  // ❗ Conditional rendering: don't show if not open
+  if (!isOpen) return null;
 
   return (
     <dialog
@@ -85,8 +88,8 @@ const PreviewModal = ({ style, computedRates = [], onClose }) => {
 PreviewModal.propTypes = {
   style: PropTypes.string.isRequired,
   computedRates: PropTypes.arrayOf(PropTypes.object).isRequired,
+  isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 
 export default PreviewModal;
-
