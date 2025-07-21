@@ -58,18 +58,17 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
       }}
       className="shadow-lg rounded bg-white overflow-auto"
     >
-      <div
+      <button
         ref={headerRef}
-        className="bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
+        type="button"
         onMouseDown={handleDragStart}
-        role="button"
-        tabIndex={0}
-        aria-label="Draggable modal header"
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             handleDragStart(e);
           }
         }}
+        className="w-full text-left bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
+        aria-label="Draggable modal header"
       >
         <div className="flex items-center space-x-2">
           <img src={moolaLogo} alt="Moola Logo" className="w-8 h-8" />
@@ -82,7 +81,8 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         >
           ✕
         </button>
-      </div>
+      </button>
+
       <div className="p-2">
         <RateBoard rates={computedRates} style={style} />
       </div>
