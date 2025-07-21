@@ -62,7 +62,14 @@ const PreviewModal = ({ style, computedRates = [], isOpen, onClose }) => {
         ref={headerRef}
         className="bg-gray-100 p-2 border-b flex justify-between items-center cursor-move"
         onMouseDown={handleDragStart}
+        role="button"
+        tabIndex={0}
         aria-label="Draggable modal header"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            handleDragStart(e);
+          }
+        }}
       >
         <div className="flex items-center space-x-2">
           <img src={moolaLogo} alt="Moola Logo" className="w-8 h-8" />
