@@ -1,8 +1,7 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import TransactionList from "../Transaction";
 import api from "../../../api/axios";
-import { act } from "react-dom/test-utils";
 
 jest.mock("../../../api/axios");
 
