@@ -54,8 +54,6 @@ const RateBoard = ({ rates, style }) => {
             <th className="p-1">Currency</th>
             <th className="p-1">Unit</th>
             <th className="p-1">Trade Type</th>
-            <th className="p-1">Deno</th>
-            <th className="p-1">Rounding</th>
             <th className="p-1">RawBid</th>
             <th className="p-1">RawAsk</th>
             <th className="p-1">Spread</th>
@@ -85,8 +83,6 @@ const RateBoard = ({ rates, style }) => {
                 <td className="p-1">{rate.currencyCode}</td>
                 <td className="p-1">{rate.unit}</td>
                 <td className="p-1">{rate.tradeType ?? "-"}</td>
-                <td className="p-1">{rate.deno ?? "-"}</td>
-                <td className="p-1">{rate.rounding ?? "-"}</td>
                 <td className="p-1">{getNestedValue(rate, "rawBid")}</td>
                 <td className="p-1">{getNestedValue(rate, "rawAsk")}</td>
                 <td className="p-1">{getNestedValue(rate, "spread")}</td>
@@ -118,41 +114,48 @@ const RateBoard = ({ rates, style }) => {
 
     const renderCell = (rate, idx) => {
       if (!rate) {
-        return Array.from({ length: 5 }, (_, i) => <td key={`empty-${idx}-${i}`} className="p-2" />);
+        return Array.from({ length: 5 }, (_, i) => (
+          <td key={`empty-${idx}-${i}`} className="p-2 w-[100px] text-center align-middle" />
+        ));
       }
       return (
         <React.Fragment key={`${rate.currencyCode}-${rate.unit}`}>
-          <td className="p-2">
-            <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 30, height: 20 }} />
+          <td className="p-2 w-[80px] text-center align-middle">
+            <div className="flex items-center justify-center h-full">
+              <Flags code={getCountryCode(rate.currencyCode)} style={{ width: 30, height: 20 }} />
+            </div>
           </td>
-          <td className="p-2">{rate.currencyCode}</td>
-          <td className="p-2">{rate.unit}</td>
-          <td className="p-2">{getNestedValue(rate, "wsBid")}</td>
-          <td className="p-2">{getNestedValue(rate, "wsAsk")}</td>
+          <td className="p-2 w-[100px] text-center align-middle">{rate.currencyCode}</td>
+          <td className="p-2 w-[80px] text-center align-middle">{rate.unit}</td>
+          <td className="p-2 w-[100px] text-center align-middle">{getNestedValue(rate, "wsBid")}</td>
+          <td className="p-2 w-[100px] text-center align-middle">{getNestedValue(rate, "wsAsk")}</td>
         </React.Fragment>
       );
     };
 
     return (
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border text-sm">
+        <table className="min-w-full bg-white border text-sm text-center table-fixed">
           <thead className="bg-gray-200">
             <tr>
-              <th className="p-2">Flag</th>
-              <th className="p-2">Currency</th>
-              <th className="p-2">Unit</th>
-              <th className="p-2">Buy</th>
-              <th className="p-2">Sell</th>
-              <th className="p-2">Flag</th>
-              <th className="p-2">Currency</th>
-              <th className="p-2">Unit</th>
-              <th className="p-2">Buy</th>
-              <th className="p-2">Sell</th>
+              <th className="p-2 w-[80px]">Flag</th>
+              <th className="p-2 w-[100px]">Currency</th>
+              <th className="p-2 w-[80px]">Unit</th>
+              <th className="p-2 w-[100px]">Buy</th>
+              <th className="p-2 w-[100px]">Sell</th>
+              <th className="p-2 w-[80px]">Flag</th>
+              <th className="p-2 w-[100px]">Currency</th>
+              <th className="p-2 w-[80px]">Unit</th>
+              <th className="p-2 w-[100px]">Buy</th>
+              <th className="p-2 w-[100px]">Sell</th>
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: maxLength }).map((_, i) => (
-              <tr key={`row-${left[i]?.currencyCode || "empty"}-${right[i]?.currencyCode || "empty"}`} className="even:bg-gray-50 odd:bg-white">
+              <tr
+                key={`row-${left[i]?.currencyCode || "empty"}-${right[i]?.currencyCode || "empty"}`}
+                className="even:bg-gray-50 odd:bg-white"
+              >
                 {renderCell(left[i], `L-${i}`)}
                 {renderCell(right[i], `R-${i}`)}
               </tr>
@@ -174,3 +177,6 @@ RateBoard.propTypes = {
 };
 
 export default RateBoard;
+
+
+
