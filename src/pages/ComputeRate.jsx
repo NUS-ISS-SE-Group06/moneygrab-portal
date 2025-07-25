@@ -1,5 +1,4 @@
 import React, {useState,useEffect } from "react";
-//import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
@@ -74,7 +73,6 @@ const ComputeRate = () => {
   const [recomputeSuccess, setRecomputeSuccess] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
-  //const navigate = useNavigate();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); //added for preview rate
   const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);//added for preview rate
 
