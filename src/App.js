@@ -17,6 +17,8 @@ import RequireAuth from "./components/Auth/RequireAuth";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
 import FxRateUpload from "./components/FXUpload/FxRateUpload";
 import ComputeRate from "./pages/ComputeRate";
+import ViewRates from "./pages/ViewRates"; // Make sure this import exists at the top
+
 
 
 class ErrorBoundary extends React.Component {
@@ -154,7 +156,7 @@ try {
           { path: "commission", element: <Commission label="Commission Scheme" /> },
           { path: "currency", element: <Currency label="Currency" /> },
           { path: "compute-rates", element: <ComputeRate label="Compute Rates" /> },
-          { path: "view-rates", element: <ComingSoon label="ComingSoon" /> },
+          { path: "view-rates", element: <ViewRates />  },
           { path: "currency-codes", element: <ManageCurrency label="Manage Currency Codes" /> },
           { path: "transaction", element: <TransactionList moneyChangerId={moneyChangerId}/> },
         ],
