@@ -1,5 +1,4 @@
 import React, {useState,useEffect } from "react";
-//import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
