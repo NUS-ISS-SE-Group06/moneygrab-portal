@@ -1,15 +1,15 @@
 import React, {useState,useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
 import { format } from "date-fns";
-
+import PreviewModal from '../components/ViewRate/PreviewModal'// adjust path if needed
 const styleOptions = [
   "Normal Monitor Style",
   "Extended Monitor Style",
   "Normal Monitor - Multi Currency Style",
 ];
+
 const tradeTypeOptions = ["BUY_SELL", "BUY_ONLY", "SELL_ONLY"];
 const tradeDenoOptions = ["ALL", "50", "100", "1000", "10000", "100000"];
 const unitOptions = ["1", "10", "100", "1000", "10000", "100000"];
@@ -73,19 +73,22 @@ const ComputeRate = () => {
   const [recomputeSuccess, setRecomputeSuccess] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
-  const navigate = useNavigate();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false); //added for preview rate
+  const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);//added for preview rate
+
+
 
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
 
   const fetchRawFxRates = async () => {
     return Promise.resolve([
-    
+
       { currencyCode: "USD", rawBid: 1.3450, rawAsk: 1.3550 },
       { currencyCode: "EUR", rawBid: 1.4780, rawAsk: 1.4875 },
       { currencyCode: "JPY", rawBid: 0.0093, rawAsk: 0.0095 },
-    
-  
+
+
     ]);
   };
 
@@ -110,8 +113,8 @@ const ComputeRate = () => {
           processedBy: userId
         };
       });
-      
-      
+
+
       // Step 2: Validate all records
       enhancedRates.forEach((rate, index) => {
         const hasError =
@@ -133,19 +136,19 @@ const ComputeRate = () => {
           rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
           rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
           rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
-          
+
         if (hasError) {
           errors.push(` --> Row ${index+1} (${rate.currencyCode}) has error`);
         }
 
       });
-            
+
       if (errors.length > 0) {
         setErrorRecompute("Please fill in all requird field correctly: \n" + errors.join("\n"));
         return;
-      } 
+      }
 
-     
+
       // Step 3: Post to Compute Lambda
       setErrorRecompute("");
       const computedRates = await postToComputeLambda(enhancedRates);
@@ -170,7 +173,7 @@ const ComputeRate = () => {
       setIsSaving(true);
       setErrorSave("");
       const errors = [];
-      
+
       // Step 1: Validate all records
       rates.forEach((rate, index) => {
         const hasError =
@@ -192,17 +195,17 @@ const ComputeRate = () => {
           rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
           rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
           rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
-          
+
         if (hasError) {
           errors.push(` --> Row ${index+1} (${rate.currencyCode}) has error`);
         }
 
       });
-            
+
       if (errors.length > 0) {
         setErrorSave("Please fill in all requird field correctly: \n" + errors.join("\n"));
         return;
-      } 
+      }
 
       // Step 2: Save final data
       const response = await api.post(`/api/v1/compute-rates/batch`, rates);
@@ -266,7 +269,7 @@ const ComputeRate = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <main className="flex-1 p-1">
-        
+
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
         </div>
@@ -287,7 +290,7 @@ const ComputeRate = () => {
             </div>
           </div>
         )}
-            
+
         <div className="bg-gray-50">
            {isLoadingComputeRate ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
@@ -309,7 +312,10 @@ const ComputeRate = () => {
 
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded"
-              onClick={() => navigate(`/view-rates?style=${encodeURIComponent(selectedStyle)}`)}
+              onClick={() => {
+                setPreviewStyle(selectedStyle);
+                setIsPreviewOpen(true);
+              }}
             >
               Preview
             </button>
@@ -375,7 +381,7 @@ const ComputeRate = () => {
                                       <option key={opt} value={opt}>{opt}</option>
                                     ))}
                                   </select>
-                                </div>  
+                                </div>
                               );
                             } else {
                               return (
@@ -396,7 +402,7 @@ const ComputeRate = () => {
                           } else {
                             return (
                               <span title={fieldTooltips[field] || ""}>
-                                {field === "processedAt" && value 
+                                {field === "processedAt" && value
                                   ? format(new Date(value), "dd/MM/yyyy HH:mm:ss")
                                   : value}
                               </span>
@@ -404,7 +410,7 @@ const ComputeRate = () => {
                           }
 
                         })()}
- 
+
                       </td>
                     ))}
                   </tr>
@@ -415,8 +421,8 @@ const ComputeRate = () => {
 
         </div>
 
-                
-        <hr className="border-t border-grey my-6" /> 
+
+        <hr className="border-t border-grey my-6" />
 
 
         <div className="mt-10">
@@ -444,9 +450,9 @@ const ComputeRate = () => {
                 { code: (<span>MarBid / MarAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Market bid/ask adjustment" },
                 { code: (<span>CfBid / CfAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Custom fee bid/ask adjustment" },
                 { code: (<span>RtBid / RtAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Final bid/ask rate after adjustments" },
-      
+
               ].map(({ code, description }) => (
-                <tr key={code} 
+                <tr key={code}
                     className="even:bg-gray-50">
                   <td className="border border-gray-300 px-4 py-2 font-medium">{code}</td>
                   <td className="border border-gray-300 px-4 py-2">{description}</td>
@@ -456,8 +462,18 @@ const ComputeRate = () => {
           </table>
         </div>
 
-        <hr className="border-t border-grey my-6" /> 
-           
+        <hr className="border-t border-grey my-6" />
+
+        {/* Preview Modal Rendering */}
+        {isPreviewOpen && (
+          <PreviewModal
+            isOpen={isPreviewOpen}
+            style={previewStyle}
+            computedRates={rates}
+            onClose={() => setIsPreviewOpen(false)}
+          />
+        )}
+
       </main>
     </div>
   );

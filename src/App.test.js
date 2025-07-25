@@ -88,4 +88,3 @@ describe("App Routing", () => {
     expect(headings.length).toBeGreaterThan(0);
   });
 });
-
