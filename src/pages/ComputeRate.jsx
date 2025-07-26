@@ -87,7 +87,6 @@ const ComputeRate = () => {
   const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);
 
 
-
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
   const { error: queryErrorRawFxRate, refetch: refetchRawFxRates } = useQuery ( { queryKey: [MONEYCHANGER_RAW_FX_RATES], queryFn: fetchRawFxRates, enabled: false, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
