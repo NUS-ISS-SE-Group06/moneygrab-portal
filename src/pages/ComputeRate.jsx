@@ -4,12 +4,13 @@ import api from "../api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_DURATION } from "../constants/cache";
 import { format } from "date-fns";
-
+import PreviewModal from '../modals/PreviewModal'; // adjust path if needed
 const styleOptions = [
   "Normal Monitor Style",
   "Extended Monitor Style",
   "Normal Monitor - Multi Currency Style",
 ];
+
 const tradeTypeOptions = ["BUY_SELL", "BUY_ONLY", "SELL_ONLY"];
 const tradeDenoOptions = ["ALL", "50", "100", "1000", "10000", "100000"];
 const unitOptions = ["1", "10", "100", "1000", "10000", "100000"];
@@ -74,6 +75,10 @@ const ComputeRate = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
   const navigate = useNavigate();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);
+
+
 
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
@@ -309,7 +314,10 @@ const ComputeRate = () => {
 
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium px-4 py-2 rounded"
-              onClick={() => navigate(`/view-rates?style=${encodeURIComponent(selectedStyle)}`)}
+              onClick={() => {
+                setPreviewStyle(selectedStyle);
+                setIsPreviewOpen(true);
+              }}
             >
               Preview
             </button>
@@ -330,6 +338,15 @@ const ComputeRate = () => {
               {isSaving ? "Submitting..." : "+ Submit"}
             </button>
           </div>
+          )}
+
+          {/* Preview Modal Rendering */}
+          {isPreviewOpen && (
+            <PreviewModal
+              style={previewStyle}
+              computedRates={rates}
+              onClose={() => setIsPreviewOpen(false)}
+            />
           )}
 
           <div className="w-full bg-white shadow rounded overflow-auto">
