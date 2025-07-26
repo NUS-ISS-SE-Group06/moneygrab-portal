@@ -82,7 +82,6 @@ const ComputeRate = () => {
   const [recomputeSuccess, setRecomputeSuccess] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
-  const navigate = useNavigate();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);
 
