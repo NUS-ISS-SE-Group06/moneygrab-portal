@@ -3,7 +3,6 @@ import { fetchAuthSession } from "@aws-amplify/auth";
 
 const api = axios.create({
   baseURL: "https://r6zsml2v4c.execute-api.ap-southeast-1.amazonaws.com/PRD",
-  //baseURL: "http://localhost:8688",
   headers: {
     "Content-Type": "application/json"
   }
