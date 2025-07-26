@@ -442,24 +442,23 @@ const ComputeRate = () => {
             </thead>
             <tbody>
               {[
-                { code: (<span>Currency<span className="text-red-500 font-bold ml-1">*</span></span>), description: "The currency code, e.g., USD, EUR, SGD" },
-                { code: (<span>Unit<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Base unit used for the exchange rate (e.g., 1, 100, 1000)" },
-                { code: (<span>TradeType<span className="text-red-500 font-bold ml-1">*</span></span>), description: "BUY_SELL / BUY_ONLY / SELL_ONLY" },
-                { code: (<span>Deno<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade Denomination (ALL, 50, 100, 1000, 10000, 100000)" },
-                { code: (<span>Rounding<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade rounding rule (0–5)" },
-                { code: (<span>RawBid / RawAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Raw uploaded FX bid/ask rate. (cannot be zero)" },
-                { code: (<span>Spread<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Margin between bid and ask" },
-                { code: (<span>Skew<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Adjustable rate skew" },
-                { code: "WsBid / WsAsk", description: "Wholesale bid/ask rate after computation" },
-                { code: (<span>RefBid / RefAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "0 = Direct, 1 = Inverse" },
-                { code: (<span>DpBid / DpAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Decimal Precision (0–5)" },
-                { code: (<span>MarBid / MarAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Market bid/ask adjustment" },
-                { code: (<span>CfBid / CfAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Custom fee bid/ask adjustment" },
-                { code: (<span>RtBid / RtAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Final bid/ask rate after adjustments" },
+                { id:"currency",code: (<span>Currency<span className="text-red-500 font-bold ml-1">*</span></span>), description: "The currency code, e.g., USD, EUR, SGD" },
+                { id:"unit",code: (<span>Unit<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Base unit used for the exchange rate (e.g., 1, 100, 1000)" },
+                { id:"tradeType",code: (<span>TradeType<span className="text-red-500 font-bold ml-1">*</span></span>), description: "BUY_SELL / BUY_ONLY / SELL_ONLY" },
+                { id:"deno",code: (<span>Deno<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade Denomination (ALL, 50, 100, 1000, 10000, 100000)" },
+                { id:"rounding",code: (<span>Rounding<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Trade rounding rule (0–5)" },
+                { id:"rawBidAsk",code: (<span>RawBid / RawAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Raw uploaded FX bid/ask rate. (cannot be zero)" },
+                { id:"spread",code: (<span>Spread<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Margin between bid and ask" },
+                { id:"skew",code: (<span>Skew<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Adjustable rate skew" },
+                { id:"wsBidAsk",code: "WsBid / WsAsk", description: "Wholesale bid/ask rate after computation" },
+                { id:"refBidAsk",code: (<span>RefBid / RefAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "0 = Direct, 1 = Inverse" },
+                { id:"dpBidAsk",code: (<span>DpBid / DpAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Decimal Precision (0–5)" },
+                { id:"marBidAsk",code: (<span>MarBid / MarAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Market bid/ask adjustment" },
+                { id:"cfBidAsk",code: (<span>CfBid / CfAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Custom fee bid/ask adjustment" },
+                { id:"rtBidAsk",code: (<span>RtBid / RtAsk<span className="text-red-500 font-bold ml-1">*</span></span>), description: "Final bid/ask rate after adjustments" },
 
-              ].map(({ code, description }) => (
-                <tr key={code}
-                    className="even:bg-gray-50">
+              ].map(({ id, code, description }) => (
+                <tr key={id} className="even:bg-gray-50">
                   <td className="border border-gray-300 px-4 py-2 font-medium">{code}</td>
                   <td className="border border-gray-300 px-4 py-2">{description}</td>
                 </tr>
