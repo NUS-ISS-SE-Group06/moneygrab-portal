@@ -59,7 +59,16 @@ const headerRow = [
 
 
 const MONEYCHANGER_COMPUTE_RATES="computeRates";
+const MONEYCHANGER_RAW_FX_RATES="rawFxRates";
 const fetchComputeRates = async (moneyChangerId) => (await api.get(`/api/v1/compute-rates`, {params: { moneyChangerId }})).data;
+const fetchRawFxRates = async () => {
+  const response = await api.get(`/api/v1/fx-uploads/latest`);
+  return response.data.map(item => ({
+    currencyCode: item.currencyCode,
+    rawBid: item.bid,
+    rawAsk: item.ask,
+  }));
+};
 
 const ComputeRate = () => {
   const [userId] = useState(1);
@@ -80,18 +89,18 @@ const ComputeRate = () => {
 
 
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
+  const { error: queryErrorRawFxRate, refetch: refetchRawFxRates } = useQuery ( { queryKey: [MONEYCHANGER_RAW_FX_RATES], queryFn: fetchRawFxRates, enabled: false, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
-
-  const fetchRawFxRates = async () => {
-    return Promise.resolve([
-
-      { currencyCode: "USD", rawBid: 1.3450, rawAsk: 1.3550 },
-      { currencyCode: "EUR", rawBid: 1.4780, rawAsk: 1.4875 },
-      { currencyCode: "JPY", rawBid: 0.0093, rawAsk: 0.0095 },
-
-
-    ]);
-  };
+  // const fetchRawFxRates = async () => {
+  //   return Promise.resolve([
+    
+  //     { currencyCode: "USD", rawBid: 1.3450, rawAsk: 1.3550 },
+  //     { currencyCode: "EUR", rawBid: 1.4780, rawAsk: 1.4875 },
+  //     { currencyCode: "JPY", rawBid: 0.0093, rawAsk: 0.0095 },
+    
+  
+  //   ]);
+  // };
 
   const postToComputeLambda = async (payload) => {
     return Promise.resolve(payload);
@@ -104,7 +113,7 @@ const ComputeRate = () => {
       const errors = [];
 
       // Step 1: Merge raw FX rates into local rates
-      const fxRates = await fetchRawFxRates();
+      const {data: fxRates} = await refetchRawFxRates();
       const enhancedRates = rates.map(rate => {
         const fx = fxRates.find(fx => fx.currencyCode === rate.currencyCode);
         return {
@@ -130,11 +139,11 @@ const ComputeRate = () => {
           rate.spread === null || rate.spread === undefined || isNaN(rate.spread) ||
           rate.skew === null || rate.skew === undefined || isNaN(rate.skew) ||
           rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || ( rate.refBid !== 0 && rate.refBid !== 1) ||
-          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 5 ||
+          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 4 ||
           rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid) ||
           rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid) ||
           rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || ( rate.refAsk !== 0 && rate.refAsk !== 1) ||
-          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
+          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 4 ||
           rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
           rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
 
@@ -275,11 +284,11 @@ const ComputeRate = () => {
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
         </div>
 
-        {( errorRecompute || errorSave || queryErrorComputeRate?.message ) && (
+        {( errorRecompute || errorSave || queryErrorComputeRate || queryErrorRawFxRate ) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{(errorRecompute || errorSave || queryErrorComputeRate?.message)}</p>
+              <p className="whitespace-pre-line">{(errorRecompute || errorSave || queryErrorComputeRate?.message || queryErrorRawFxRate?.message )}</p>
             </div>
           </div>
         )}
