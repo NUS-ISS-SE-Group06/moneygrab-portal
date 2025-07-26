@@ -91,17 +91,6 @@ const ComputeRate = () => {
   const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
   const { error: queryErrorRawFxRate, refetch: refetchRawFxRates } = useQuery ( { queryKey: [MONEYCHANGER_RAW_FX_RATES], queryFn: fetchRawFxRates, enabled: false, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
 
-  // const fetchRawFxRates = async () => {
-  //   return Promise.resolve([
-    
-  //     { currencyCode: "USD", rawBid: 1.3450, rawAsk: 1.3550 },
-  //     { currencyCode: "EUR", rawBid: 1.4780, rawAsk: 1.4875 },
-  //     { currencyCode: "JPY", rawBid: 0.0093, rawAsk: 0.0095 },
-    
-  
-  //   ]);
-  // };
-
   const postToComputeLambda = async (payload) => {
     return Promise.resolve(payload);
   };
