@@ -13,9 +13,9 @@ const styleOptions = [
 const tradeTypeOptions = ["BUY_SELL", "BUY_ONLY", "SELL_ONLY"];
 const tradeDenoOptions = ["ALL", "50", "100", "1000", "10000", "100000"];
 const unitOptions = ["1", "10", "100", "1000", "10000", "100000"];
-const tradeRoundOptions = [0, 1, 2, 3, 4, 5];
+const tradeRoundOptions = [0, 1, 2, 3, 4];
 const refOptions = [0, 1];
-const dpOptions = [0, 1, 2, 3, 4, 5];
+const dpOptions = [0, 1, 2, 3, 4];
 
 const fieldTooltips = {
   refBid: "0 = Direct, 1 = Inverse",
@@ -185,11 +185,11 @@ const ComputeRate = () => {
           rate.spread === null || rate.spread === undefined || isNaN(rate.spread) ||
           rate.skew === null || rate.skew === undefined || isNaN(rate.skew) ||
           rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || ( rate.refBid !== 0 && rate.refBid !== 1) ||
-          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 5 ||
+          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 4 ||
           rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid) ||
           rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid) ||
           rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || ( rate.refAsk !== 0 && rate.refAsk !== 1) ||
-          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
+          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 4 ||
           rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
           rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
 
