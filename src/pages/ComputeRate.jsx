@@ -100,7 +100,8 @@ const ComputeRate = () => {
       const errors = [];
 
       // Step 1: Merge raw FX rates into local rates
-      const {data: fxRates} = await refetchRawFxRates();
+      const { data } = await refetchRawFxRates();
+      const fxRates = Array.isArray(data) ? data : [];
       const enhancedRates = rates.map(rate => {
         const fx = fxRates.find(fx => fx.currencyCode === rate.currencyCode);
         return {
@@ -157,6 +158,7 @@ const ComputeRate = () => {
       setRecomputeSuccess("Rates computed successfully.");
 
     } catch (err) {
+      console.error("Recompute error:",err);
       const message = err?.response?.data || err?.message || "Recompute failed.";
       setErrorRecompute(message);
     } finally {
