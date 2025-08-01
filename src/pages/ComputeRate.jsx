@@ -13,9 +13,9 @@ const styleOptions = [
 const tradeTypeOptions = ["BUY_SELL", "BUY_ONLY", "SELL_ONLY"];
 const tradeDenoOptions = ["ALL", "50", "100", "1000", "10000", "100000"];
 const unitOptions = ["1", "10", "100", "1000", "10000", "100000"];
-const tradeRoundOptions = [0, 1, 2, 3, 4, 5];
+const tradeRoundOptions = [0, 1, 2, 3, 4];
 const refOptions = [0, 1];
-const dpOptions = [0, 1, 2, 3, 4, 5];
+const dpOptions = [0, 1, 2, 3, 4];
 
 const fieldTooltips = {
   refBid: "0 = Direct, 1 = Inverse",
@@ -52,7 +52,7 @@ const headerRow = [
     MarAsk: 0,
     CfAsk: 0,
     RtAsk: 0,
-    ProcessedAt: {},
+    ProcessedAt: null,
     ProcessedBy: 0
   },
 ];
@@ -76,7 +76,7 @@ const ComputeRate = () => {
   const [rates, setRates] = useState([]);
   const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]);
   const [editingCell, setEditingCell] = useState({ row: null, field: null });
-  const [errorSave, setErrorSave] = useState(null);
+  const [errorSave, setErrorSave] = useState("");
   const [errorRecompute, setErrorRecompute] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(null);
   const [recomputeSuccess, setRecomputeSuccess] = useState(null);
@@ -86,21 +86,43 @@ const ComputeRate = () => {
   const [previewStyle, setPreviewStyle] = useState(styleOptions[0]);
 
 
-  const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { queryKey: [MONEYCHANGER_COMPUTE_RATES,moneyChanger?.id], queryFn: () => fetchComputeRates(moneyChanger?.id), enabled: !!moneyChanger?.id, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, });
-  const { error: queryErrorRawFxRate, refetch: refetchRawFxRates } = useQuery ( { queryKey: [MONEYCHANGER_RAW_FX_RATES], queryFn: fetchRawFxRates, enabled: false, staleTime: CACHE_DURATION, refetchOnWindowFocus: true, })
+  const { data: computeRates =[], isLoading: isLoadingComputeRate, error: queryErrorComputeRate, } = useQuery ( { 
+    queryKey: [MONEYCHANGER_COMPUTE_RATES, moneyChanger?.id], 
+    queryFn: () => fetchComputeRates(moneyChanger?.id), 
+    enabled: !!moneyChanger?.id, 
+    staleTime: CACHE_DURATION, 
+    refetchOnWindowFocus: true, 
+  });
+
+  const {refetch: refetchRawFxRates } = useQuery ( { 
+    queryKey: [MONEYCHANGER_RAW_FX_RATES], 
+    queryFn: fetchRawFxRates, 
+    enabled: false, 
+    staleTime: CACHE_DURATION, 
+    refetchOnWindowFocus: true, 
+  });
+ 
 
   const postToComputeLambda = async (payload) => {
     return Promise.resolve(payload);
   };
 
   const handleRecompute = async () => {
+    let allErrors = [];
+    setErrorRecompute("");
+    setErrorSave("");
+    
     try {
       setIsRecomputing(true);
-      setErrorRecompute("");
-      const errors = [];
 
       // Step 1: Merge raw FX rates into local rates
-      const {data: fxRates} = await refetchRawFxRates();
+      const { data, error } = await refetchRawFxRates();
+      if (error) {
+        allErrors.push(`Failed to load raw FX rates: ( ${error.message} ")`);
+        setErrorRecompute(allErrors.join("\n"));
+      }
+      const fxRates = Array.isArray(data) ? data : [];
+
       const enhancedRates = rates.map(rate => {
         const fx = fxRates.find(fx => fx.currencyCode === rate.currencyCode);
         return {
@@ -111,54 +133,41 @@ const ComputeRate = () => {
         };
       });
 
+      console.log("Enhanced Rates:", enhancedRates);
 
+      
       // Step 2: Validate all records
-      enhancedRates.forEach((rate, index) => {
-        const hasError =
-          !rate.currencyCode || rate.currencyCode.trim() === "" ||
-          rate.moneyChangerId === null || rate.moneyChangerId === undefined ||
-          !rate.unit || rate.unit.trim() === "" ||
-          !rate.tradeType || rate.tradeType.trim() === "" ||
-          !rate.tradeDeno || rate.tradeDeno.trim() === "" ||
-          rate.tradeRound === null || rate.tradeRound === undefined ||
-          rate.rawBid === null || rate.rawBid === undefined || isNaN(rate.rawBid) || rate.rawBid <= 0 ||
-          rate.rawAsk === null || rate.rawAsk === undefined || isNaN(rate.rawAsk) || rate.rawAsk <= 0 ||
-          rate.spread === null || rate.spread === undefined || isNaN(rate.spread) ||
-          rate.skew === null || rate.skew === undefined || isNaN(rate.skew) ||
-          rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || ( rate.refBid !== 0 && rate.refBid !== 1) ||
-          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 4 ||
-          rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid) ||
-          rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid) ||
-          rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || ( rate.refAsk !== 0 && rate.refAsk !== 1) ||
-          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 4 ||
-          rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
-          rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
+      const validationErrors = validateRatesBatch(enhancedRates);
 
-        if (hasError) {
-          errors.push(` --> Row ${index+1} (${rate.currencyCode}) has error`);
-        }
-
-      });
-
-      if (errors.length > 0) {
-        setErrorRecompute("Please fill in all requird field correctly: \n" + errors.join("\n"));
+      if (validationErrors.length > 0) {
+        allErrors = [...allErrors, ...validationErrors];
+        setErrorRecompute(allErrors.join("\n"));
         return;
       }
-
+      console.log("Validation passed");
 
       // Step 3: Post to Compute Lambda
-      setErrorRecompute("");
-      const computedRates = await postToComputeLambda(enhancedRates);
+      let computedRates;
+      try {
+        computedRates = await postToComputeLambda(enhancedRates);
+      } catch (err) {
+        allErrors.push(`Failed to Computer Lambda: ( ${err.message} ")`);
+        setErrorRecompute(allErrors.join("\n"));
+        return;
+      }
+      setRates(computedRates);
+      console.log("Computation Completed", computedRates );
 
-      // Step 4: Save final data
-      const response = await api.post(`/api/v1/compute-rates/batch`, computedRates);
-      setRates(response.data);
-
-      setRecomputeSuccess("Rates computed successfully.");
+      if (allErrors.length > 0) {
+        setRecomputeSuccess("Rates computed successfully, but with some warnings.");   
+      } else {
+        setRecomputeSuccess("Rates computed successfully.");
+      }
 
     } catch (err) {
-      const message = err?.response?.data || err?.message || "Recompute failed.";
-      setErrorRecompute(message);
+      allErrors.push(`Recompute failed: ${err.message}`);
+      console.error("Recompute error:",err);
+      setErrorRecompute(allErrors.join("\n"));
     } finally {
       setIsRecomputing(false);
     }
@@ -166,59 +175,140 @@ const ComputeRate = () => {
 
 
   const handleSave = async () => {
+    let allErrors = [];
+    setErrorRecompute("");
+    setErrorSave("");
+
     try {
       setIsSaving(true);
-      setErrorSave("");
-      const errors = [];
 
       // Step 1: Validate all records
-      rates.forEach((rate, index) => {
-        const hasError =
-          !rate.currencyCode || rate.currencyCode.trim() === "" ||
-          rate.moneyChangerId === null || rate.moneyChangerId === undefined ||
-          !rate.unit || rate.unit.trim() === "" ||
-          !rate.tradeType || rate.tradeType.trim() === "" ||
-          !rate.tradeDeno || rate.tradeDeno.trim() === "" ||
-          rate.tradeRound === null || rate.tradeRound === undefined ||
-          rate.rawBid === null || rate.rawBid === undefined || isNaN(rate.rawBid) || rate.rawBid <= 0 ||
-          rate.rawAsk === null || rate.rawAsk === undefined || isNaN(rate.rawAsk) || rate.rawAsk <= 0 ||
-          rate.spread === null || rate.spread === undefined || isNaN(rate.spread) ||
-          rate.skew === null || rate.skew === undefined || isNaN(rate.skew) ||
-          rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || ( rate.refBid !== 0 && rate.refBid !== 1) ||
-          rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 5 ||
-          rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid) ||
-          rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid) ||
-          rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || ( rate.refAsk !== 0 && rate.refAsk !== 1) ||
-          rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 5 ||
-          rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk) ||
-          rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk);
+      const validationErrors = validateRatesBatch(rates);
 
-        if (hasError) {
-          errors.push(` --> Row ${index+1} (${rate.currencyCode}) has error`);
-        }
-
-      });
-
-      if (errors.length > 0) {
-        setErrorSave("Please fill in all requird field correctly: \n" + errors.join("\n"));
+      if (validationErrors.length > 0) {
+        allErrors = [...allErrors, ...validationErrors];
+        setErrorSave(allErrors.join("\n"));
         return;
       }
+      console.log("Validation passed");
 
       // Step 2: Save final data
-      const response = await api.post(`/api/v1/compute-rates/batch`, rates);
-      setRates(response.data);
-
-      setSaveSuccess("Rates saved successfully.");
+      try {
+        const response = await api.post(`/api/v1/compute-rates/batch`, rates);
+        setRates(response.data); 
+      } catch (err) {
+        allErrors.push(`Save failed: ${err.message}`);
+        console.error("Save failed:",err);
+        setErrorSave(allErrors.join("\n"));
+        return;
+      }
+      console.log("Saved");
 
     } catch (err) {
-      const message = err?.response?.data || err?.message || "Submit failed.";
-      setErrorSave(message);
+      console.error("Save failed:",err);
+      allErrors.push(`Save failed: ${err.message}`);
+      setErrorSave(allErrors.join("\n"));
     } finally {
       setIsSaving(false);
     }
+
+    if (allErrors.length === 0) {
+      setSaveSuccess("Rates saved successfully.");
+    } 
+
+
   };
 
+  function validateRatesBatch(rates) {
+    const errors =[]
 
+    const isEmptyString = (value) => !value || value.trim() === "";
+    const isNullorUndefined = (value) => value === null || value === undefined;
+    const isInvalidNumber = (value) => isNullorUndefined(value) || isNaN(value);
+    const isInvalidPositiveNumber = (value) => isInvalidNumber(value) || value <=0;
+    const isNotZeroOrOne = (value) => isInvalidNumber(value) || (value !== 0 && value !== 1);
+    const isInvalidRangeNumberZeroToFour = (value) => isInvalidNumber(value) || value < 0 || value > 4;
+
+    rates.forEach((rate, index) => {
+      const rowNum = index +1;
+
+      if(isEmptyString(rate.currencyCode)) {
+        errors.push(`Row ${rowNum}: Currency is required.`);
+      }
+
+      if(isNullorUndefined(rate.moneyChangerId)) {
+        errors.push(`Row ${rowNum}: Moneychanger ID is required.`);
+      }
+
+      if(isEmptyString(rate.unit)) {
+        errors.push(`Row ${rowNum}: Unit is required.`);
+      }
+
+      if(isEmptyString(rate.tradeType)) {
+        errors.push(`Row ${rowNum}: TradeType is required.`);
+      }
+
+      if(isEmptyString(rate.tradeDeno)) {
+        errors.push(`Row ${rowNum}: Deno is required.`);
+      }
+
+      if(isNullorUndefined(rate.tradeRound)) {
+        errors.push(`Row ${rowNum}: Rounding is required.`);
+      } 
+
+      if(isInvalidPositiveNumber(rate.RawBid)) {
+        errors.push(`Row ${rowNum}: RawBid must be a positive number.`);
+      }
+
+      if(isInvalidPositiveNumber(rate.rawAsk)) {
+        errors.push(`Row ${rowNum}: RawAsk must be a positive number.`);
+      }
+
+      if(isInvalidNumber(rate.spread)) {
+        errors.push(`Row ${rowNum}: Spread must be a number.`);
+      }
+      
+      if(isInvalidNumber(rate.skew)) {
+        errors.push(`Row ${rowNum}: Skew must be a number.`);
+      }
+
+      if(isNotZeroOrOne(rate.ref.Bid)) {
+        errors.push(`Row ${rowNum}: RefBid must be 0 or 1.`);
+      }
+
+      if(isInvalidRangeNumberZeroToFour(rate.dpBid)) {
+        errors.push(`Row ${rowNum}: DpBid must be between 0 and 4.`);
+      }
+
+      if(isInvalidNumber(rate.marBid)) {
+        errors.push(`Row ${rowNum}: MarBid must be a number.`);
+      } 
+
+      if(isInvalidNumber(rate.cfBid)) {
+        errors.push(`Row ${rowNum}: CfBid must be a number.`);
+      }
+
+      if(isNotZeroOrOne(rate.refAsk)) {
+        errors.push(`Row ${rowNum}: RefAsk must be 0 or 1.`);
+      }
+
+      if(isInvalidRangeNumberZeroToFour(rate.dpAsk)) {
+        errors.push(`Row ${rowNum}: DpAsk must be between 0 and 4.`);
+      }
+
+      if(isInvalidNumber(rate.marAsk)) {
+        errors.push(`Row ${rowNum}: MarAsk must be a number.`);
+      }
+
+      if(isInvalidNumber(rate.cfAsk)) {
+        errors.push(`Row ${rowNum}: CfAsk must be a number.`);
+      }
+
+    });
+
+    return errors;
+    
+  }
 
   useEffect(() => {
     if (computeRates && computeRates.length > 0) { setRates(computeRates); }
@@ -271,11 +361,11 @@ const ComputeRate = () => {
           <h1 className="text-2xl font-extrabold">COMPUTE RATE</h1>
         </div>
 
-        {( errorRecompute || errorSave || queryErrorComputeRate || queryErrorRawFxRate ) && (
+        {( errorRecompute || errorSave || queryErrorComputeRate ) && (
           <div className="mb-4">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded">
               <p className="font-bold">Error Message</p>
-              <p className="whitespace-pre-line">{(errorRecompute || errorSave || queryErrorComputeRate?.message || queryErrorRawFxRate?.message )}</p>
+              <p className="whitespace-pre-line">{(errorRecompute || errorSave || queryErrorComputeRate?.message )}</p>
             </div>
           </div>
         )}
@@ -333,15 +423,6 @@ const ComputeRate = () => {
               {isSaving ? "Submitting..." : "+ Submit"}
             </button>
           </div>
-          )}
-
-          {/* Preview Modal Rendering */}
-          {isPreviewOpen && (
-            <PreviewModal
-              style={previewStyle}
-              computedRates={rates}
-              onClose={() => setIsPreviewOpen(false)}
-            />
           )}
 
           <div className="w-full bg-white shadow rounded overflow-auto">
@@ -408,7 +489,7 @@ const ComputeRate = () => {
                           } else {
                             return (
                               <span title={fieldTooltips[field] || ""}>
-                                {field === "processedAt" && value
+                                {field === "processedAt" && value 
                                   ? format(new Date(value), "dd/MM/yyyy HH:mm:ss")
                                   : value}
                               </span>
