@@ -272,7 +272,7 @@ const ComputeRate = () => {
         errors.push(`Row ${rowNum}: Skew must be a number.`);
       }
 
-      if(isNotZeroOrOne(rate.ref.Bid)) {
+      if(isNotZeroOrOne(rate.refBid)) {
         errors.push(`Row ${rowNum}: RefBid must be 0 or 1.`);
       }
 
