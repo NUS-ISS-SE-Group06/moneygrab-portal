@@ -222,78 +222,85 @@ const ComputeRate = () => {
   function validateRatesBatch(rates) {
     const errors =[]
 
+    const isEmptyString = (value) => !value || value.trim() === "";
+    const isNullorUndefined = (value) => value === null || value === undefined;
+    const isInvalidNumber = (value) => isNullorUndefined(value) || isNaN(value);
+    const isInvalidPositiveNumber = (value) => isInvalidNumber(value) || value <=0;
+    const isNotZeroOrOne = (value) => isInvalidNumber(value) || (value !== 0 && value !== 1);
+    const isInvalidRangeNumberZeroToFour = (value) => isInvalidNumber(value) || value < 0 || value > 4;
+
     rates.forEach((rate, index) => {
       const rowNum = index +1;
 
-      if(!rate.currencyCode || rate.currencyCode.trim() === "") {
+      if(isEmptyString(rate.currencyCode)) {
         errors.push(`Row ${rowNum}: Currency is required.`);
       }
 
-      if(rate.moneyChangerId === null || rate.moneyChangerId === undefined) {
+      if(isNullorUndefined(rate.moneyChangerId)) {
         errors.push(`Row ${rowNum}: Moneychanger ID is required.`);
       }
 
-      if(!rate.unit || rate.unit.trim() === "") {
+      if(isEmptyString(rate.unit)) {
         errors.push(`Row ${rowNum}: Unit is required.`);
       }
 
-      if(!rate.tradeType || rate.tradeType.trim() === "") {
+      if(isEmptyString(rate.tradeType)) {
         errors.push(`Row ${rowNum}: TradeType is required.`);
       }
 
-      if(!rate.tradeDeno || rate.tradeDeno.trim() === "") {
+      if(isEmptyString(rate.tradeDeno)) {
         errors.push(`Row ${rowNum}: Deno is required.`);
       }
 
-      if(rate.tradeRound === null || rate.tradeRound === undefined) {
+      if(isNullorUndefined(rate.tradeRound)) {
         errors.push(`Row ${rowNum}: Rounding is required.`);
       } 
 
-      if(rate.rawBid === null || rate.rawBid === undefined || isNaN(rate.rawBid) || rate.rawBid <= 0) {
+      if(isInvalidPositiveNumber(rate.RawBid)) {
         errors.push(`Row ${rowNum}: RawBid must be a positive number.`);
       }
 
-      if(rate.rawAsk === null || rate.rawAsk === undefined || isNaN(rate.rawAsk) || rate.rawAsk <= 0) {
+      if(isInvalidPositiveNumber(rate.rawAsk)) {
         errors.push(`Row ${rowNum}: RawAsk must be a positive number.`);
       }
 
-      if(rate.spread === null || rate.spread === undefined || isNaN(rate.spread)) {
+      if(isInvalidNumber(rate.spread)) {
         errors.push(`Row ${rowNum}: Spread must be a number.`);
       }
       
-      if(rate.skew === null || rate.skew === undefined || isNaN(rate.skew)) {
+      if(isInvalidNumber(rate.skew)) {
         errors.push(`Row ${rowNum}: Skew must be a number.`);
       }
 
-      if(rate.refBid === null || rate.refBid === undefined || isNaN(rate.refBid) || (rate.refBid !== 0 && rate.refBid !== 1)) {
+      if(isNotZeroOrOne(rate.ref.Bid)) {
         errors.push(`Row ${rowNum}: RefBid must be 0 or 1.`);
       }
 
-      if(rate.dpBid === null || rate.dpBid === undefined || isNaN(rate.dpBid) || rate.dpBid < 0 || rate.dpBid > 4) {
+      if(isInvalidRangeNumberZeroToFour(rate.dpBid)) {
         errors.push(`Row ${rowNum}: DpBid must be between 0 and 4.`);
       }
 
-      if(rate.marBid === null || rate.marBid === undefined || isNaN(rate.marBid)) {
+      if(isInvalidNumber(rate.marBid)) {
         errors.push(`Row ${rowNum}: MarBid must be a number.`);
       } 
 
-      if(rate.cfBid === null || rate.cfBid === undefined || isNaN(rate.cfBid)) {
+      if(isInvalidNumber(rate.cfBid)) {
         errors.push(`Row ${rowNum}: CfBid must be a number.`);
       }
 
-      if(rate.refAsk === null || rate.refAsk === undefined || isNaN(rate.refAsk) || (rate.refAsk !== 0 && rate.refAsk !== 1)) {
+      if(isNotZeroOrOne(rate.refAsk)) {
         errors.push(`Row ${rowNum}: RefAsk must be 0 or 1.`);
       }
 
-      if(rate.dpAsk === null || rate.dpAsk === undefined || isNaN(rate.dpAsk) || rate.dpAsk < 0 || rate.dpAsk > 4) {
+      if(isInvalidRangeNumberZeroToFour(rate.dpAsk)) {
         errors.push(`Row ${rowNum}: DpAsk must be between 0 and 4.`);
       }
 
-      if(rate.marAsk === null || rate.marAsk === undefined || isNaN(rate.marAsk)) {
+      if(isInvalidNumber(rate.marAsk)) {
         errors.push(`Row ${rowNum}: MarAsk must be a number.`);
       }
 
-      if(rate.cfAsk === null || rate.cfAsk === undefined || isNaN(rate.cfAsk)) {
+      if(isInvalidNumber(rate.cfAsk)) {
         errors.push(`Row ${rowNum}: CfAsk must be a number.`);
       }
 
