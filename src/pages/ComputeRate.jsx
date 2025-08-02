@@ -224,10 +224,10 @@ const ComputeRate = () => {
 
     const isEmptyString = (value) => !value || value.trim() === "";
     const isNullorUndefined = (value) => value === null || value === undefined;
-    const isInvalidNumber = (value) => isNullorUndefined(value) || isNaN(value);
-    const isInvalidPositiveNumber = (value) => isInvalidNumber(value) || value <=0;
-    const isNotZeroOrOne = (value) => isInvalidNumber(value) || (value !== 0 && value !== 1);
-    const isInvalidRangeNumberZeroToFour = (value) => isInvalidNumber(value) || value < 0 || value > 4;
+    const isInvalidNumber = (value) => { if (isNullorUndefined(value)) { return true } const num = Number(value); return Number.isNaN(num); };
+    const isInvalidPositiveNumber = (value) => { if (isInvalidNumber(value)) { return true } return Number(value) <= 0; };
+    const isNotZeroOrOne = (value) => { if (isInvalidNumber(value)) { return true } const num = Number(value); return num !== 0 && num !== 1; };
+    const isInvalidRangeNumberZeroToFour = (value) => { if(isInvalidNumber(value)) { return true } const num = Number(value); return num < 0 || num > 4; };
 
     rates.forEach((rate, index) => {
       const rowNum = index +1;
