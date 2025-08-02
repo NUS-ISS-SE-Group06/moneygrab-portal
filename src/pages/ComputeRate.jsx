@@ -224,10 +224,36 @@ const ComputeRate = () => {
 
     const isEmptyString = (value) => !value || value.trim() === "";
     const isNullorUndefined = (value) => value === null || value === undefined;
-    const isInvalidNumber = (value) => { if (isNullorUndefined(value)) { return true } const num = Number(value); return Number.isNaN(num); };
-    const isInvalidPositiveNumber = (value) => { if (isInvalidNumber(value)) { return true } return Number(value) <= 0; };
-    const isNotZeroOrOne = (value) => { if (isInvalidNumber(value)) { return true } const num = Number(value); return num !== 0 && num !== 1; };
-    const isInvalidRangeNumberZeroToFour = (value) => { if(isInvalidNumber(value)) { return true } const num = Number(value); return num < 0 || num > 4; };
+    const isInvalidNumber = (value) => { 
+      if (isNullorUndefined(value)) { 
+        return true 
+      } 
+      const num = Number(value); 
+      return Boolean(Number.isNaN(num)); 
+    };
+    const isInvalidPositiveNumber = (value) => { 
+      if (isInvalidNumber(value)) { 
+        return true 
+      } 
+      return Boolean(Number(value) <= 0); 
+    };
+    const isNotZeroOrOne = (value) => { 
+      if (isInvalidNumber(value)) { 
+        return true 
+      } 
+      const num = Number(value); 
+      return Boolean(num !== 0 && num !== 1); 
+    };
+    const isInvalidRangeNumberZeroToFour = (value) => { 
+      if(isInvalidNumber(value)) { 
+        return true 
+      } 
+      const num = Number(value); 
+      return Boolean(num < 0 || num > 4); 
+    };
+
+ 
+
 
     rates.forEach((rate, index) => {
       const rowNum = index +1;
@@ -256,7 +282,7 @@ const ComputeRate = () => {
         errors.push(`Row ${rowNum}: Rounding is required.`);
       } 
 
-      if(isInvalidPositiveNumber(rate.RawBid)) {
+      if(isInvalidPositiveNumber(rate.rawBid)) {
         errors.push(`Row ${rowNum}: RawBid must be a positive number.`);
       }
 
