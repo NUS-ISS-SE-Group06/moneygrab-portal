@@ -96,12 +96,12 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver if your components use it
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+// global.IntersectionObserver = class IntersectionObserver {
+//   constructor() {}
+//   disconnect() {}
+//   observe() {}
+//   unobserve() {}
+// };
 
 // Mock ResizeObserver if your components use it
 // global.ResizeObserver = class ResizeObserver {
