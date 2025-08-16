@@ -1,6 +1,7 @@
 // ComputeRate.test.jsx - Jest compatible version
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import PropTypes from 'prop-types';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ComputeRate from '../ComputeRate';
@@ -19,7 +20,9 @@ const TestWrapper = ({ children }) => (
     {children}
   </QueryClientProvider>
 );// NOSONAR
-
+TestWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 describe('ComputeRate Component', () => {
   beforeEach(() => {
     // Clear all mocks before each test
