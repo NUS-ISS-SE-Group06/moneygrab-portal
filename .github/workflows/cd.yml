@@ -7,7 +7,7 @@ on:
     types: [closed]
 
 jobs:
-  deploy-react-ui:
+  build:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
@@ -29,6 +29,24 @@ jobs:
           CI: false
         run: npm run build
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: build/
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: react-build
+          path: build/
+
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@master
         with:
@@ -40,6 +58,11 @@ jobs:
           AWS_REGION: ap-southeast-1
           SOURCE_DIR: "build"
 
+  invalidate-cache:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Invalidate CloudFront cache
         uses: chetan/invalidate-cloudfront-action@v2
         env:
