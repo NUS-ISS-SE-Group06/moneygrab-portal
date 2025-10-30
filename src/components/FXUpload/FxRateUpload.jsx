@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 
-// Helper for validating columns
+// ✅ Prefer Number.isNaN and Number.parseFloat
 const hasRequiredColumns = (columns) => {
   const required = ["symbol", "bid", "ask"];
   return required.every((col) => columns.includes(col));
 };
 
-// Helper for row validation
+// ✅ Modern, safer parsing
 const parseRow = (line, symbols, setError) => {
   if (!line.trim()) return null;
   const [symbol, bid, ask] = line.split(",").map((x) => x?.trim());
@@ -17,10 +17,12 @@ const parseRow = (line, symbols, setError) => {
     return null;
   }
   symbols.add(symbol);
+  const bidVal = Number.parseFloat(bid);
+  const askVal = Number.parseFloat(ask);
   return {
     symbol,
-    bid: isNaN(bid) ? "" : parseFloat(bid),
-    ask: isNaN(ask) ? "" : parseFloat(ask),
+    bid: Number.isNaN(bidVal) ? "" : bidVal,
+    ask: Number.isNaN(askVal) ? "" : askVal,
   };
 };
 
@@ -32,7 +34,9 @@ const FxRateUpload = ({ onClose }) => {
   const [selectedFileName, setSelectedFileName] = useState(null);
   const fileInputRef = useRef(null);
 
-  const parseFile = (text) => {
+  const parseFile = async (file) => {
+    // ✅ Use Blob.text() instead of FileReader
+    const text = await file.text();
     const lines = text.split("\n").filter((line) => line.trim());
     if (!lines.length) {
       setError("File is empty.");
@@ -49,21 +53,21 @@ const FxRateUpload = ({ onClose }) => {
     const rates = [];
     const symbols = new Set();
 
-    rows.forEach((line) => {
+    // ✅ Prefer for...of loop
+    for (const line of rows) {
       const rate = parseRow(line, symbols, setError);
       if (rate) rates.push(rate);
-    });
+    }
 
     if (!rates.length && !error) setError("No valid FX rates found.");
     return rates;
   };
 
-  // Handle file selection (but do NOT parse yet)
   const handleFxFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const ext = file.name.split(".").pop().toLowerCase();
-      if (!["csv"].includes(ext)) {
+      if (ext !== "csv") {
         setError("Invalid file format. Only CSV files are supported.");
         setFxRates([]);
         setFxFile(null);
@@ -76,35 +80,27 @@ const FxRateUpload = ({ onClose }) => {
       setSelectedFileName(file.name);
       setError(null);
       setSuccessMsg(null);
-      setFxRates([]); // clear previous result until user uploads
+      setFxRates([]);
     }
   };
 
-  // Triggered by the Upload button
-  const handleUploadClick = () => {
+  const handleUploadClick = async () => {
     if (!fxFile) {
       setError("Please choose a file before uploading.");
       setFxRates([]);
       setSuccessMsg(null);
       return;
     }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result;
-      const rates = parseFile(text);
-      if (rates.length) {
-        setFxRates(rates);
-        setError(null);
-        setSuccessMsg(null);
-      } else {
-        setFxRates([]);
-      }
-    };
-    reader.readAsText(fxFile);
+    const rates = await parseFile(fxFile);
+    if (rates.length) {
+      setFxRates(rates);
+      setError(null);
+      setSuccessMsg(null);
+    } else {
+      setFxRates([]);
+    }
   };
 
-  // Save handler — NO API CALL; just show success message
   const handleFxSave = () => {
     if (!fxRates.length) {
       setError("Please upload and review FX rates before saving.");
@@ -115,17 +111,13 @@ const FxRateUpload = ({ onClose }) => {
     setSuccessMsg("FX Rate has been successfully saved");
   };
 
-  // Cancel clears file, table, error/success, and input
   const handleCancel = () => {
     setFxFile(null);
     setSelectedFileName(null);
     setFxRates([]);
     setError(null);
     setSuccessMsg(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    // onClose && onClose(); // keep commented unless you want to close the page/modal
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -133,7 +125,6 @@ const FxRateUpload = ({ onClose }) => {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-extrabold mb-8">FX FILE</h1>
         <div className="bg-white shadow rounded-xl p-8">
-          {/* File Upload Box */}
           <div className="mb-8">
             <label htmlFor="fx-upload-file" className="block font-semibold text-gray-800 mb-2 text-lg">
               Upload files<span className="text-red-500 ml-1">*</span>
@@ -156,10 +147,7 @@ const FxRateUpload = ({ onClose }) => {
               <span className="text-gray-700 text-base font-medium">Drop files here</span>
               <span className="text-xs text-gray-500 mt-1 mb-1">Supported format: CSV</span>
               <span className="text-sm">
-                <label
-                  htmlFor="fx-upload-file"
-                  className="text-indigo-700 hover:underline cursor-pointer font-semibold"
-                >
+                <label htmlFor="fx-upload-file" className="text-indigo-700 hover:underline cursor-pointer font-semibold">
                   Browse files
                 </label>
                 <input
@@ -195,7 +183,6 @@ const FxRateUpload = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Table */}
           <div className="mb-6 overflow-x-auto">
             <table className="w-full border-collapse rounded-xl border overflow-hidden text-base">
               <thead>
@@ -225,41 +212,31 @@ const FxRateUpload = ({ onClose }) => {
             </table>
           </div>
 
-          {/* Save FX Button */}
           <div className="flex">
             <button
               type="button"
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded text-base disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleFxSave}
               disabled={fxRates.length === 0}
-              aria-disabled={fxRates.length === 0}
             >
               + Save FX
             </button>
           </div>
         </div>
 
-        {/* Success message */}
+        {/* ✅ Use <output> instead of role="status" */}
         {successMsg && (
-          <div className="mt-4 max-w-xl">
-            <div
-              className="bg-green-100 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded shadow-sm text-sm"
-              role="status"
-              aria-live="polite"
-            >
+          <output className="mt-4 max-w-xl block">
+            <div className="bg-green-100 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded shadow-sm text-sm">
               <strong className="font-semibold">Success: </strong>
               <span>{successMsg}</span>
             </div>
-          </div>
+          </output>
         )}
 
-        {/* Error message */}
         {error && (
           <div className="mt-4 max-w-xl">
-            <div
-              className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 px-4 py-3 rounded shadow-sm text-sm"
-              role="alert"
-            >
+            <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 px-4 py-3 rounded shadow-sm text-sm">
               <strong className="font-semibold">Error: </strong>
               <span>{error}</span>
             </div>
