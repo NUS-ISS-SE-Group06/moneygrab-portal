@@ -16,7 +16,7 @@ function ComingSoon({ label }) {
     </div>
   );
 }
-// Add PropTypes validation
+//Add PropTypes validation
 ComingSoon.propTypes = {
   label: PropTypes.string.isRequired,
 };
