@@ -24,6 +24,17 @@ It integrates with backend APIs to provide real-time FX rate computations, commi
 
 ## 🚀 Getting Started
 
+## 🧭 Project Structure
+src/
+├── api/               # Axios instance and API service definitions
+├── components/        # Reusable UI components (modals, tables, forms)
+├── pages/             # Main feature pages (ComputeRate, Commission, Transaction)
+├── hooks/             # Custom React Query hooks
+├── utils/             # Utility functions (validation, formatting)
+├── tests/             # Unit test files
+└── main.jsx           # Application entry point
+
+
 ### Prerequisites
 
 - Node.js (>= 18.x)
