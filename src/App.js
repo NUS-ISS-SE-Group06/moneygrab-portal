@@ -21,7 +21,7 @@ import ViewRates from "./pages/ViewRates"; // Make sure this import exists at th
 
 
 
-class ErrorBoundary extends React.Component {
+class ErrorBoundary extends React.Component {  
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
